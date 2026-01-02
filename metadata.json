@@ -1,0 +1,5 @@
+{
+  "name": "MetricDash",
+  "description": "A futuristic dashboard for monitoring orders, carts, and analytics.",
+  "requestFramePermissions": []
+}
