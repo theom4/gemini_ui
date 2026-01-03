@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { queryKeys } from '../lib/queryClient';
 
 // Specific ID provided for the recordings data view
-const DEMO_USER_ID = '0945e2c4-543d-4ade-bd5e-58f72a9627c4';
+const DEMO_USER_ID = 'a9b05492-7393-4c77-a895-015b2c12781b';
 
 export interface CallRecording {
   id: number;
@@ -15,16 +15,19 @@ export interface CallRecording {
   recording_url: string;
   phone_number: string | null;
   direction: string | null;
+  store_name?: string;
 }
 
 async function fetchLatestRecordings(
   userId: string,
+  storeName: string,
   limit: number = 10
 ): Promise<CallRecording[]> {
   const { data, error } = await supabase
     .from('call_recordings')
-    .select('id,user_id,created_at,duration_seconds,recording_url,phone_number,direction')
+    .select('id,user_id,created_at,duration_seconds,recording_url,phone_number,direction,store_name')
     .eq('user_id', userId)
+    .eq('store_name', storeName)
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -32,7 +35,7 @@ async function fetchLatestRecordings(
   return (data as CallRecording[]) || [];
 }
 
-export const useCallRecordingsOptimized = (limit: number = 10) => {
+export const useCallRecordingsOptimized = (storeName: string, limit: number = 10) => {
   // Use fixed demo ID for visibility of specific data set requested
   const userId = DEMO_USER_ID;
   const queryClient = useQueryClient();
@@ -40,9 +43,9 @@ export const useCallRecordingsOptimized = (limit: number = 10) => {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const query = useQuery({
-    queryKey: queryKeys.callRecordings.latest(userId),
-    queryFn: () => fetchLatestRecordings(userId, limit),
-    enabled: !!userId,
+    queryKey: queryKeys.callRecordings.latest(userId, storeName),
+    queryFn: () => fetchLatestRecordings(userId, storeName, limit),
+    enabled: !!userId && !!storeName,
     staleTime: 60_000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
@@ -63,7 +66,7 @@ export const useCallRecordingsOptimized = (limit: number = 10) => {
 
       debounceTimerRef.current = setTimeout(() => {
         console.log('[CallRecordings] New recording detected, refetching...');
-        queryClient.invalidateQueries({ queryKey: queryKeys.callRecordings.latest(userId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.callRecordings.latest(userId, storeName) });
       }, 500);
     };
 
@@ -79,6 +82,8 @@ export const useCallRecordingsOptimized = (limit: number = 10) => {
         },
         (payload) => {
           console.log('[CallRecordings] New recording inserted:', payload.new);
+          // Simple invalidation strategy: if any recording comes in for this user, refetch.
+          // The fetch query will filter by store_name automatically.
           debouncedRefetch();
         }
       )
@@ -95,7 +100,7 @@ export const useCallRecordingsOptimized = (limit: number = 10) => {
         realtimeChannelRef.current = null;
       }
     };
-  }, [userId, queryClient, query.data]);
+  }, [userId, queryClient, query.data, storeName]);
 
   return {
     recordings: query.data || [],

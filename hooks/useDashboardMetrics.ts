@@ -17,14 +17,16 @@ export interface CallMetrics {
   cosuri_recuperate: number;
   vanzari_generate: number;
   comenzi_confirmate: number;
+  store_name?: string;
 }
 
-async function fetchLatestMetrics(userId: string): Promise<CallMetrics | null> {
+async function fetchLatestMetrics(userId: string, storeName: string): Promise<CallMetrics | null> {
   try {
       const { data, error } = await supabase
         .from('call_metrics')
         .select('*')
         .eq('user_id', userId)
+        .eq('store_name', storeName)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle(); 
@@ -40,12 +42,13 @@ async function fetchLatestMetrics(userId: string): Promise<CallMetrics | null> {
   }
 }
 
-async function fetchMetricsHistory(userId: string, days: number = 7): Promise<CallMetrics[]> {
+async function fetchMetricsHistory(userId: string, storeName: string, days: number = 7): Promise<CallMetrics[]> {
   try {
       const { data, error } = await supabase
         .from('call_metrics')
         .select('*')
         .eq('user_id', userId)
+        .eq('store_name', storeName)
         .order('created_at', { ascending: false }) // Get latest first
         .limit(days);
 
@@ -61,22 +64,22 @@ async function fetchMetricsHistory(userId: string, days: number = 7): Promise<Ca
   }
 }
 
-export const useDashboardMetrics = () => {
+export const useDashboardMetrics = (storeName: string) => {
   const { session } = useAuth();
   const userId = session?.user?.id;
 
   const latestQuery = useQuery({
-    queryKey: queryKeys.dashboard.latest(userId || ''),
-    queryFn: () => fetchLatestMetrics(userId!),
-    enabled: !!userId,
+    queryKey: queryKeys.dashboard.latest(userId || '', storeName),
+    queryFn: () => fetchLatestMetrics(userId!, storeName),
+    enabled: !!userId && !!storeName,
     staleTime: 30_000, 
     retry: 1, 
   });
 
   const historyQuery = useQuery({
-    queryKey: queryKeys.dashboard.history(userId || ''),
-    queryFn: () => fetchMetricsHistory(userId!),
-    enabled: !!userId,
+    queryKey: queryKeys.dashboard.history(userId || '', storeName),
+    queryFn: () => fetchMetricsHistory(userId!, storeName),
+    enabled: !!userId && !!storeName,
     staleTime: 5 * 60_000,
     retry: 1,
   });

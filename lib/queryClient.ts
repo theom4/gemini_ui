@@ -34,11 +34,11 @@ export const queryKeys = {
     all: ['call-recordings'] as const,
     list: (userId: string, limit: number, offset: number) =>
       ['call-recordings', 'list', userId, limit, offset] as const,
-    latest: (userId: string) => ['call-recordings', 'latest', userId] as const,
+    latest: (userId: string, storeName: string) => ['call-recordings', 'latest', userId, storeName] as const,
   },
   dashboard: {
-    latest: (userId: string) => ['dashboard', 'latest', userId] as const,
-    history: (userId: string) => ['dashboard', 'history', userId] as const,
+    latest: (userId: string, storeName: string) => ['dashboard', 'latest', userId, storeName] as const,
+    history: (userId: string, storeName: string) => ['dashboard', 'history', userId, storeName] as const,
   },
   admin: {
     users: ['admin', 'users'] as const,

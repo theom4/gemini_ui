@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCallRecordingsOptimized } from '../hooks/useCallRecordings';
 
 export default function CallRecordings() {
-    const { recordings, loading, error, isRefetching } = useCallRecordingsOptimized(10);
+    const [selectedBrand, setSelectedBrand] = useState('Tamtrend');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    // Increased limit to 50 to pull more records ("pull all" request)
+    const { recordings, loading, error, isRefetching } = useCallRecordingsOptimized(selectedBrand, 50);
 
     const formatDuration = (seconds: number | null) => {
         if (!seconds) return '00:00';
@@ -23,19 +26,56 @@ export default function CallRecordings() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-end justify-between">
                 <div>
                     <h2 className="text-3xl font-light dark:text-white mb-2 tracking-tight">Înregistrări Apeluri</h2>
                     <p className="text-sm text-gray-500 dark:text-gray-400 font-light">
                         Ultimele conversații înregistrate de AI
                     </p>
                 </div>
-                {isRefetching && (
-                    <div className="flex items-center gap-2 text-primary text-sm animate-pulse">
-                        <span className="material-icons-round text-sm">sync</span>
-                        Actualizare...
+                
+                <div className="flex gap-3 items-center relative z-50">
+                    {isRefetching && (
+                        <div className="flex items-center gap-2 text-primary text-sm animate-pulse mr-2">
+                            <span className="material-icons-round text-sm">sync</span>
+                            Actualizare...
+                        </div>
+                    )}
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className="btn-3d-secondary px-5 py-3 rounded-xl text-sm font-normal flex items-center gap-3 tracking-wide hover:text-white transition-all min-w-[160px] justify-between"
+                        >
+                            <div className="flex items-center gap-2">
+                                <span className="material-icons-round text-lg text-primary">store</span>
+                                <span>{selectedBrand}</span>
+                            </div>
+                            <span className={`material-icons-round text-xl transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                        </button>
+
+                        {isDropdownOpen && (
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
+                                <div className="absolute right-0 top-full mt-2 w-full min-w-[160px] rounded-xl bg-[#13141a] border border-white/5 shadow-xl z-50 overflow-hidden backdrop-blur-xl animate-in fade-in zoom-in-95 duration-100">
+                                    <button
+                                        onClick={() => { setSelectedBrand('Tamtrend'); setIsDropdownOpen(false); }}
+                                        className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 hover:bg-white/5 ${selectedBrand === 'Tamtrend' ? 'text-white bg-white/5' : 'text-gray-400'}`}
+                                    >
+                                        <span className={`w-2 h-2 rounded-full ${selectedBrand === 'Tamtrend' ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-transparent border border-gray-600'}`}></span>
+                                        Tamtrend
+                                    </button>
+                                    <button
+                                        onClick={() => { setSelectedBrand('Vitadomus'); setIsDropdownOpen(false); }}
+                                        className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 hover:bg-white/5 ${selectedBrand === 'Vitadomus' ? 'text-white bg-white/5' : 'text-gray-400'}`}
+                                    >
+                                        <span className={`w-2 h-2 rounded-full ${selectedBrand === 'Vitadomus' ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-transparent border border-gray-600'}`}></span>
+                                        Vitadomus
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
 
             {error && (
@@ -54,7 +94,7 @@ export default function CallRecordings() {
                                 <th className="py-4 px-6 font-medium">Telefon</th>
                                 <th className="py-4 px-6 font-medium">Durată</th>
                                 <th className="py-4 px-6 font-medium">Înregistrare</th>
-                                <th className="py-4 px-6 text-right font-medium">Acțiuni</th>
+                                <th className="py-4 px-6 text-right font-medium">Link</th>
                             </tr>
                         </thead>
                         <tbody className="text-sm divide-y divide-gray-800/50">
@@ -73,7 +113,7 @@ export default function CallRecordings() {
                                     <td colSpan={5} className="py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-3">
                                             <span className="material-icons-round text-4xl opacity-20">mic_off</span>
-                                            <p className="font-light">Nu există înregistrări disponibile</p>
+                                            <p className="font-light">Nu există înregistrări disponibile pentru {selectedBrand}</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -120,7 +160,7 @@ export default function CallRecordings() {
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="w-9 h-9 btn-3d-secondary rounded-lg inline-flex items-center justify-center hover:text-primary transition-colors"
-                                                title="Descarcă"
+                                                title="Descarcă înregistrarea"
                                             >
                                                 <span className="material-icons-round text-lg">download</span>
                                             </a>
@@ -136,7 +176,7 @@ export default function CallRecordings() {
             {!loading && recordings.length > 0 && (
                 <div className="text-center">
                     <p className="text-xs text-gray-500 font-light italic">
-                        Se afișează ultimele {recordings.length} înregistrări.
+                        Se afișează ultimele {recordings.length} înregistrări pentru {selectedBrand}.
                     </p>
                 </div>
             )}

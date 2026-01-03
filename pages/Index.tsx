@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useDashboardMetrics } from '../hooks/useDashboardMetrics';
 
 const Index = () => {
-    const { latestMetrics, historyMetrics, loading } = useDashboardMetrics();
+    const [selectedBrand, setSelectedBrand] = useState('Tamtrend');
+    const { latestMetrics, historyMetrics, loading } = useDashboardMetrics(selectedBrand);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     // Format history data for Area Chart
     const orderData = historyMetrics.length > 0 
@@ -50,11 +52,41 @@ const Index = () => {
                 <div>
                     <h2 className="text-3xl font-light dark:text-white mb-2 tracking-tight">Bine ai revenit, Admin! <span className="inline-block animate-bounce">👋</span></h2>
                 </div>
-                <div className="flex gap-3">
-                    <button className="btn-3d-secondary px-6 py-3 rounded-xl text-sm font-normal flex items-center gap-2 tracking-wide">
-                        <span className="material-icons-round text-base">file_download</span>
-                        EXPORTĂ
-                    </button>
+                <div className="flex gap-3 relative z-50">
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className="btn-3d-secondary px-5 py-3 rounded-xl text-sm font-normal flex items-center gap-3 tracking-wide hover:text-white transition-all min-w-[160px] justify-between"
+                        >
+                            <div className="flex items-center gap-2">
+                                <span className="material-icons-round text-lg text-primary">store</span>
+                                <span>{selectedBrand}</span>
+                            </div>
+                            <span className={`material-icons-round text-xl transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                        </button>
+
+                        {isDropdownOpen && (
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
+                                <div className="absolute right-0 top-full mt-2 w-full min-w-[160px] rounded-xl bg-[#13141a] border border-white/5 shadow-xl z-50 overflow-hidden backdrop-blur-xl animate-in fade-in zoom-in-95 duration-100">
+                                    <button
+                                        onClick={() => { setSelectedBrand('Tamtrend'); setIsDropdownOpen(false); }}
+                                        className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 hover:bg-white/5 ${selectedBrand === 'Tamtrend' ? 'text-white bg-white/5' : 'text-gray-400'}`}
+                                    >
+                                        <span className={`w-2 h-2 rounded-full ${selectedBrand === 'Tamtrend' ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-transparent border border-gray-600'}`}></span>
+                                        Tamtrend
+                                    </button>
+                                    <button
+                                        onClick={() => { setSelectedBrand('Vitadomus'); setIsDropdownOpen(false); }}
+                                        className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 hover:bg-white/5 ${selectedBrand === 'Vitadomus' ? 'text-white bg-white/5' : 'text-gray-400'}`}
+                                    >
+                                        <span className={`w-2 h-2 rounded-full ${selectedBrand === 'Vitadomus' ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-transparent border border-gray-600'}`}></span>
+                                        Vitadomus
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
 
