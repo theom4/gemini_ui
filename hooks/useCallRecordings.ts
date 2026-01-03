@@ -4,21 +4,26 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { queryKeys } from '../lib/queryClient';
 
+// Specific ID provided for the recordings data view
+const DEMO_USER_ID = '0945e2c4-543d-4ade-bd5e-58f72a9627c4';
+
 export interface CallRecording {
   id: number;
   user_id: string;
   created_at: string;
   duration_seconds: number | null;
   recording_url: string;
+  phone_number: string | null;
+  direction: string | null;
 }
 
 async function fetchLatestRecordings(
   userId: string,
-  limit: number = 20
+  limit: number = 10
 ): Promise<CallRecording[]> {
   const { data, error } = await supabase
     .from('call_recordings')
-    .select('id,user_id,created_at,duration_seconds,recording_url')
+    .select('id,user_id,created_at,duration_seconds,recording_url,phone_number,direction')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -27,17 +32,16 @@ async function fetchLatestRecordings(
   return (data as CallRecording[]) || [];
 }
 
-export const useCallRecordingsOptimized = (limit: number = 20) => {
-  const { profile } = useAuth();
+export const useCallRecordingsOptimized = (limit: number = 10) => {
+  // Use fixed demo ID for visibility of specific data set requested
+  const userId = DEMO_USER_ID;
   const queryClient = useQueryClient();
   const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const userId = profile?.id;
-
   const query = useQuery({
-    queryKey: queryKeys.callRecordings.latest(userId || ''),
-    queryFn: () => fetchLatestRecordings(userId!, limit),
+    queryKey: queryKeys.callRecordings.latest(userId),
+    queryFn: () => fetchLatestRecordings(userId, limit),
     enabled: !!userId,
     staleTime: 60_000,
     refetchOnWindowFocus: true,
@@ -102,18 +106,15 @@ export const useCallRecordingsOptimized = (limit: number = 20) => {
   };
 };
 
-export const useCallRecordingsInfinite = (pageSize: number = 20) => {
-  const { profile } = useAuth();
-  const userId = profile?.id;
+export const useCallRecordingsInfinite = (pageSize: number = 10) => {
+  const userId = DEMO_USER_ID;
 
   const query = useInfiniteQuery({
-    queryKey: queryKeys.callRecordings.list(userId || '', pageSize, 0),
+    queryKey: queryKeys.callRecordings.list(userId, pageSize, 0),
     queryFn: async ({ pageParam = 0 }) => {
-      if (!userId) return { recordings: [], nextCursor: null };
-
       const { data, error } = await supabase
         .from('call_recordings')
-        .select('id,user_id,created_at,duration_seconds,recording_url', { count: 'exact' })
+        .select('id,user_id,created_at,duration_seconds,recording_url,phone_number,direction', { count: 'exact' })
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .range(pageParam as number, (pageParam as number) + pageSize - 1);

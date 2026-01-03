@@ -35,12 +35,12 @@ const Index = () => {
     // Widget Data
     const totalComenzi = latestMetrics?.total_comenzi || 0;
     const cosuriRecuperate = latestMetrics?.cosuri_recuperate || 0;
-    const comenziConfirmate = latestMetrics?.comenzi_confirmate || 0; // Now mapped correctly to DB column
+    const comenziConfirmate = latestMetrics?.comenzi_confirmate || 0; 
     const vanzariGenerate = latestMetrics?.vanzari_generate || 0;
 
     // Helper for loading state
     const displayValue = (val: number | string) => {
-        if (loading) return '...';
+        if (loading && !latestMetrics) return '...';
         return val;
     };
 
@@ -146,7 +146,7 @@ const Index = () => {
                         <div className="mt-4">
                             <p className="text-sm text-purple-200 font-light mb-1">Vânzări Generate</p>
                             <h3 className="text-4xl font-light mt-1 drop-shadow-md font-num glow-text">
-                                {loading ? '...' : `${vanzariGenerate.toLocaleString()} RON`}
+                                {displayValue(loading && !latestMetrics ? '...' : `${vanzariGenerate.toLocaleString()} RON`)}
                             </h3>
                         </div>
                     </div>

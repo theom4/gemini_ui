@@ -1,9 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
 import { queryKeys } from '../lib/queryClient';
-
-// Specific ID provided for the demo/production data view
-const DEMO_USER_ID = 'a9b05492-7393-4c77-a895-015b2c12781b';
+import { useAuth } from '../contexts/AuthContext';
 
 export interface CallMetrics {
   id: number;
@@ -29,7 +27,7 @@ async function fetchLatestMetrics(userId: string): Promise<CallMetrics | null> {
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1)
-        .maybeSingle(); // Changed to maybeSingle to handle 0 rows gracefully without error
+        .maybeSingle(); 
 
       if (error) {
         console.error('Error fetching metrics:', error);
@@ -48,14 +46,15 @@ async function fetchMetricsHistory(userId: string, days: number = 7): Promise<Ca
         .from('call_metrics')
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: true }) // Ascending for charts
+        .order('created_at', { ascending: false }) // Get latest first
         .limit(days);
 
       if (error) {
           console.error('Error fetching history:', error);
           return [];
       }
-      return data || [];
+      // Reverse to chronological order for charts
+      return (data || []).reverse();
   } catch (err) {
       console.error('Unexpected error fetching history:', err);
       return [];
@@ -63,20 +62,20 @@ async function fetchMetricsHistory(userId: string, days: number = 7): Promise<Ca
 }
 
 export const useDashboardMetrics = () => {
-  // Use the specific demo ID to ensure we show the correct data regardless of auth state for this view
-  const userId = DEMO_USER_ID;
+  const { session } = useAuth();
+  const userId = session?.user?.id;
 
   const latestQuery = useQuery({
-    queryKey: queryKeys.dashboard.latest(userId),
-    queryFn: () => fetchLatestMetrics(userId),
+    queryKey: queryKeys.dashboard.latest(userId || ''),
+    queryFn: () => fetchLatestMetrics(userId!),
     enabled: !!userId,
     staleTime: 30_000, 
     retry: 1, 
   });
 
   const historyQuery = useQuery({
-    queryKey: queryKeys.dashboard.history(userId),
-    queryFn: () => fetchMetricsHistory(userId),
+    queryKey: queryKeys.dashboard.history(userId || ''),
+    queryFn: () => fetchMetricsHistory(userId!),
     enabled: !!userId,
     staleTime: 5 * 60_000,
     retry: 1,
@@ -85,7 +84,8 @@ export const useDashboardMetrics = () => {
   return {
     latestMetrics: latestQuery.data,
     historyMetrics: historyQuery.data || [],
-    loading: latestQuery.isLoading || historyQuery.isLoading,
+    loading: latestQuery.isLoading, // Only block specific widgets on latest query
+    historyLoading: historyQuery.isLoading,
     error: latestQuery.error || historyQuery.error,
   };
 };

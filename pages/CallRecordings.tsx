@@ -2,7 +2,7 @@ import React from 'react';
 import { useCallRecordingsOptimized } from '../hooks/useCallRecordings';
 
 export default function CallRecordings() {
-    const { recordings, loading, error, isRefetching } = useCallRecordingsOptimized(20);
+    const { recordings, loading, error, isRefetching } = useCallRecordingsOptimized(10);
 
     const formatDuration = (seconds: number | null) => {
         if (!seconds) return '00:00';
@@ -51,6 +51,7 @@ export default function CallRecordings() {
                         <thead>
                             <tr className="text-xs font-normal text-gray-500 uppercase tracking-wider border-b border-gray-800/50 bg-surface-dark-lighter/30">
                                 <th className="py-4 px-6 font-medium">Data & Ora</th>
+                                <th className="py-4 px-6 font-medium">Telefon</th>
                                 <th className="py-4 px-6 font-medium">Durată</th>
                                 <th className="py-4 px-6 font-medium">Înregistrare</th>
                                 <th className="py-4 px-6 text-right font-medium">Acțiuni</th>
@@ -61,6 +62,7 @@ export default function CallRecordings() {
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
                                         <td className="py-4 px-6"><div className="h-4 bg-gray-700/50 rounded w-32"></div></td>
+                                        <td className="py-4 px-6"><div className="h-4 bg-gray-700/50 rounded w-24"></div></td>
                                         <td className="py-4 px-6"><div className="h-4 bg-gray-700/50 rounded w-16"></div></td>
                                         <td className="py-4 px-6"><div className="h-8 bg-gray-700/50 rounded w-64"></div></td>
                                         <td className="py-4 px-6"><div className="h-8 bg-gray-700/50 rounded w-8 ml-auto"></div></td>
@@ -68,7 +70,7 @@ export default function CallRecordings() {
                                 ))
                             ) : recordings.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="py-12 text-center text-gray-500">
+                                    <td colSpan={5} className="py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-3">
                                             <span className="material-icons-round text-4xl opacity-20">mic_off</span>
                                             <p className="font-light">Nu există înregistrări disponibile</p>
@@ -84,6 +86,17 @@ export default function CallRecordings() {
                                                     <span className="material-icons-round text-sm">calendar_today</span>
                                                 </div>
                                                 <span className="dark:text-gray-200 font-light font-num">{formatDate(rec.created_at)}</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <div className="flex items-center gap-2">
+                                                <span 
+                                                    className={`material-icons-round text-sm ${rec.direction === 'inbound' ? 'text-green-400' : 'text-blue-400'}`}
+                                                    title={rec.direction === 'inbound' ? 'Apel Primit' : 'Apel Inițiat'}
+                                                >
+                                                    {rec.direction === 'inbound' ? 'call_received' : 'call_made'}
+                                                </span>
+                                                <span className="font-num text-gray-300 tracking-wide">{rec.phone_number || 'Necunoscut'}</span>
                                             </div>
                                         </td>
                                         <td className="py-4 px-6">
