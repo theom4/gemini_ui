@@ -94,10 +94,20 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   useEffect(() => {
     let isMounted = true;
 
-    // Deterministic initialization logic
+    // Deterministic initialization logic with Safety Timeout
     const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        // Race Supabase getSession against a timeout. 
+        // Chrome sometimes hangs on getSession if extensions interfere or storage is slow.
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise<{ data: { session: Session | null } }>((resolve) => {
+            setTimeout(() => resolve({ data: { session: null } }), 2500);
+        });
+
+        const { data: { session } } = await Promise.race([
+            sessionPromise,
+            timeoutPromise
+        ]);
         
         if (!isMounted) return;
         
@@ -159,6 +169,9 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
       setSession(session);
       
       if (session?.user) {
+        // If we just logged in (or session refreshed), ensure loading is false
+        setLoading(false); 
+        
         const cacheKey = `profile:${session.user.id}`;
         try {
           const profileData = await getProfile(session.user.id);
@@ -183,7 +196,7 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
         }
       } else {
         setProfile(null);
-        setLoading(false); // Ensure loading is off if we logged out via event
+        setLoading(false); 
       }
     });
 
