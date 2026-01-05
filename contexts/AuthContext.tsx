@@ -73,30 +73,41 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
 
   const signOut = async () => {
       try {
-          await supabase.auth.signOut();
+          // Use Promise.race to prevent hanging if the network request is blocked or fails
+          await Promise.race([
+              supabase.auth.signOut(),
+              new Promise(resolve => setTimeout(resolve, 1000))
+          ]);
       } catch (error) {
           console.error("Error signing out:", error);
       } finally {
           setSession(null);
           setProfile(null);
+          try {
+            // Clear any persisted profile data
+            const keyToRemove = session?.user?.id ? `profile:${session.user.id}` : null;
+            if (keyToRemove) localStorage.removeItem(keyToRemove);
+          } catch {}
       }
   };
 
   useEffect(() => {
     let isMounted = true;
-    const watchdog = setTimeout(() => {
-      if (isMounted) setLoading(false);
-    }, 1000);
 
-    (async () => {
+    // Deterministic initialization logic
+    const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        
         if (!isMounted) return;
+        
         setSession(session);
+
         if (session?.user) {
           const cacheKey = `profile:${session.user.id}`;
 
           try {
+            // Try fetching fresh profile
             const profileData = await getProfile(session.user.id);
             if (!isMounted) return;
 
@@ -117,7 +128,8 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
               setProfile({ id: session.user.id, role: 'user' });
             }
           } catch (error) {
-            console.error('Failed to fetch profile:', error);
+            console.error('Failed to fetch profile during init:', error);
+            // Fallback to cache if network fails
             try {
               const cached = localStorage.getItem(cacheKey);
               if (cached && isMounted) {
@@ -133,14 +145,19 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
         } else {
           setProfile(null);
         }
+      } catch (err) {
+        console.error("Auth initialization error:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
-    })();
+    };
+
+    initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!isMounted) return;
       setSession(session);
+      
       if (session?.user) {
         const cacheKey = `profile:${session.user.id}`;
         try {
@@ -161,17 +178,17 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
             setProfile({ id: session.user.id, role: 'user' });
           }
         } catch (error) {
-          console.error('Failed to fetch profile:', error);
+          console.error('Failed to fetch profile on auth change:', error);
           if (isMounted) setProfile({ id: session.user.id, role: 'user' });
         }
       } else {
         setProfile(null);
+        setLoading(false); // Ensure loading is off if we logged out via event
       }
     });
 
     return () => {
       isMounted = false;
-      clearTimeout(watchdog);
       subscription.unsubscribe();
     };
   }, []);
