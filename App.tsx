@@ -197,7 +197,11 @@ function Sidebar() {
     const userEmail = session?.user?.email;
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
+        try {
+            await supabase.auth.signOut();
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
     };
 
     // WhatsApp SVG Icon
@@ -233,7 +237,7 @@ function Sidebar() {
             </nav>
 
             <div className="p-4 border-t border-gray-200 dark:border-gray-800">
-                <div className="flex items-center gap-3 p-3 rounded-xl glass-panel-3d hover:brightness-110 cursor-pointer transition-all group">
+                <div className="flex items-center gap-3 p-3 rounded-xl glass-panel-3d transition-all group relative">
                     <div className="relative">
                         <img 
                             alt="User Profile" 
@@ -248,10 +252,11 @@ function Sidebar() {
                     </div>
                     <button 
                         onClick={handleLogout}
-                        className="material-icons-round text-gray-400 hover:text-white transition-colors"
+                        className="w-9 h-9 ml-auto flex items-center justify-center rounded-lg bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 text-gray-400 hover:text-red-400 transition-all focus:outline-none active:scale-95"
                         title="Deconectare"
+                        type="button"
                     >
-                        logout
+                        <span className="material-icons-round text-lg">logout</span>
                     </button>
                 </div>
             </div>

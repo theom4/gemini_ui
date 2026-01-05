@@ -34,6 +34,17 @@ const Index = () => {
     ];
     const conversionColors = ['#8b5cf6', '#374151'];
 
+    // Dynamic Data for "Conversie Drafturi" from rata_conversie_drafturi
+    const draftConversionRate = latestMetrics?.rata_conversie_drafturi || 0;
+    const draftAbandonedRate = 100 - draftConversionRate;
+
+    const draftData = [
+        { name: 'Finalizate', value: draftConversionRate },
+        { name: 'Abandonate', value: draftAbandonedRate < 0 ? 0 : draftAbandonedRate },
+    ];
+    // Using Emerald green (#10b981) similar to "Comenzi Confirmate" / "Cosuri Recuperate" accents
+    const draftColors = ['#10b981', '#374151'];
+
     // Widget Data
     const totalComenzi = latestMetrics?.total_comenzi || 0;
     const cosuriRecuperate = latestMetrics?.cosuri_recuperate || 0;
@@ -185,8 +196,9 @@ const Index = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                {/* Orders Chart */}
+            {/* Changed grid to 4 columns to accommodate the new card */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+                {/* Orders Chart - Now spans 2 columns (shrunk from 2/3 to 2/4) */}
                 <div className="lg:col-span-2 card-depth p-6 rounded-2xl relative">
                     <div className="flex justify-between items-center mb-6">
                         <div>
@@ -227,10 +239,63 @@ const Index = () => {
                     </div>
                 </div>
 
-                {/* Conversion Chart */}
+                {/* NEW CARD: Conversie Drafturi */}
                 <div className="lg:col-span-1 card-depth p-6 rounded-2xl flex flex-col justify-between">
                     <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-xl font-light dark:text-white tracking-tight">Rată de Conversie</h3>
+                        <h3 className="text-xl font-light dark:text-white tracking-tight">Conversie Drafturi</h3>
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                            <span className="material-icons-round text-emerald-500 text-lg">drafts</span>
+                        </div>
+                    </div>
+                    <div className="relative w-56 h-56 mx-auto my-4 flex items-center justify-center">
+                        <div className="absolute inset-0 bg-emerald-500/20 blur-3xl rounded-full"></div>
+                        <div className="relative w-full h-full z-10">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={draftData}
+                                        innerRadius={75}
+                                        outerRadius={90}
+                                        paddingAngle={0}
+                                        dataKey="value"
+                                        stroke="none"
+                                    >
+                                        {draftData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={draftColors[index % draftColors.length]} />
+                                        ))}
+                                    </Pie>
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                        <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none z-20">
+                            <span className="text-5xl font-light dark:text-white drop-shadow-lg font-num glow-text">
+                                {displayValue(draftConversionRate.toFixed(2))}<span className="text-2xl align-top">%</span>
+                            </span>
+                            <span className="text-xs font-normal text-gray-400 uppercase tracking-wide mt-1">Conversie</span>
+                        </div>
+                    </div>
+                    <div className="space-y-3 bg-surface-dark-lighter/50 p-4 rounded-xl border border-white/5">
+                        <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                                <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                                <span className="text-gray-400 font-light">Finalizate</span>
+                            </div>
+                            <span className="font-normal dark:text-white font-num">{displayValue(draftConversionRate.toFixed(2))}%</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                                <span className="w-3 h-3 rounded-full bg-gray-700 border border-gray-600"></span>
+                                <span className="text-gray-400 font-light">Abandonate</span>
+                            </div>
+                            <span className="font-normal dark:text-white font-num">{displayValue(draftAbandonedRate.toFixed(2))}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Conversion Chart - Upsell (Moved to span 1 in 4-col grid) */}
+                <div className="lg:col-span-1 card-depth p-6 rounded-2xl flex flex-col justify-between">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-xl font-light dark:text-white tracking-tight">Conversie Upsell</h3>
                         <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center border border-green-500/20">
                             <span className="material-icons-round text-green-500 text-lg">trending_up</span>
                         </div>

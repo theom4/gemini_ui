@@ -11,6 +11,7 @@ export interface CallMetrics {
   apeluri_initiate: number;
   apeluri_primite: number;
   rata_conversie: number;
+  rata_conversie_drafturi: number; // Added field
   minute_consumate: number;
   total_comenzi: number;
   cosuri_abandonate: number;
