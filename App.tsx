@@ -193,12 +193,12 @@ function Header({ userEmail }: { userEmail?: string }) {
 }
 
 function Sidebar() {
-    const { session } = useAuth();
+    const { session, signOut } = useAuth();
     const userEmail = session?.user?.email;
 
     const handleLogout = async () => {
         try {
-            await supabase.auth.signOut();
+            await signOut();
         } catch (error) {
             console.error('Logout error:', error);
         }

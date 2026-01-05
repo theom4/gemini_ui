@@ -15,6 +15,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   refreshProfile: () => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -68,6 +69,17 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
     } catch (error) {
       console.error('Failed to refresh profile:', error);
     }
+  };
+
+  const signOut = async () => {
+      try {
+          await supabase.auth.signOut();
+      } catch (error) {
+          console.error("Error signing out:", error);
+      } finally {
+          setSession(null);
+          setProfile(null);
+      }
   };
 
   useEffect(() => {
@@ -204,7 +216,7 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   }, [session?.user?.id]);
 
   return (
-    <AuthContext.Provider value={{ session, profile, loading, refreshProfile }}>
+    <AuthContext.Provider value={{ session, profile, loading, refreshProfile, signOut }}>
       {!loading ? children : <div className="flex items-center justify-center min-h-screen bg-[#0a0b14] text-white">Loading session...</div>}
     </AuthContext.Provider>
   );
