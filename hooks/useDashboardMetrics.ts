@@ -25,16 +25,10 @@ async function fetchLatestMetrics(userId: string, storeName: string): Promise<Ca
   try {
       console.log('🔄 Fetching metrics for:', { userId, storeName });
 
-      const session = await supabase.auth.getSession();
-      console.log('🔑 Current session:', session.data.session ? 'EXISTS' : 'NULL');
-      console.log('🆔 Auth UID:', session.data.session?.user?.id);
+      // Remove session check - it's causing the timeout
+      // const session = await supabase.auth.getSession();
       
-      // Add timeout to prevent infinite hanging
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Query timeout after 10 seconds')), 20000)
-      );
-      
-      const queryPromise = supabase
+      const { data, error } = await supabase
         .from('call_metrics')
         .select('*')
         .eq('user_id', userId)
@@ -42,8 +36,6 @@ async function fetchLatestMetrics(userId: string, storeName: string): Promise<Ca
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-      
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       if (error) {
         console.error('❌ Error fetching metrics:', error);
