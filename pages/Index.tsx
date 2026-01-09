@@ -7,6 +7,8 @@ const Index = () => {
     const { latestMetrics, historyMetrics, loading } = useDashboardMetrics(selectedBrand);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const isInitialLoading = loading && !latestMetrics;
+    const { session } = useAuth();
+console.log('🔍 Debug Info:', { userId: session?.user?.id, storeName: selectedBrand, loading, hasData: !!latestMetrics });
 
     // Format history data for Area Chart
     const orderData = historyMetrics.length > 0 
