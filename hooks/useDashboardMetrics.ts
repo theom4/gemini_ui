@@ -25,14 +25,21 @@ async function fetchLatestMetrics(userId: string, storeName: string): Promise<Ca
   try {
       console.log('🔄 Fetching metrics for:', { userId, storeName });
       
-      const { data, error } = await supabase
+      // Add timeout to prevent infinite hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Query timeout after 10 seconds')), 10000)
+      );
+      
+      const queryPromise = supabase
         .from('call_metrics')
         .select('*')
         .eq('user_id', userId)
         .eq('store_name', storeName)
         .order('created_at', { ascending: false })
         .limit(1)
-        .maybeSingle(); 
+        .maybeSingle();
+      
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       if (error) {
         console.error('❌ Error fetching metrics:', error);
@@ -42,7 +49,7 @@ async function fetchLatestMetrics(userId: string, storeName: string): Promise<Ca
       console.log('✅ Metrics fetched:', data);
       return data;
   } catch (err) {
-      console.error('Unexpected error fetching metrics:', err);
+      console.error('💥 Unexpected error fetching metrics:', err);
       return null;
   }
 }
