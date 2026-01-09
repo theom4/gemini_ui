@@ -99,15 +99,23 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
       try {
         // Race Supabase getSession against a timeout. 
         // Chrome sometimes hangs on getSession if extensions interfere or storage is slow.
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise<{ data: { session: Session | null } }>((resolve) => {
-            setTimeout(() => resolve({ data: { session: null } }), 6000);
-        });
+       let session: Session | null = null;
 
-        const { data: { session } } = await Promise.race([
-            sessionPromise,
-            timeoutPromise
-        ]);
+try {
+    const { data } = await Promise.race([
+        supabase.auth.getSession(),
+        new Promise<{ data: { session: Session | null } }>((resolve) => 
+            setTimeout(() => {
+                console.warn('Session fetch timeout');
+                resolve({ data: { session: null } });
+            }, 10000) // Increased to 10 seconds
+        )
+    ]);
+    session = data.session;
+} catch (error) {
+    console.error('Error getting session:', error);
+    session = null;
+}
         
         if (!isMounted) return;
         

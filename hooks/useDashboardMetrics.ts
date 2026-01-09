@@ -24,10 +24,14 @@ export interface CallMetrics {
 async function fetchLatestMetrics(userId: string, storeName: string): Promise<CallMetrics | null> {
   try {
       console.log('🔄 Fetching metrics for:', { userId, storeName });
+
+      const session = await supabase.auth.getSession();
+      console.log('🔑 Current session:', session.data.session ? 'EXISTS' : 'NULL');
+      console.log('🆔 Auth UID:', session.data.session?.user?.id);
       
       // Add timeout to prevent infinite hanging
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Query timeout after 10 seconds')), 10000)
+        setTimeout(() => reject(new Error('Query timeout after 10 seconds')), 20000)
       );
       
       const queryPromise = supabase
