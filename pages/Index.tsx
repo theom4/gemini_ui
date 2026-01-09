@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useDashboardMetrics } from '../hooks/useDashboardMetrics';
+import { useAuth } from '../contexts/AuthContext';
 
 const Index = () => {
     const [selectedBrand, setSelectedBrand] = useState('Tamtrend');
