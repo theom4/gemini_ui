@@ -5,9 +5,9 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: window.localStorage
+    persistSession: false, // Changed to false - no persistence
+    autoRefreshToken: false, // Changed to false
+    detectSessionInUrl: false, // Changed to false
+    storage: undefined // Remove storage completely
   }
 });

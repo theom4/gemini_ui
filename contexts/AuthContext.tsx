@@ -91,78 +91,25 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
       }
   };
 
-  useEffect(() => {
+useEffect(() => {
     let isMounted = true;
 
-    // Deterministic initialization logic with Safety Timeout
+    // FORCE FRESH LOGIN - Clear any existing session on mount
     const initializeAuth = async () => {
       try {
-        // Race Supabase getSession against a timeout. 
-        // Chrome sometimes hangs on getSession if extensions interfere or storage is slow.
-       let session: Session | null = null;
-
-try {
-    const { data } = await Promise.race([
-        supabase.auth.getSession(),
-        new Promise<{ data: { session: Session | null } }>((resolve) => 
-            setTimeout(() => {
-                console.warn('Session fetch timeout');
-                resolve({ data: { session: null } });
-            }, 10000) // Increased to 10 seconds
-        )
-    ]);
-    session = data.session;
-} catch (error) {
-    console.error('Error getting session:', error);
-    session = null;
-}
+        // Clear the session first
+        await supabase.auth.signOut();
         
         if (!isMounted) return;
         
-        setSession(session);
-
-        if (session?.user) {
-          const cacheKey = `profile:${session.user.id}`;
-
-          try {
-            // Try fetching fresh profile
-            const profileData = await getProfile(session.user.id);
-            if (!isMounted) return;
-
-            if (profileData) {
-              const freshProfile: UserProfile = {
-                id: session.user.id,
-                role: (profileData.role as 'admin' | 'user') ?? 'user',
-                full_name: (profileData.full_name as string | null) ?? null,
-                avatar_url: (profileData.avatar_url as string | null) ?? null,
-              };
-
-              setProfile(freshProfile);
-
-              try {
-                localStorage.setItem(cacheKey, JSON.stringify(freshProfile));
-              } catch {}
-            } else {
-              setProfile({ id: session.user.id, role: 'user' });
-            }
-          } catch (error) {
-            console.error('Failed to fetch profile during init:', error);
-            // Fallback to cache if network fails
-            try {
-              const cached = localStorage.getItem(cacheKey);
-              if (cached && isMounted) {
-                const parsed = JSON.parse(cached) as UserProfile;
-                setProfile(parsed);
-              } else if (isMounted) {
-                setProfile({ id: session.user.id, role: 'user' });
-              }
-            } catch {
-              if (isMounted) setProfile({ id: session.user.id, role: 'user' });
-            }
-          }
-        } else {
-          setProfile(null);
-        }
+        setSession(null);
+        setProfile(null);
+        
+        // Clear any cached profile data
+        try {
+          localStorage.clear();
+        } catch {}
+        
       } catch (err) {
         console.error("Auth initialization error:", err);
       } finally {
@@ -172,12 +119,12 @@ try {
 
     initializeAuth();
 
+    // Still listen for auth changes (for after login)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!isMounted) return;
       setSession(session);
       
       if (session?.user) {
-        // If we just logged in (or session refreshed), ensure loading is false
         setLoading(false); 
         
         const cacheKey = `profile:${session.user.id}`;
