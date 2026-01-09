@@ -23,6 +23,8 @@ export interface CallMetrics {
 
 async function fetchLatestMetrics(userId: string, storeName: string): Promise<CallMetrics | null> {
   try {
+      console.log('🔄 Fetching metrics for:', { userId, storeName });
+      
       const { data, error } = await supabase
         .from('call_metrics')
         .select('*')
@@ -33,9 +35,11 @@ async function fetchLatestMetrics(userId: string, storeName: string): Promise<Ca
         .maybeSingle(); 
 
       if (error) {
-        console.error('Error fetching metrics:', error);
+        console.error('❌ Error fetching metrics:', error);
         return null;
       }
+      
+      console.log('✅ Metrics fetched:', data);
       return data;
   } catch (err) {
       console.error('Unexpected error fetching metrics:', err);
