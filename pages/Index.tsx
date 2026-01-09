@@ -6,6 +6,7 @@ const Index = () => {
     const [selectedBrand, setSelectedBrand] = useState('Tamtrend');
     const { latestMetrics, historyMetrics, loading } = useDashboardMetrics(selectedBrand);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const isInitialLoading = loading && !latestMetrics;
 
     // Format history data for Area Chart
     const orderData = historyMetrics.length > 0 
@@ -53,9 +54,9 @@ const Index = () => {
 
     // Helper for loading state
     const displayValue = (val: number | string) => {
-        if (loading && !latestMetrics) return '...';
-        return val;
-    };
+    if (isInitialLoading) return '...';
+    return val;
+};
 
     return (
         <>

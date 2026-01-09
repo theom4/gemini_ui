@@ -101,7 +101,7 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
         // Chrome sometimes hangs on getSession if extensions interfere or storage is slow.
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise<{ data: { session: Session | null } }>((resolve) => {
-            setTimeout(() => resolve({ data: { session: null } }), 2500);
+            setTimeout(() => resolve({ data: { session: null } }), 6000);
         });
 
         const { data: { session } } = await Promise.race([
