@@ -1,11 +1,31 @@
-import React, { useState } from 'react';
-import { useCallRecordingsOptimized } from '../hooks/useCallRecordings';
+import React, { useState, useEffect } from 'react';
+import { useCallRecordingsOptimized, CallRecording } from '../hooks/useCallRecordings';
 
 export default function CallRecordings() {
     const [selectedBrand, setSelectedBrand] = useState('Tamtrend');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    // Increased limit to 50 to pull more records ("pull all" request)
-    const { recordings, loading, error, isRefetching } = useCallRecordingsOptimized(selectedBrand, 50);
+    
+    // Default to current date
+    const today = new Date().toISOString().split('T')[0];
+    const [startDate, setStartDate] = useState(today);
+    const [endDate, setEndDate] = useState(today);
+
+    // Pagination state
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
+
+    // Modal state
+    const [selectedRecording, setSelectedRecording] = useState<CallRecording | null>(null);
+
+    // Reset page when filters change
+    useEffect(() => {
+        setPage(1);
+    }, [selectedBrand, startDate, endDate]);
+
+    // Fetch data based on range and pagination
+    const { recordings, totalCount, loading, error, isRefetching } = useCallRecordingsOptimized(selectedBrand, startDate, endDate, page, pageSize);
+
+    const totalPages = Math.ceil(totalCount / pageSize);
 
     const formatDuration = (seconds: number | null) => {
         if (!seconds) return '00:00';
@@ -25,8 +45,8 @@ export default function CallRecordings() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-end justify-between">
+        <div className="space-y-6 relative">
+            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-light dark:text-white mb-2 tracking-tight">Înregistrări Apeluri</h2>
                     <p className="text-sm text-gray-500 dark:text-gray-400 font-light">
@@ -34,17 +54,46 @@ export default function CallRecordings() {
                     </p>
                 </div>
                 
-                <div className="flex gap-3 items-center relative z-50">
+                <div className="flex flex-wrap gap-3 items-center relative z-50">
                     {isRefetching && (
                         <div className="flex items-center gap-2 text-primary text-sm animate-pulse mr-2">
                             <span className="material-icons-round text-sm">sync</span>
                             Actualizare...
                         </div>
                     )}
+
+                    {/* Date Range Selectors */}
+                    <div className="flex items-center gap-2 bg-[#13141a] p-1 rounded-xl border border-white/5 shadow-inner">
+                        <div className="relative group">
+                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span className="material-icons-round text-gray-500 text-sm">event</span>
+                            </div>
+                            <input 
+                                type="date" 
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="pl-9 pr-3 py-2 bg-transparent text-gray-200 text-sm border-none focus:ring-0 rounded-lg cursor-pointer font-num outline-none hover:bg-white/5 transition-colors"
+                            />
+                        </div>
+                        <span className="text-gray-600">-</span>
+                        <div className="relative group">
+                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span className="material-icons-round text-gray-500 text-sm">event</span>
+                            </div>
+                            <input 
+                                type="date" 
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="pl-9 pr-3 py-2 bg-transparent text-gray-200 text-sm border-none focus:ring-0 rounded-lg cursor-pointer font-num outline-none hover:bg-white/5 transition-colors"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Brand Selector */}
                     <div className="relative">
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="btn-3d-secondary px-5 py-3 rounded-xl text-sm font-normal flex items-center gap-3 tracking-wide hover:text-white transition-all min-w-[160px] justify-between"
+                            className="btn-3d-secondary px-5 py-2.5 rounded-xl text-sm font-normal flex items-center gap-3 tracking-wide hover:text-white transition-all min-w-[160px] justify-between h-[42px]"
                         >
                             <div className="flex items-center gap-2">
                                 <span className="material-icons-round text-lg text-primary">store</span>
@@ -94,7 +143,7 @@ export default function CallRecordings() {
                                 <th className="py-4 px-6 font-medium">Telefon</th>
                                 <th className="py-4 px-6 font-medium">Durată</th>
                                 <th className="py-4 px-6 font-medium">Înregistrare</th>
-                                <th className="py-4 px-6 text-right font-medium">Link</th>
+                                <th className="py-4 px-6 text-right font-medium">Detalii</th>
                             </tr>
                         </thead>
                         <tbody className="text-sm divide-y divide-gray-800/50">
@@ -113,7 +162,7 @@ export default function CallRecordings() {
                                     <td colSpan={5} className="py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-3">
                                             <span className="material-icons-round text-4xl opacity-20">mic_off</span>
-                                            <p className="font-light">Nu există înregistrări disponibile pentru {selectedBrand}</p>
+                                            <p className="font-light">Nu există înregistrări pentru perioada selectată ({startDate} - {endDate}).</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -154,16 +203,13 @@ export default function CallRecordings() {
                                             />
                                         </td>
                                         <td className="py-4 px-6 text-right">
-                                            <a 
-                                                href={rec.recording_url} 
-                                                download 
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="w-9 h-9 btn-3d-secondary rounded-lg inline-flex items-center justify-center hover:text-primary transition-colors"
-                                                title="Descarcă înregistrarea"
+                                            <button
+                                                onClick={() => setSelectedRecording(rec)}
+                                                className="w-9 h-9 btn-3d-secondary rounded-lg inline-flex items-center justify-center hover:text-primary transition-colors group-hover:bg-purple-500/20"
+                                                title="Vezi detalii și ID client"
                                             >
-                                                <span className="material-icons-round text-lg">download</span>
-                                            </a>
+                                                <span className="material-icons-round text-lg">visibility</span>
+                                            </button>
                                         </td>
                                     </tr>
                                 ))
@@ -173,11 +219,130 @@ export default function CallRecordings() {
                 </div>
             </div>
             
-            {!loading && recordings.length > 0 && (
-                <div className="text-center">
+            {/* Pagination Controls */}
+            {!loading && totalCount > 0 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
                     <p className="text-xs text-gray-500 font-light italic">
-                        Se afișează ultimele {recordings.length} înregistrări pentru {selectedBrand}.
+                        Se afișează {recordings.length} din {totalCount} înregistrări.
                     </p>
+                    
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                            className="w-9 h-9 btn-3d-secondary rounded-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:text-white transition-colors"
+                        >
+                            <span className="material-icons-round">chevron_left</span>
+                        </button>
+                        
+                        <span className="text-sm font-num text-gray-400 min-w-[80px] text-center">
+                            Pagina {page} din {totalPages || 1}
+                        </span>
+
+                        <button 
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            disabled={page >= totalPages}
+                            className="w-9 h-9 btn-3d-secondary rounded-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:text-white transition-colors"
+                        >
+                            <span className="material-icons-round">chevron_right</span>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Recording Details Modal */}
+            {selectedRecording && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedRecording(null)}>
+                    <div className="w-full max-w-2xl bg-[#13141a] rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 relative overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                        
+                        {/* Background effects */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+                        {/* Modal Header */}
+                        <div className="flex justify-between items-start mb-6 relative z-10">
+                            <div>
+                                <h3 className="text-2xl text-white font-light tracking-tight">Detalii Înregistrare</h3>
+                                <p className="text-sm text-gray-400 font-num mt-1 flex items-center gap-2">
+                                    <span className="material-icons-round text-base">calendar_today</span>
+                                    {formatDate(selectedRecording.created_at)}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setSelectedRecording(null)}
+                                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                            >
+                                <span className="material-icons-round text-xl">close</span>
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="space-y-6 relative z-10">
+                            {/* Client ID Highlight */}
+                            <div className="p-5 rounded-xl bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20 relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 blur-[30px] rounded-full group-hover:bg-purple-500/20 transition-all"></div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs text-purple-300 uppercase tracking-widest font-medium mb-2 flex items-center gap-2">
+                                        <span className="material-icons-round text-sm">badge</span>
+                                        ID Comanda
+                                    </span>
+                                    <span className={`text-2xl md:text-3xl font-mono tracking-wider ${selectedRecording.client_personal_id ? 'text-white text-shadow-glow' : 'text-gray-500 italic'}`}>
+                                        {selectedRecording.client_personal_id || 'Nespecificat'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="bg-[#0a0b14]/50 rounded-xl p-4 border border-white/5">
+                                    <span className="text-xs text-gray-500 uppercase tracking-wider block mb-2">Număr Telefon</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`material-icons-round text-base ${selectedRecording.direction === 'inbound' ? 'text-green-400' : 'text-blue-400'}`}>
+                                            {selectedRecording.direction === 'inbound' ? 'call_received' : 'call_made'}
+                                        </span>
+                                        <span className="text-lg text-gray-200 font-num tracking-wide">{selectedRecording.phone_number || 'Necunoscut'}</span>
+                                    </div>
+                                </div>
+
+                                <div className="bg-[#0a0b14]/50 rounded-xl p-4 border border-white/5">
+                                    <span className="text-xs text-gray-500 uppercase tracking-wider block mb-2">Durată Apel</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-icons-round text-base text-gray-400">schedule</span>
+                                        <span className="text-lg text-gray-200 font-num">{formatDuration(selectedRecording.duration_seconds)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Player Section */}
+                            <div className="bg-[#0a0b14] rounded-xl p-4 border border-white/5 shadow-inner">
+                                <span className="text-xs text-gray-500 uppercase tracking-wider block mb-3 pl-1">Redare Audio</span>
+                                <audio
+                                    controls
+                                    className="w-full h-10 opacity-90"
+                                    src={selectedRecording.recording_url}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-white/5 relative z-10">
+                            <a
+                                href={selectedRecording.recording_url}
+                                download
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn-3d-secondary px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 text-gray-300 hover:text-white transition-all hover:-translate-y-0.5"
+                            >
+                                <span className="material-icons-round text-lg">download</span>
+                                Descarcă Audio
+                            </a>
+                            <button
+                                onClick={() => setSelectedRecording(null)}
+                                className="btn-3d-primary px-6 py-2.5 rounded-xl text-white text-sm font-medium hover:brightness-110 transition-all hover:-translate-y-0.5"
+                            >
+                                Închide
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
