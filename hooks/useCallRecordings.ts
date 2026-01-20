@@ -23,7 +23,8 @@ async function fetchRecordingsByDateRange(
   startDate: string,
   endDate: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  searchQuery: string = ''
 ): Promise<{ data: CallRecording[], count: number }> {
   // Append time to ensure full day coverage
   const startTimestamp = `${startDate}T00:00:00`;
@@ -33,13 +34,22 @@ async function fetchRecordingsByDateRange(
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  const { data, error, count } = await supabase
+  let query = supabase
     .from('call_recordings')
     .select('id,user_id,created_at,duration_seconds,recording_url,phone_number,direction,store_name,client_personal_id', { count: 'exact' })
     .eq('user_id', userId)
-    .eq('store_name', storeName)
-    .gte('created_at', startTimestamp)
-    .lte('created_at', endTimestamp)
+    .eq('store_name', storeName);
+
+  // If a search query is provided, filter by client_personal_id and IGNORE date range to ensure the record is found
+  if (searchQuery && searchQuery.trim() !== '') {
+      query = query.eq('client_personal_id', searchQuery.trim());
+  } else {
+      // Only apply date filters if NOT searching for a specific ID
+      query = query.gte('created_at', startTimestamp)
+                   .lte('created_at', endTimestamp);
+  }
+
+  const { data, error, count } = await query
     .order('created_at', { ascending: false })
     .range(from, to);
 
@@ -52,7 +62,8 @@ export const useCallRecordingsOptimized = (
   startDate: string, 
   endDate: string,
   page: number = 1,
-  pageSize: number = 10
+  pageSize: number = 10,
+  searchQuery: string = ''
 ) => {
   // Use fixed demo ID for visibility of specific data set requested
   const userId = DEMO_USER_ID;
@@ -61,9 +72,9 @@ export const useCallRecordingsOptimized = (
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const query = useQuery({
-    queryKey: ['call-recordings', 'range', userId, storeName, startDate, endDate, page, pageSize],
-    queryFn: () => fetchRecordingsByDateRange(userId, storeName, startDate, endDate, page, pageSize),
-    enabled: !!userId && !!storeName && !!startDate && !!endDate,
+    queryKey: ['call-recordings', 'range', userId, storeName, startDate, endDate, page, pageSize, searchQuery],
+    queryFn: () => fetchRecordingsByDateRange(userId, storeName, startDate, endDate, page, pageSize, searchQuery),
+    enabled: !!userId && !!storeName && (!!searchQuery || (!!startDate && !!endDate)),
     staleTime: 60_000,
     placeholderData: keepPreviousData, // Keep previous data while fetching new page to prevent flicker
     refetchOnWindowFocus: true,

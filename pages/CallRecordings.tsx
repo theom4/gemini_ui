@@ -10,6 +10,10 @@ export default function CallRecordings() {
     const [startDate, setStartDate] = useState(today);
     const [endDate, setEndDate] = useState(today);
 
+    // Search state
+    const [searchInput, setSearchInput] = useState('');
+    const [activeSearch, setActiveSearch] = useState('');
+
     // Pagination state
     const [page, setPage] = useState(1);
     const pageSize = 10;
@@ -20,10 +24,28 @@ export default function CallRecordings() {
     // Reset page when filters change
     useEffect(() => {
         setPage(1);
-    }, [selectedBrand, startDate, endDate]);
+    }, [selectedBrand, startDate, endDate, activeSearch]);
 
-    // Fetch data based on range and pagination
-    const { recordings, totalCount, loading, error, isRefetching } = useCallRecordingsOptimized(selectedBrand, startDate, endDate, page, pageSize);
+    const handleSearch = () => {
+        setActiveSearch(searchInput);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
+    // Fetch data based on range, pagination and search
+    // Note: The hook logic handles ignoring the date range if activeSearch is present
+    const { recordings, totalCount, loading, error, isRefetching } = useCallRecordingsOptimized(
+        selectedBrand, 
+        startDate, 
+        endDate, 
+        page, 
+        pageSize,
+        activeSearch
+    );
 
     const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -46,15 +68,36 @@ export default function CallRecordings() {
 
     return (
         <div className="space-y-6 relative">
-            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4">
-                <div>
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                <div className="xl:min-w-[200px]">
                     <h2 className="text-3xl font-light dark:text-white mb-2 tracking-tight">Înregistrări Apeluri</h2>
                     <p className="text-sm text-gray-500 dark:text-gray-400 font-light">
                         Ultimele conversații înregistrate de AI
                     </p>
                 </div>
                 
-                <div className="flex flex-wrap gap-3 items-center relative z-50">
+                {/* Search Bar */}
+                <div className="flex-1 max-w-lg w-full mx-auto xl:mx-8 relative group">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="material-icons-round text-gray-500 text-lg group-focus-within:text-primary transition-colors">search</span>
+                    </div>
+                    <input 
+                        type="text"
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Cauta dupa numar comanda..."
+                        className="w-full pl-10 pr-24 py-3 bg-[#13141a] border border-white/5 rounded-xl text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all shadow-inner font-light"
+                    />
+                    <button 
+                        onClick={handleSearch}
+                        className="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-surface-dark-lighter border border-white/5 hover:bg-primary/20 hover:text-white hover:border-primary/30 text-gray-400 text-xs font-medium rounded-lg transition-all uppercase tracking-wider shadow-sm"
+                    >
+                        Caută
+                    </button>
+                </div>
+                
+                <div className="flex flex-wrap gap-3 items-center relative z-50 xl:min-w-fit justify-end">
                     {isRefetching && (
                         <div className="flex items-center gap-2 text-primary text-sm animate-pulse mr-2">
                             <span className="material-icons-round text-sm">sync</span>
@@ -62,8 +105,8 @@ export default function CallRecordings() {
                         </div>
                     )}
 
-                    {/* Date Range Selectors */}
-                    <div className="flex items-center gap-2 bg-[#13141a] p-1 rounded-xl border border-white/5 shadow-inner">
+                    {/* Date Range Selectors - Disabled if searching */}
+                    <div className={`flex items-center gap-2 bg-[#13141a] p-1 rounded-xl border border-white/5 shadow-inner transition-opacity duration-200 ${activeSearch ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
                         <div className="relative group">
                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <span className="material-icons-round text-gray-500 text-sm">event</span>
@@ -161,8 +204,17 @@ export default function CallRecordings() {
                                 <tr>
                                     <td colSpan={5} className="py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-3">
-                                            <span className="material-icons-round text-4xl opacity-20">mic_off</span>
-                                            <p className="font-light">Nu există înregistrări pentru perioada selectată ({startDate} - {endDate}).</p>
+                                            {activeSearch ? (
+                                                <>
+                                                    <span className="material-icons-round text-4xl opacity-20">search_off</span>
+                                                    <p className="font-light">Nu s-au găsit înregistrări pentru comanda "{activeSearch}".</p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="material-icons-round text-4xl opacity-20">mic_off</span>
+                                                    <p className="font-light">Nu există înregistrări pentru perioada selectată ({startDate} - {endDate}).</p>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

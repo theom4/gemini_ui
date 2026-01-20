@@ -3,6 +3,9 @@ import { supabase } from '../lib/supabaseClient';
 import { queryKeys } from '../lib/queryClient';
 import { useAuth } from '../contexts/AuthContext';
 
+// Specific ID provided for the metrics data view
+const DEMO_USER_ID = 'a9b05492-7393-4c77-a895-015b2c12781b';
+
 export interface CallMetrics {
   id: number;
   user_id: string;
@@ -11,7 +14,7 @@ export interface CallMetrics {
   apeluri_initiate: number;
   apeluri_primite: number;
   rata_conversie: number;
-  rata_conversie_drafturi: number; // Added field
+  rata_conversie_drafturi: number;
   minute_consumate: number;
   total_comenzi: number;
   cosuri_abandonate: number;
@@ -24,9 +27,6 @@ export interface CallMetrics {
 async function fetchLatestMetrics(userId: string, storeName: string): Promise<CallMetrics | null> {
   try {
       console.log('🔄 Fetching metrics for:', { userId, storeName });
-
-      // Remove session check - it's causing the timeout
-      // const session = await supabase.auth.getSession();
       
       const { data, error } = await supabase
         .from('call_metrics')
@@ -73,20 +73,20 @@ async function fetchMetricsHistory(userId: string, storeName: string, days: numb
 }
 
 export const useDashboardMetrics = (storeName: string) => {
-  const { session } = useAuth();
-  const userId = session?.user?.id;
+  // Use fixed demo ID for visibility of specific data set requested
+  const userId = DEMO_USER_ID;
 
   const latestQuery = useQuery({
-    queryKey: queryKeys.dashboard.latest(userId || '', storeName),
-    queryFn: () => fetchLatestMetrics(userId!, storeName),
+    queryKey: queryKeys.dashboard.latest(userId, storeName),
+    queryFn: () => fetchLatestMetrics(userId, storeName),
     enabled: !!userId && !!storeName,
     staleTime: 30_000, 
     retry: 1, 
   });
 
   const historyQuery = useQuery({
-    queryKey: queryKeys.dashboard.history(userId || '', storeName),
-    queryFn: () => fetchMetricsHistory(userId!, storeName),
+    queryKey: queryKeys.dashboard.history(userId, storeName),
+    queryFn: () => fetchMetricsHistory(userId, storeName),
     enabled: !!userId && !!storeName,
     staleTime: 5 * 60_000,
     retry: 1,
@@ -95,7 +95,7 @@ export const useDashboardMetrics = (storeName: string) => {
   return {
     latestMetrics: latestQuery.data,
     historyMetrics: historyQuery.data || [],
-    loading: latestQuery.isLoading, // Only block specific widgets on latest query
+    loading: latestQuery.isLoading,
     historyLoading: historyQuery.isLoading,
     error: latestQuery.error || historyQuery.error,
   };
