@@ -93,19 +93,28 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
 
 useEffect(() => {
     let isMounted = true;
+    let safetyTimeout: ReturnType<typeof setTimeout>;
 
-    // FORCE FRESH LOGIN - Clear any existing session on mount
     const initializeAuth = async () => {
+      // 1. Set a safety timeout to force stop loading if auth hangs
+      safetyTimeout = setTimeout(() => {
+          if (isMounted) {
+              console.warn("⚠️ Auth initialization timed out - forcing app load.");
+              setLoading(false);
+          }
+      }, 2500); // 2.5s timeout
+
       try {
-        // Clear the session first
-        await supabase.auth.signOut();
+        // 2. Force a clean slate. Since persistSession is false, we likely don't have a session.
+        // We attempt to sign out just to be sure, but we don't block heavily on it.
+        const { error } = await supabase.auth.signOut();
+        if (error) console.warn("SignOut notice during init:", error.message);
         
         if (!isMounted) return;
         
+        // 3. Clear state
         setSession(null);
         setProfile(null);
-        
-        // Clear any cached profile data
         try {
           localStorage.clear();
         } catch {}
@@ -113,19 +122,24 @@ useEffect(() => {
       } catch (err) {
         console.error("Auth initialization error:", err);
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+            setLoading(false);
+            clearTimeout(safetyTimeout);
+        }
       }
     };
 
     initializeAuth();
 
-    // Still listen for auth changes (for after login)
+    // 4. Listen for auth changes (Login/Logout events)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!isMounted) return;
       setSession(session);
       
       if (session?.user) {
+        // Ensure loading is false if we suddenly get a session
         setLoading(false); 
+        clearTimeout(safetyTimeout);
         
         const cacheKey = `profile:${session.user.id}`;
         try {
@@ -152,11 +166,13 @@ useEffect(() => {
       } else {
         setProfile(null);
         setLoading(false); 
+        clearTimeout(safetyTimeout);
       }
     });
 
     return () => {
       isMounted = false;
+      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
   }, []);
@@ -202,7 +218,12 @@ useEffect(() => {
 
   return (
     <AuthContext.Provider value={{ session, profile, loading, refreshProfile, signOut }}>
-      {!loading ? children : <div className="flex items-center justify-center min-h-screen bg-[#0a0b14] text-white">Loading session...</div>}
+      {!loading ? children : (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0b14] text-white">
+            <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-4"></div>
+            <p className="text-sm font-light text-gray-400 animate-pulse">Se încarcă sesiunea...</p>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 };

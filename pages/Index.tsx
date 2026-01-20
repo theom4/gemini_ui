@@ -84,7 +84,7 @@ const Index = () => {
         <>
             <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h2 className="text-3xl font-light dark:text-white mb-2 tracking-tight">Bine ai revenit, Admin! <span className="inline-block animate-bounce">👋</span></h2>
+                    <h2 className="text-3xl font-light dark:text-white mb-2 tracking-tight">Bine ai revenit, {latestMetrics?.nume_admin || 'Admin'}!</h2>
                 </div>
                 <div className="flex flex-wrap gap-3 relative z-50">
                     {/* Date Range Selector */}
@@ -302,7 +302,7 @@ const Index = () => {
                                     <CartesianGrid strokeDasharray="0" vertical={false} stroke="rgba(255,255,255,0.03)" />
                                     <XAxis dataKey="name" tick={{fill: '#6b7280', fontSize: 11}} axisLine={false} tickLine={false} />
                                     <YAxis yAxisId="left" tick={{fill: '#6b7280', fontSize: 11}} axisLine={false} tickLine={false} />
-                                    <YAxis yAxisId="right" orientation="right" tick={{fill: '#6b7280', fontSize: 11}} axisLine={false} tickLine={false} />
+                                    <YAxis yAxisId="right" orientation="right" tick={false} axisLine={false} tickLine={false} width={0} />
                                     <Tooltip 
                                         contentStyle={{ backgroundColor: 'rgba(22, 24, 34, 0.9)', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#fff' }}
                                         itemStyle={{ color: '#cbd5e1' }}

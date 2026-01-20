@@ -22,6 +22,7 @@ export interface CallMetrics {
   vanzari_generate: number;
   comenzi_confirmate: number;
   store_name?: string;
+  nume_admin?: string;
 }
 
 async function fetchLatestMetrics(userId: string, storeName: string): Promise<CallMetrics | null> {
