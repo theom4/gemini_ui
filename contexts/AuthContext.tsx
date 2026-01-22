@@ -20,37 +20,13 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-function useProfileFallback(
-  session: Session | null,
-  profile: UserProfile | null,
-  setProfile: (p: UserProfile) => void,
-  loading: boolean
-) {
-  useEffect(() => {
-    if (!session || profile || loading) return;
-    const t = setTimeout(() => {
-      if (session && !profile) {
-        setProfile({ id: session.user.id, role: 'user' });
-      }
-    }, 400);
-    return () => clearTimeout(t);
-  }, [session, profile, loading]);
-}
-
 export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useProfileFallback(session, profile, (p) => setProfile(p), loading);
-
   const refreshProfile = async () => {
     if (!session?.user) return;
-
-    const cacheKey = `profile:${session.user.id}`;
-    try {
-      localStorage.removeItem(cacheKey);
-    } catch {}
 
     try {
       const profileData = await getProfile(session.user.id);
@@ -62,9 +38,6 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
           avatar_url: (profileData.avatar_url as string | null) ?? null,
         };
         setProfile(freshProfile);
-        try {
-          localStorage.setItem(cacheKey, JSON.stringify(freshProfile));
-        } catch {}
       }
     } catch (error) {
       console.error('Failed to refresh profile:', error);
@@ -73,110 +46,91 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
 
   const signOut = async () => {
       try {
-          // Use Promise.race to prevent hanging if the network request is blocked or fails
-          await Promise.race([
-              supabase.auth.signOut(),
-              new Promise(resolve => setTimeout(resolve, 1000))
-          ]);
+          await supabase.auth.signOut();
       } catch (error) {
           console.error("Error signing out:", error);
       } finally {
           setSession(null);
           setProfile(null);
-          try {
-            // Clear any persisted profile data
-            const keyToRemove = session?.user?.id ? `profile:${session.user.id}` : null;
-            if (keyToRemove) localStorage.removeItem(keyToRemove);
-          } catch {}
+          localStorage.clear();
       }
   };
 
-useEffect(() => {
-    let isMounted = true;
-    let safetyTimeout: ReturnType<typeof setTimeout>;
+  useEffect(() => {
+    let mounted = true;
 
-    const initializeAuth = async () => {
-      // 1. Set a safety timeout to force stop loading if auth hangs
-      safetyTimeout = setTimeout(() => {
-          if (isMounted) {
-              console.warn("⚠️ Auth initialization timed out - forcing app load.");
-              setLoading(false);
-          }
-      }, 2500); // 2.5s timeout
-
-      try {
-        // 2. Force a clean slate. Since persistSession is false, we likely don't have a session.
-        // We attempt to sign out just to be sure, but we don't block heavily on it.
-        const { error } = await supabase.auth.signOut();
-        if (error) console.warn("SignOut notice during init:", error.message);
-        
-        if (!isMounted) return;
-        
-        // 3. Clear state
-        setSession(null);
-        setProfile(null);
-        try {
-          localStorage.clear();
-        } catch {}
-        
-      } catch (err) {
-        console.error("Auth initialization error:", err);
-      } finally {
-        if (isMounted) {
-            setLoading(false);
-            clearTimeout(safetyTimeout);
-        }
-      }
-    };
-
-    initializeAuth();
-
-    // 4. Listen for auth changes (Login/Logout events)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!isMounted) return;
+    // 1. Get initial session from storage
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
       setSession(session);
       
       if (session?.user) {
-        // Ensure loading is false if we suddenly get a session
-        setLoading(false); 
-        clearTimeout(safetyTimeout);
-        
-        const cacheKey = `profile:${session.user.id}`;
-        try {
-          const profileData = await getProfile(session.user.id);
-          if (!isMounted) return;
-          if (profileData) {
-             const freshProfile: UserProfile = {
-              id: session.user.id,
-              role: (profileData.role as 'admin' | 'user') ?? 'user',
-              full_name: (profileData.full_name as string | null) ?? null,
-              avatar_url: (profileData.avatar_url as string | null) ?? null,
-            };
-            setProfile(freshProfile);
-            try {
-              localStorage.setItem(cacheKey, JSON.stringify(freshProfile));
-            } catch {}
-          } else {
-            setProfile({ id: session.user.id, role: 'user' });
-          }
-        } catch (error) {
-          console.error('Failed to fetch profile on auth change:', error);
-          if (isMounted) setProfile({ id: session.user.id, role: 'user' });
-        }
+        // Fetch profile
+        getProfile(session.user.id).then(profileData => {
+            if (!mounted) return;
+            if (profileData) {
+                setProfile({
+                  id: session.user.id,
+                  role: (profileData.role as 'admin' | 'user') ?? 'user',
+                  full_name: (profileData.full_name as string | null) ?? null,
+                  avatar_url: (profileData.avatar_url as string | null) ?? null,
+                });
+            } else {
+                setProfile({ id: session.user.id, role: 'user' });
+            }
+            setLoading(false);
+        }).catch(() => {
+             if (mounted) {
+                 setProfile({ id: session.user.id, role: 'user' });
+                 setLoading(false);
+             }
+        });
       } else {
+        setLoading(false);
+      }
+    });
+
+    // 2. Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      setSession(session);
+      
+      if (session?.user) {
+         if (event === 'SIGNED_IN') {
+             // Refresh profile on explicit sign in
+             try {
+                const profileData = await getProfile(session.user.id);
+                if (mounted) {
+                    if (profileData) {
+                        setProfile({
+                            id: session.user.id,
+                            role: (profileData.role as 'admin' | 'user') ?? 'user',
+                            full_name: (profileData.full_name as string | null) ?? null,
+                            avatar_url: (profileData.avatar_url as string | null) ?? null,
+                        });
+                    } else {
+                        setProfile({ id: session.user.id, role: 'user' });
+                    }
+                }
+             } catch(e) {
+                 if (mounted) setProfile({ id: session.user.id, role: 'user' });
+             }
+         }
+         // If we just got a session update but no profile, ensure loading is cleared
+         setLoading(false);
+      } else if (event === 'SIGNED_OUT') {
         setProfile(null);
-        setLoading(false); 
-        clearTimeout(safetyTimeout);
+        setLoading(false);
       }
     });
 
     return () => {
-      isMounted = false;
-      clearTimeout(safetyTimeout);
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
 
+  // Real-time profile updates
   useEffect(() => {
     let profileChannel: ReturnType<typeof supabase.channel> | null = null;
     if (session?.user) {
@@ -191,7 +145,6 @@ useEffect(() => {
             filter: `id=eq.${session.user.id}`,
           },
           async (payload) => {
-            console.log('Profile updated in realtime:', payload);
             const newData = payload.new as any;
             const freshProfile: UserProfile = {
               id: session.user.id,
@@ -200,10 +153,6 @@ useEffect(() => {
               avatar_url: (newData.avatar_url as string | null) ?? null,
             };
             setProfile(freshProfile);
-            const cacheKey = `profile:${session.user.id}`;
-            try {
-              localStorage.setItem(cacheKey, JSON.stringify(freshProfile));
-            } catch {}
           }
         )
         .subscribe();
