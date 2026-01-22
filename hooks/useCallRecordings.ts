@@ -54,7 +54,18 @@ async function fetchRecordingsByDateRange(
 
   // Apply Status Filter
   if (statusFilter && statusFilter !== 'all') {
-      query = query.eq('status', statusFilter);
+      // Map UI filter keys (lowercase) to Database values (Capitalized, no diacritics)
+      const statusMap: Record<string, string> = {
+          'confirmata': 'Confirmata',
+          'anulata': 'Anulata',
+          'neraspuns': 'Neraspuns',
+          'upsell': 'Upsell'
+      };
+      
+      // Use mapped value or fallback to simple capitalization
+      const dbStatus = statusMap[statusFilter] || (statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1));
+      
+      query = query.eq('status', dbStatus);
   }
 
   const { data, error, count } = await query

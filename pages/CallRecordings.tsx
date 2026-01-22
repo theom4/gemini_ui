@@ -101,6 +101,9 @@ export default function CallRecordings() {
         } else if (s.includes('neraspuns') || s.includes('nu a raspuns')) {
             colorClass = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
             icon = 'phone_missed';
+        } else if (s.includes('upsell')) {
+            colorClass = 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+            icon = 'trending_up';
         } else if (s.includes('interesat')) {
             colorClass = 'bg-blue-500/10 text-blue-400 border-blue-500/20';
             icon = 'thumb_up';
@@ -264,6 +267,13 @@ export default function CallRecordings() {
                                                 >
                                                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                                                     Confirmată
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setStatusFilter('upsell'); setIsStatusDropdownOpen(false); }}
+                                                    className={`w-full text-left px-3 py-2.5 text-xs rounded-lg flex items-center gap-2 transition-colors ${statusFilter === 'upsell' ? 'bg-purple-500/20 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+                                                >
+                                                    <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                                                    Upsell
                                                 </button>
                                                 <button 
                                                     onClick={() => { setStatusFilter('anulata'); setIsStatusDropdownOpen(false); }}
