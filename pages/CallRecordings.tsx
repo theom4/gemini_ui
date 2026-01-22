@@ -305,14 +305,14 @@ export default function CallRecordings() {
             {/* Recording Details Modal */}
             {selectedRecording && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedRecording(null)}>
-                    <div className="w-full max-w-2xl bg-[#13141a] rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 relative overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                    <div className="w-full max-w-2xl bg-[#13141a] rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
                         
                         {/* Background effects */}
                         <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none"></div>
                         <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none"></div>
 
                         {/* Modal Header */}
-                        <div className="flex justify-between items-start mb-6 relative z-10">
+                        <div className="flex justify-between items-start mb-6 relative z-10 shrink-0">
                             <div>
                                 <h3 className="text-2xl text-white font-light tracking-tight">Detalii Înregistrare</h3>
                                 <p className="text-sm text-gray-400 font-num mt-1 flex items-center gap-2">
@@ -329,7 +329,7 @@ export default function CallRecordings() {
                         </div>
 
                         {/* Modal Content */}
-                        <div className="space-y-6 relative z-10">
+                        <div className="space-y-6 relative z-10 overflow-y-auto pr-2 custom-scrollbar">
                             {/* Client ID Highlight */}
                             <div className="p-5 rounded-xl bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20 relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 blur-[30px] rounded-full group-hover:bg-purple-500/20 transition-all"></div>
@@ -373,10 +373,30 @@ export default function CallRecordings() {
                                     src={selectedRecording.recording_url}
                                 />
                             </div>
+
+                            {/* Transcript Section - NEW */}
+                            <div className="bg-[#0a0b14]/80 rounded-xl p-5 border border-white/5 relative overflow-hidden">
+                                <span className="text-xs text-purple-400 uppercase tracking-widest font-medium mb-3 flex items-center gap-2 relative z-10">
+                                    <span className="material-icons-round text-sm">subtitles</span>
+                                    Transcriere
+                                </span>
+                                <div className="max-h-[200px] overflow-y-auto pr-2 relative z-10 space-y-2">
+                                    {selectedRecording.recording_transcript ? (
+                                        <p className="text-sm text-gray-300 font-light leading-relaxed whitespace-pre-line font-sans">
+                                            {selectedRecording.recording_transcript}
+                                        </p>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-6 text-gray-600 gap-2">
+                                            <span className="material-icons-round text-2xl opacity-50">mic_off</span>
+                                            <span className="text-xs italic">Indisponibilă</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-white/5 relative z-10">
+                        <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-white/5 relative z-10 shrink-0">
                             <a
                                 href={selectedRecording.recording_url}
                                 download

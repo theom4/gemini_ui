@@ -15,6 +15,7 @@ export interface CallRecording {
   direction: string | null;
   store_name?: string;
   client_personal_id?: string | null;
+  recording_transcript?: string | null;
 }
 
 async function fetchRecordingsByDateRange(
@@ -36,7 +37,7 @@ async function fetchRecordingsByDateRange(
 
   let query = supabase
     .from('call_recordings')
-    .select('id,user_id,created_at,duration_seconds,recording_url,phone_number,direction,store_name,client_personal_id', { count: 'exact' })
+    .select('id,user_id,created_at,duration_seconds,recording_url,phone_number,direction,store_name,client_personal_id,recording_transcript', { count: 'exact' })
     .eq('user_id', userId)
     .eq('store_name', storeName);
 
