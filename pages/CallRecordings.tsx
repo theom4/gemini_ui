@@ -140,7 +140,7 @@ export default function CallRecordings() {
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Cauta dupa numar comanda..."
+                        placeholder="Cauta dupa numar comanda sau telefon..."
                         className="w-full pl-10 pr-24 py-3 bg-[#13141a] border border-white/5 rounded-xl text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all shadow-inner font-light"
                     />
                     <button 

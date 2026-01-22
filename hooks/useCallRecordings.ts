@@ -43,11 +43,13 @@ async function fetchRecordingsByDateRange(
     .eq('user_id', userId)
     .eq('store_name', storeName);
 
-  // If a search query is provided, filter by client_personal_id and IGNORE date range to ensure the record is found
+  // If a search query is provided, filter by client_personal_id OR phone_number and IGNORE date range
   if (searchQuery && searchQuery.trim() !== '') {
-      query = query.eq('client_personal_id', searchQuery.trim());
+      const term = searchQuery.trim();
+      // Search in both client_personal_id and phone_number using case-insensitive partial match
+      query = query.or(`client_personal_id.ilike.%${term}%,phone_number.ilike.%${term}%`);
   } else {
-      // Only apply date filters if NOT searching for a specific ID
+      // Only apply date filters if NOT searching for a specific ID/Phone
       query = query.gte('created_at', startTimestamp)
                    .lte('created_at', endTimestamp);
   }
