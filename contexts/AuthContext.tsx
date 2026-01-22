@@ -59,76 +59,83 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
-    // 1. Get initial session from storage
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      setSession(session);
-      
-      if (session?.user) {
-        // Fetch profile
-        getProfile(session.user.id).then(profileData => {
-            if (!mounted) return;
-            if (profileData) {
-                setProfile({
-                  id: session.user.id,
-                  role: (profileData.role as 'admin' | 'user') ?? 'user',
-                  full_name: (profileData.full_name as string | null) ?? null,
-                  avatar_url: (profileData.avatar_url as string | null) ?? null,
-                });
-            } else {
-                setProfile({ id: session.user.id, role: 'user' });
-            }
-            setLoading(false);
-        }).catch(() => {
-             if (mounted) {
-                 setProfile({ id: session.user.id, role: 'user' });
-                 setLoading(false);
-             }
-        });
-      } else {
-        setLoading(false);
+    const initializeAuth = async () => {
+      try {
+        // 1. Get Session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) throw error;
+        
+        if (mounted) {
+          setSession(session);
+        }
+
+        // 2. If Session exists, try to get Profile
+        if (session?.user) {
+           try {
+               const profileData = await getProfile(session.user.id);
+               if (mounted) {
+                 if (profileData) {
+                   setProfile({
+                       id: session.user.id,
+                       role: (profileData.role as 'admin' | 'user') ?? 'user',
+                       full_name: (profileData.full_name as string | null) ?? null,
+                       avatar_url: (profileData.avatar_url as string | null) ?? null,
+                   });
+                 } else {
+                   // Profile doesn't exist or error in fetch
+                   setProfile({ id: session.user.id, role: 'user' });
+                 }
+               }
+           } catch (profileError) {
+               console.warn("Profile fetch failed, defaulting to basic user", profileError);
+               if (mounted) setProfile({ id: session.user.id, role: 'user' });
+           }
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
+    };
+
+    initializeAuth();
+
+    // 3. Set up Real-time Listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (!mounted) return;
+        
+        // Update session
+        setSession(session);
+
+        if (event === 'SIGNED_OUT') {
+             setProfile(null);
+             // Ensure loading is cleared on sign out
+             setLoading(false);
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+             // We generally handle profile fetch in initializeAuth, but if this happens 
+             // after initial load (e.g. magic link), we might need profile.
+             // For now, relies on the fact that if we have a session, we let the user in.
+             setLoading(false);
+        }
     });
 
-    // 2. Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-      setSession(session);
-      
-      if (session?.user) {
-         if (event === 'SIGNED_IN') {
-             // Refresh profile on explicit sign in
-             try {
-                const profileData = await getProfile(session.user.id);
-                if (mounted) {
-                    if (profileData) {
-                        setProfile({
-                            id: session.user.id,
-                            role: (profileData.role as 'admin' | 'user') ?? 'user',
-                            full_name: (profileData.full_name as string | null) ?? null,
-                            avatar_url: (profileData.avatar_url as string | null) ?? null,
-                        });
-                    } else {
-                        setProfile({ id: session.user.id, role: 'user' });
-                    }
-                }
-             } catch(e) {
-                 if (mounted) setProfile({ id: session.user.id, role: 'user' });
-             }
-         }
-         // If we just got a session update but no profile, ensure loading is cleared
-         setLoading(false);
-      } else if (event === 'SIGNED_OUT') {
-        setProfile(null);
-        setLoading(false);
-      }
-    });
+    // 4. Fail-safe timeout to prevent infinite loading
+    const safetyTimeout = setTimeout(() => {
+        if (mounted && loading) {
+            console.warn("Auth loading timed out, forcing render.");
+            setLoading(false);
+        }
+    }, 3000); // 3 seconds max
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
     };
-  }, []);
+  }, []); // Remove loading dependency to avoid re-running
 
   // Real-time profile updates
   useEffect(() => {
