@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCallRecordingsOptimized, CallRecording } from '../hooks/useCallRecordings';
 
 export default function CallRecordings() {
@@ -14,6 +14,11 @@ export default function CallRecordings() {
     const [searchInput, setSearchInput] = useState('');
     const [activeSearch, setActiveSearch] = useState('');
 
+    // Filter state
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+    const statusDropdownRef = useRef<HTMLDivElement>(null);
+
     // Pagination state
     const [page, setPage] = useState(1);
     const pageSize = 10;
@@ -24,7 +29,20 @@ export default function CallRecordings() {
     // Reset page when filters change
     useEffect(() => {
         setPage(1);
-    }, [selectedBrand, startDate, endDate, activeSearch]);
+    }, [selectedBrand, startDate, endDate, activeSearch, statusFilter]);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+                setIsStatusDropdownOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     const handleSearch = () => {
         setActiveSearch(searchInput);
@@ -44,7 +62,8 @@ export default function CallRecordings() {
         endDate, 
         page, 
         pageSize,
-        activeSearch
+        activeSearch,
+        statusFilter
     );
 
     const totalPages = Math.ceil(totalCount / pageSize);
@@ -64,6 +83,38 @@ export default function CallRecordings() {
             hour: '2-digit',
             minute: '2-digit'
         });
+    };
+
+    const getStatusBadge = (status: string | null | undefined) => {
+        if (!status) return <span className="text-gray-500 font-light italic text-xs">Nespecificat</span>;
+        
+        const s = status.toLowerCase();
+        let colorClass = 'bg-gray-500/10 text-gray-400 border-gray-500/20'; // default
+        let icon = 'help_outline';
+
+        if (s.includes('confirm')) {
+            colorClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+            icon = 'check_circle';
+        } else if (s.includes('anulat')) {
+            colorClass = 'bg-red-500/10 text-red-400 border-red-500/20';
+            icon = 'cancel';
+        } else if (s.includes('neraspuns') || s.includes('nu a raspuns')) {
+            colorClass = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+            icon = 'phone_missed';
+        } else if (s.includes('interesat')) {
+            colorClass = 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+            icon = 'thumb_up';
+        } else if (s.includes('ocupat') || s.includes('respins')) {
+            colorClass = 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+            icon = 'phone_locked';
+        }
+
+        return (
+            <span className={`px-2.5 py-1 rounded-lg text-xs font-normal border ${colorClass} shadow-sm inline-flex items-center gap-1.5 capitalize`}>
+                <span className="material-icons-round text-[14px]">{icon}</span>
+                {status}
+            </span>
+        );
     };
 
     return (
@@ -177,12 +228,62 @@ export default function CallRecordings() {
                 </div>
             )}
 
-            <div className="card-depth p-1 rounded-2xl overflow-hidden">
+            <div className="card-depth p-1 rounded-2xl overflow-hidden min-h-[400px]">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="text-xs font-normal text-gray-500 uppercase tracking-wider border-b border-gray-800/50 bg-surface-dark-lighter/30">
                                 <th className="py-4 px-6 font-medium">Data & Ora</th>
+                                
+                                {/* Status Column with Filter */}
+                                <th className="py-4 px-6 font-medium relative" ref={statusDropdownRef}>
+                                    <div 
+                                        className={`flex items-center gap-1.5 cursor-pointer transition-colors select-none ${statusFilter !== 'all' ? 'text-primary font-semibold' : 'hover:text-gray-300'}`}
+                                        onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                                    >
+                                        Status
+                                        <span className="material-icons-round text-base">
+                                            {statusFilter !== 'all' ? 'filter_alt' : 'filter_list'}
+                                        </span>
+                                    </div>
+
+                                    {/* Status Dropdown */}
+                                    {isStatusDropdownOpen && (
+                                        <div className="absolute top-full left-0 mt-2 w-48 bg-[#13141a] border border-white/10 rounded-xl shadow-2xl z-[60] overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                                            <div className="p-1">
+                                                <button 
+                                                    onClick={() => { setStatusFilter('all'); setIsStatusDropdownOpen(false); }}
+                                                    className={`w-full text-left px-3 py-2.5 text-xs rounded-lg flex items-center gap-2 transition-colors ${statusFilter === 'all' ? 'bg-primary/20 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+                                                >
+                                                    <span className={`w-2 h-2 rounded-full ${statusFilter === 'all' ? 'bg-primary' : 'bg-gray-600'}`}></span>
+                                                    Toate
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setStatusFilter('confirmata'); setIsStatusDropdownOpen(false); }}
+                                                    className={`w-full text-left px-3 py-2.5 text-xs rounded-lg flex items-center gap-2 transition-colors ${statusFilter === 'confirmata' ? 'bg-emerald-500/20 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+                                                >
+                                                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                                    Confirmată
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setStatusFilter('anulata'); setIsStatusDropdownOpen(false); }}
+                                                    className={`w-full text-left px-3 py-2.5 text-xs rounded-lg flex items-center gap-2 transition-colors ${statusFilter === 'anulata' ? 'bg-red-500/20 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+                                                >
+                                                    <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                                                    Anulată
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setStatusFilter('neraspuns'); setIsStatusDropdownOpen(false); }}
+                                                    className={`w-full text-left px-3 py-2.5 text-xs rounded-lg flex items-center gap-2 transition-colors ${statusFilter === 'neraspuns' ? 'bg-amber-500/20 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+                                                >
+                                                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                                                    Nerăspuns
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </th>
+
                                 <th className="py-4 px-6 font-medium">Telefon</th>
                                 <th className="py-4 px-6 font-medium">Durată</th>
                                 <th className="py-4 px-6 font-medium">Înregistrare</th>
@@ -194,6 +295,7 @@ export default function CallRecordings() {
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
                                         <td className="py-4 px-6"><div className="h-4 bg-gray-700/50 rounded w-32"></div></td>
+                                        <td className="py-4 px-6"><div className="h-5 bg-gray-700/50 rounded w-24"></div></td>
                                         <td className="py-4 px-6"><div className="h-4 bg-gray-700/50 rounded w-24"></div></td>
                                         <td className="py-4 px-6"><div className="h-4 bg-gray-700/50 rounded w-16"></div></td>
                                         <td className="py-4 px-6"><div className="h-8 bg-gray-700/50 rounded w-64"></div></td>
@@ -202,7 +304,7 @@ export default function CallRecordings() {
                                 ))
                             ) : recordings.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="py-12 text-center text-gray-500">
+                                    <td colSpan={6} className="py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-3">
                                             {activeSearch ? (
                                                 <>
@@ -228,6 +330,9 @@ export default function CallRecordings() {
                                                 </div>
                                                 <span className="dark:text-gray-200 font-light font-num">{formatDate(rec.created_at)}</span>
                                             </div>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            {getStatusBadge(rec.status)}
                                         </td>
                                         <td className="py-4 px-6">
                                             <div className="flex items-center gap-2">
@@ -364,6 +469,14 @@ export default function CallRecordings() {
                                 </div>
                             </div>
 
+                            {/* Status Section - NEW */}
+                            <div className="bg-[#0a0b14]/50 rounded-xl p-4 border border-white/5">
+                                <span className="text-xs text-gray-500 uppercase tracking-wider block mb-2">Status Apel</span>
+                                <div>
+                                    {getStatusBadge(selectedRecording.status)}
+                                </div>
+                            </div>
+
                             {/* Player Section */}
                             <div className="bg-[#0a0b14] rounded-xl p-4 border border-white/5 shadow-inner">
                                 <span className="text-xs text-gray-500 uppercase tracking-wider block mb-3 pl-1">Redare Audio</span>
@@ -380,7 +493,7 @@ export default function CallRecordings() {
                                     <span className="material-icons-round text-sm">subtitles</span>
                                     Transcriere
                                 </span>
-                                <div className="max-h-[200px] overflow-y-auto pr-2 relative z-10 space-y-2">
+                                <div className="max-h-[200px] overflow-y-auto pr-2 relative z-10 space-y-2 custom-scrollbar">
                                     {selectedRecording.recording_transcript ? (
                                         <p className="text-sm text-gray-300 font-light leading-relaxed whitespace-pre-line font-sans">
                                             {selectedRecording.recording_transcript}

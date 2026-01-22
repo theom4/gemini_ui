@@ -16,6 +16,7 @@ export interface CallRecording {
   store_name?: string;
   client_personal_id?: string | null;
   recording_transcript?: string | null;
+  status?: string | null;
 }
 
 async function fetchRecordingsByDateRange(
@@ -25,7 +26,8 @@ async function fetchRecordingsByDateRange(
   endDate: string,
   page: number,
   pageSize: number,
-  searchQuery: string = ''
+  searchQuery: string = '',
+  statusFilter: string = 'all'
 ): Promise<{ data: CallRecording[], count: number }> {
   // Append time to ensure full day coverage
   const startTimestamp = `${startDate}T00:00:00`;
@@ -37,7 +39,7 @@ async function fetchRecordingsByDateRange(
 
   let query = supabase
     .from('call_recordings')
-    .select('id,user_id,created_at,duration_seconds,recording_url,phone_number,direction,store_name,client_personal_id,recording_transcript', { count: 'exact' })
+    .select('id,user_id,created_at,duration_seconds,recording_url,phone_number,direction,store_name,client_personal_id,recording_transcript,status', { count: 'exact' })
     .eq('user_id', userId)
     .eq('store_name', storeName);
 
@@ -48,6 +50,11 @@ async function fetchRecordingsByDateRange(
       // Only apply date filters if NOT searching for a specific ID
       query = query.gte('created_at', startTimestamp)
                    .lte('created_at', endTimestamp);
+  }
+
+  // Apply Status Filter
+  if (statusFilter && statusFilter !== 'all') {
+      query = query.eq('status', statusFilter);
   }
 
   const { data, error, count } = await query
@@ -64,7 +71,8 @@ export const useCallRecordingsOptimized = (
   endDate: string,
   page: number = 1,
   pageSize: number = 10,
-  searchQuery: string = ''
+  searchQuery: string = '',
+  statusFilter: string = 'all'
 ) => {
   // Use fixed demo ID for visibility of specific data set requested
   const userId = DEMO_USER_ID;
@@ -73,8 +81,8 @@ export const useCallRecordingsOptimized = (
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const query = useQuery({
-    queryKey: ['call-recordings', 'range', userId, storeName, startDate, endDate, page, pageSize, searchQuery],
-    queryFn: () => fetchRecordingsByDateRange(userId, storeName, startDate, endDate, page, pageSize, searchQuery),
+    queryKey: ['call-recordings', 'range', userId, storeName, startDate, endDate, page, pageSize, searchQuery, statusFilter],
+    queryFn: () => fetchRecordingsByDateRange(userId, storeName, startDate, endDate, page, pageSize, searchQuery, statusFilter),
     enabled: !!userId && !!storeName && (!!searchQuery || (!!startDate && !!endDate)),
     staleTime: 60_000,
     placeholderData: keepPreviousData, // Keep previous data while fetching new page to prevent flicker
