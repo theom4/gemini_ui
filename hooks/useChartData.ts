@@ -15,7 +15,7 @@ interface ChartDataPoint {
 async function fetchChartData(userId: string, storeName: string, period: ChartPeriod): Promise<ChartDataPoint[]> {
   if (!userId || !storeName) return [];
   
-  console.log('📉 [useChartData] Fetching Chart Data for:', { user_id: userId, store_name: storeName, period });
+  console.log('📉 [ChartData] Aggregating chart for:', { user_id: userId, store: storeName, period });
 
   const now = new Date();
   let startDate = new Date();
@@ -39,26 +39,20 @@ async function fetchChartData(userId: string, storeName: string, period: ChartPe
     .select('created_at')
     .eq('user_id', userId)
     .eq('store_name', storeName)
-    .gte('created_at', startIso)
-    .order('created_at', { ascending: true });
-
-  if (recError) {
-    console.error('❌ [useChartData] Recordings error:', recError);
-  }
+    .gte('created_at', startIso);
 
   const { data: metrics, error: metError } = await supabase
     .from('call_metrics')
     .select('created_at, comenzi_confirmate, cosuri_abandonate, vanzari_generate')
     .eq('user_id', userId)
     .eq('store_name', storeName)
-    .gte('created_at', startIso)
-    .order('created_at', { ascending: true });
+    .gte('created_at', startIso);
 
-  if (metError) {
-    console.error('❌ [useChartData] Metrics history error:', metError);
+  if (recError || metError) {
+    console.error('❌ [ChartData] Error pulling raw data:', { recError, metError });
   }
 
-  console.log(`✨ [useChartData] Aggregate raw data: ${recordings?.length || 0} recordings, ${metrics?.length || 0} daily metrics records.`);
+  console.log(`📊 [ChartData] Pulled ${recordings?.length || 0} recordings and ${metrics?.length || 0} metric records for analysis.`);
 
   const groupedData: Record<string, ChartDataPoint> = {};
 
@@ -82,18 +76,13 @@ async function fetchChartData(userId: string, storeName: string, period: ChartPe
 
   const getBucketKey = (dateStr: string) => {
     const d = new Date(dateStr);
-    if (period === 'day') {
-      return d.getHours().toString().padStart(2, '0') + ':00';
-    } else {
-      return dateStr.split('T')[0];
-    }
+    if (period === 'day') return d.getHours().toString().padStart(2, '0') + ':00';
+    return dateStr.split('T')[0];
   };
 
   (recordings || []).forEach(rec => {
     const key = getBucketKey(rec.created_at);
-    if (groupedData[key]) {
-      groupedData[key].calls += 1;
-    }
+    if (groupedData[key]) groupedData[key].calls += 1;
   });
 
   (metrics || []).forEach(met => {
@@ -106,7 +95,6 @@ async function fetchChartData(userId: string, storeName: string, period: ChartPe
   });
 
   let result = Object.values(groupedData);
-
   if (period === 'day') {
     result.sort((a, b) => parseInt(a.name) - parseInt(b.name));
   } else {

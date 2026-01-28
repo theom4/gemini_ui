@@ -27,11 +27,11 @@ async function fetchRecordingsByDateRange(
   statusFilter: string = 'all'
 ): Promise<{ data: CallRecording[], count: number }> {
   if (!userId || !storeName) {
-      console.warn('⏳ [useCallRecordings] Skipping fetch: userId or storeName missing.');
+      console.warn('⏳ [Recordings] Skipping fetch - missing userId or storeName.');
       return { data: [], count: 0 };
   }
 
-  console.log('🎙️ [useCallRecordings] Fetching Recordings for:', { 
+  console.log('🎙️ [Recordings] Requesting recordings:', { 
       user_id: userId, 
       store_name: storeName,
       range: `${startDate} to ${endDate}`,
@@ -74,11 +74,11 @@ async function fetchRecordingsByDateRange(
     .range(from, to);
 
   if (error) {
-      console.error('❌ [useCallRecordings] Error fetching recordings:', error);
+      console.error('❌ [Recordings] Fetch error:', error);
       throw error;
   }
   
-  console.log(`✅ [useCallRecordings] Successfully Pulled ${data?.length || 0} recordings. Total count in DB: ${count}`);
+  console.log(`✨ [Recordings] Found ${data?.length || 0} items. Total count in DB: ${count}`);
   return { data: (data as CallRecording[]) || [], count: count || 0 };
 }
 
@@ -119,7 +119,7 @@ export const useCallRecordingsOptimized = (
         clearTimeout(debounceTimerRef.current);
       }
       debounceTimerRef.current = setTimeout(() => {
-        console.log('🔄 [useCallRecordings] Real-time Update Triggered: Invalidating recordings queries.');
+        console.log('🔄 [Recordings] Real-time notification received. Refreshing list...');
         queryClient.invalidateQueries({ queryKey: ['call-recordings', 'range', userId, storeName, startDate, endDate] });
       }, 500);
     };

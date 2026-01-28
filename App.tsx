@@ -197,10 +197,12 @@ function Sidebar() {
     const userEmail = session?.user?.email;
 
     const handleLogout = async () => {
+        console.log('🔘 [Sidebar] Logout button clicked.');
         try {
             await signOut();
+            console.log('✅ [Sidebar] SignOut process completed.');
         } catch (error) {
-            console.error('Logout error:', error);
+            console.error('❌ [Sidebar] Logout interaction error:', error);
         }
     };
 

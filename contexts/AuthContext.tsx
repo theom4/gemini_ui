@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
-import { getProfileByEmail } from '../services/api';
+import { getProfile } from '../services/api';
 
 export interface UserProfile {
   id: string; 
@@ -28,22 +28,23 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const parseStores = (storesStr: string | null): string[] => {
-    if (!storesStr) return [];
+    if (!storesStr) {
+        console.log('🏪 [AuthContext] No stores string found in profile.');
+        return [];
+    }
     const stores = storesStr.split(',').map(s => s.trim()).filter(Boolean);
-    console.log('📦 [AuthContext] Parsed Stores Array:', stores);
+    console.log('🏪 [AuthContext] Successfully parsed stores array:', stores);
     return stores;
   };
 
-  const fetchProfileAndSet = async (email: string, fallbackId: string) => {
-    console.log('🔍 [AuthContext] Initiating Profile Lookup for email:', email);
+  const fetchProfileAndSet = async (authUserId: string, email: string) => {
+    console.log(`🛰️ [AuthContext] Attempting to pull profile from public.profiles for ID: ${authUserId}`);
     try {
-      const profileData = await getProfileByEmail(email);
+      const profileData = await getProfile(authUserId);
       if (profileData) {
-        console.log('✅ [AuthContext] Profile Found in DB:', {
-            pulled_id: profileData.id,
-            email: profileData.email,
-            raw_stores_string: profileData.stores
-        });
+        console.log('📦 [AuthContext] Profile data successfully pulled:', profileData);
+        
+        const userStores = parseStores(profileData.stores);
         
         setProfile({
           id: profileData.id, 
@@ -51,40 +52,55 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
           role: (profileData.role as 'admin' | 'user') ?? 'user',
           full_name: profileData.full_name,
           avatar_url: profileData.avatar_url,
-          stores: parseStores(profileData.stores),
+          stores: userStores,
         });
       } else {
-        console.warn('⚠️ [AuthContext] No profile found in public.profiles for email:', email, '. Falling back to Auth ID:', fallbackId);
+        console.warn('⚠️ [AuthContext] Profile row not found in public.profiles for ID:', authUserId);
         setProfile({
-          id: fallbackId,
+          id: authUserId,
           email: email,
           role: 'user',
           stores: [],
         });
       }
     } catch (error) {
-      console.error('❌ [AuthContext] Error in fetchProfileAndSet:', error);
+      console.error('❌ [AuthContext] Critical error during profile fetch:', error);
     }
   };
 
   const refreshProfile = async () => {
-    if (session?.user?.email) {
-      await fetchProfileAndSet(session.user.email, session.user.id);
+    if (session?.user) {
+      await fetchProfileAndSet(session.user.id, session.user.email || '');
     }
   };
 
   const signOut = async () => {
-    console.log('🚪 [AuthContext] Signing out user...');
-    await supabase.auth.signOut();
-    setSession(null);
-    setProfile(null);
+    console.log('🚪 [AuthContext] Initiating global signOut sequence...');
+    try {
+      // Attempt to clear Supabase session server-side
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.warn('⚠️ [AuthContext] Supabase server-side sign out reported an error (this is common if token is expired):', error.message);
+      } else {
+        console.log('✅ [AuthContext] Supabase server-side sign out successful.');
+      }
+    } catch (err) {
+      console.error('❌ [AuthContext] Supabase sign out crashed:', err);
+    } finally {
+      // CRITICAL: Always clear local state regardless of server response
+      console.log('🧹 [AuthContext] Clearing local session and profile state.');
+      setSession(null);
+      setProfile(null);
+    }
   };
 
   useEffect(() => {
+    // Initial Session Check
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log('🔑 [AuthContext] Initial session check:', currentSession ? `User: ${currentSession.user.email}` : 'No session');
       setSession(currentSession);
-      if (currentSession?.user?.email) {
-        fetchProfileAndSet(currentSession.user.email, currentSession.user.id).finally(() => {
+      if (currentSession?.user) {
+        fetchProfileAndSet(currentSession.user.id, currentSession.user.email || '').finally(() => {
           setLoading(false);
         });
       } else {
@@ -92,12 +108,15 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
       }
     });
 
+    // Auth Change Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log('🔔 [AuthContext] Auth State Change Event:', event);
+      console.log('🔔 [AuthContext] Auth state change detected:', event);
       setSession(newSession);
-      if (newSession?.user?.email) {
-        await fetchProfileAndSet(newSession.user.email, newSession.user.id);
+      if (newSession?.user) {
+        console.log(`👤 [AuthContext] Logged in as: ${newSession.user.email} (ID: ${newSession.user.id})`);
+        await fetchProfileAndSet(newSession.user.id, newSession.user.email || '');
       } else {
+        console.log('👤 [AuthContext] User is now logged out.');
         setProfile(null);
       }
       setLoading(false);

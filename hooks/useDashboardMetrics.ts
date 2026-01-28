@@ -23,12 +23,12 @@ export interface CallMetrics {
 
 async function fetchLatestMetrics(userId: string, storeName: string): Promise<CallMetrics | null> {
   if (!userId || !storeName) {
-      console.warn('⏳ [useDashboardMetrics] Skipping fetch: userId or storeName missing.', { userId, storeName });
+      console.warn('⏳ [Metrics] Skipping fetch - missing userId or storeName.');
       return null;
   }
   
   try {
-      console.log('📈 [useDashboardMetrics] Fetching latest metrics for:', { user_id: userId, store_name: storeName });
+      console.log('📈 [Metrics] Querying call_metrics for:', { user_id: userId, store_name: storeName });
       
       const { data, error } = await supabase
         .from('call_metrics')
@@ -40,18 +40,18 @@ async function fetchLatestMetrics(userId: string, storeName: string): Promise<Ca
         .maybeSingle();
 
       if (error) {
-        console.error('❌ [useDashboardMetrics] Error fetching latest metrics:', error);
+        console.error('❌ [Metrics] Supabase error:', error);
         return null;
       }
       
       if (data) {
-          console.log('✅ [useDashboardMetrics] Latest Metrics Data Pulled:', data);
+          console.log('✅ [Metrics] Successfully pulled metrics:', data);
       } else {
-          console.warn(`👀 [useDashboardMetrics] No records found in call_metrics for user: ${userId} and store: ${storeName}`);
+          console.warn(`👀 [Metrics] No record found for User: ${userId} and Store: ${storeName}`);
       }
       return data;
   } catch (err) {
-      console.error('💥 [useDashboardMetrics] Unexpected crash during fetch:', err);
+      console.error('💥 [Metrics] Unexpected error:', err);
       return null;
   }
 }
@@ -59,7 +59,7 @@ async function fetchLatestMetrics(userId: string, storeName: string): Promise<Ca
 async function fetchMetricsHistory(userId: string, storeName: string, days: number = 7): Promise<CallMetrics[]> {
   if (!userId || !storeName) return [];
   try {
-      console.log(`📊 [useDashboardMetrics] Fetching history (${days} entries) for:`, { user_id: userId, store_name: storeName });
+      console.log(`📊 [Metrics] Fetching history for Store: ${storeName}`);
       const { data, error } = await supabase
         .from('call_metrics')
         .select('*')
@@ -69,12 +69,12 @@ async function fetchMetricsHistory(userId: string, storeName: string, days: numb
         .limit(days);
 
       if (error) {
-          console.error('❌ [useDashboardMetrics] Error fetching history:', error);
+          console.error('❌ [Metrics] History fetch error:', error);
           return [];
       }
       return (data || []).reverse();
   } catch (err) {
-      console.error('💥 [useDashboardMetrics] History fetch error:', err);
+      console.error('💥 [Metrics] Unexpected history error:', err);
       return [];
   }
 }
