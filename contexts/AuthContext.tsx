@@ -75,20 +75,20 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    console.log('🚪 [AuthContext] Initiating global signOut sequence...');
+    console.log('🚪 [AuthContext] STARTING logout sequence...');
     try {
-      // Attempt to clear Supabase session server-side
+      // Clear Supabase session
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.warn('⚠️ [AuthContext] Supabase server-side sign out reported an error (this is common if token is expired):', error.message);
+        console.warn('⚠️ [AuthContext] Supabase signOut warning (session might already be gone):', error.message);
       } else {
-        console.log('✅ [AuthContext] Supabase server-side sign out successful.');
+        console.log('✅ [AuthContext] Supabase signOut successful.');
       }
     } catch (err) {
-      console.error('❌ [AuthContext] Supabase sign out crashed:', err);
+      console.error('❌ [AuthContext] Error during Supabase signOut:', err);
     } finally {
-      // CRITICAL: Always clear local state regardless of server response
-      console.log('🧹 [AuthContext] Clearing local session and profile state.');
+      // FORCE local state clearing regardless of what happened above
+      console.log('🧹 [AuthContext] FINISHED: Clearing local context session and profile.');
       setSession(null);
       setProfile(null);
     }
@@ -113,10 +113,10 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
       console.log('🔔 [AuthContext] Auth state change detected:', event);
       setSession(newSession);
       if (newSession?.user) {
-        console.log(`👤 [AuthContext] Logged in as: ${newSession.user.email} (ID: ${newSession.user.id})`);
+        console.log(`👤 [AuthContext] User Session Active: ${newSession.user.email}`);
         await fetchProfileAndSet(newSession.user.id, newSession.user.email || '');
       } else {
-        console.log('👤 [AuthContext] User is now logged out.');
+        console.log('👤 [AuthContext] User Session Cleared (Logged Out).');
         setProfile(null);
       }
       setLoading(false);

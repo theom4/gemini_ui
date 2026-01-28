@@ -10,8 +10,17 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
 
 export default function App() {
-    const { session } = useAuth();
+    const { session, loading: authLoading } = useAuth();
     
+    // While loading initial auth, show nothing or a loader
+    if (authLoading) {
+        return (
+            <div className="h-screen w-full bg-[#0a0b14] flex items-center justify-center">
+                <span className="w-8 h-8 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin"></span>
+            </div>
+        );
+    }
+
     if (!session) {
         return <AuthPage />;
     }
@@ -195,14 +204,21 @@ function Header({ userEmail }: { userEmail?: string }) {
 function Sidebar() {
     const { session, signOut } = useAuth();
     const userEmail = session?.user?.email;
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    const handleLogout = async () => {
-        console.log('🔘 [Sidebar] Logout button clicked.');
+    const handleLogout = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation(); // Stop any parent container clicks
+        
+        console.log('🔘 [Sidebar] Logout interaction started.');
+        setIsLoggingOut(true);
+        
         try {
             await signOut();
-            console.log('✅ [Sidebar] SignOut process completed.');
+            console.log('✅ [Sidebar] Logout sequence triggered successfully.');
         } catch (error) {
-            console.error('❌ [Sidebar] Logout interaction error:', error);
+            console.error('❌ [Sidebar] Logout error:', error);
+            setIsLoggingOut(false);
         }
     };
 
@@ -254,11 +270,16 @@ function Sidebar() {
                     </div>
                     <button 
                         onClick={handleLogout}
-                        className="w-9 h-9 ml-auto flex items-center justify-center rounded-lg bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 text-gray-400 hover:text-red-400 transition-all focus:outline-none active:scale-95"
+                        disabled={isLoggingOut}
+                        className={`w-9 h-9 ml-auto flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-gray-400 transition-all focus:outline-none active:scale-95 ${isLoggingOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-400'}`}
                         title="Deconectare"
                         type="button"
                     >
-                        <span className="material-icons-round text-lg">logout</span>
+                        {isLoggingOut ? (
+                            <span className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin"></span>
+                        ) : (
+                            <span className="material-icons-round text-lg">logout</span>
+                        )}
                     </button>
                 </div>
             </div>
