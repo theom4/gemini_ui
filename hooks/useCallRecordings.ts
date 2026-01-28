@@ -55,17 +55,13 @@ async function fetchRecordingsByDateRange(
 
   // Apply Status Filter
   if (statusFilter && statusFilter !== 'all') {
-      // Map UI filter keys (lowercase) to Database values (Capitalized, no diacritics)
       const statusMap: Record<string, string> = {
           'confirmata': 'Confirmata',
           'anulata': 'Anulata',
           'neraspuns': 'Neraspuns',
           'upsell': 'Upsell'
       };
-      
-      // Use mapped value or fallback to simple capitalization
       const dbStatus = statusMap[statusFilter] || (statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1));
-      
       query = query.eq('status', dbStatus);
   }
 
@@ -96,7 +92,7 @@ export const useCallRecordingsOptimized = (
     queryFn: () => fetchRecordingsByDateRange(userId, storeName, startDate, endDate, page, pageSize, searchQuery, statusFilter),
     enabled: !!userId && !!storeName && (!!searchQuery || (!!startDate && !!endDate)),
     staleTime: 60_000,
-    placeholderData: keepPreviousData, // Keep previous data while fetching new page to prevent flicker
+    placeholderData: keepPreviousData,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
@@ -113,10 +109,7 @@ export const useCallRecordingsOptimized = (
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
-
       debounceTimerRef.current = setTimeout(() => {
-        console.log('[CallRecordings] New recording detected, refetching...');
-        // Invalidate broadly to ensure counts update
         queryClient.invalidateQueries({ queryKey: ['call-recordings', 'range', userId, storeName, startDate, endDate] });
       }, 500);
     };
@@ -132,9 +125,7 @@ export const useCallRecordingsOptimized = (
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          // Verify if the new recording belongs to the selected store
           if (payload.new && (payload.new as any).store_name === storeName) {
-             console.log('[CallRecordings] New recording inserted:', payload.new);
              debouncedRefetch();
           }
         }
@@ -144,13 +135,8 @@ export const useCallRecordingsOptimized = (
     realtimeChannelRef.current = channel;
 
     return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-      if (realtimeChannelRef.current) {
-        supabase.removeChannel(realtimeChannelRef.current);
-        realtimeChannelRef.current = null;
-      }
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      if (realtimeChannelRef.current) supabase.removeChannel(realtimeChannelRef.current);
     };
   }, [userId, queryClient, query.data, storeName, startDate, endDate]);
 

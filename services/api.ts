@@ -12,3 +12,17 @@ export const getProfile = async (userId: string) => {
   }
   return data;
 };
+
+export const getProfileByEmail = async (email: string) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('email', email)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching profile by email:', error);
+    return null;
+  }
+  return data;
+};

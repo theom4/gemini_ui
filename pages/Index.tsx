@@ -6,21 +6,22 @@ import { useChartData, ChartPeriod } from '../hooks/useChartData';
 import { useAuth } from '../contexts/AuthContext';
 
 const Index = () => {
-    const { session, profile } = useAuth();
-    const userId = session?.user?.id || '';
+    const { profile, loading: authLoading } = useAuth();
+    // Use the ID pulled from the database/profile lookup
+    const userId = profile?.id || '';
     const userStores = profile?.stores || [];
     
     const [selectedBrand, setSelectedBrand] = useState<string>('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-    // Default to the first store if available
+    // Default to the first store if available and brand is not yet set
     useEffect(() => {
         if (userStores.length > 0 && !selectedBrand) {
             setSelectedBrand(userStores[0]);
         }
     }, [userStores, selectedBrand]);
     
-    const { latestMetrics, loading } = useDashboardMetrics(userId, selectedBrand);
+    const { latestMetrics, loading: metricsLoading } = useDashboardMetrics(userId, selectedBrand);
     
     // Date state for dashboard (Range)
     const today = new Date().toISOString().split('T')[0];
@@ -43,7 +44,7 @@ const Index = () => {
         3
     );
 
-    const isInitialLoading = loading && !latestMetrics;
+    const isInitialLoading = metricsLoading && !latestMetrics;
 
     const conversionRate = latestMetrics?.rata_conversie || 0;
     const abandonedRate = 100 - conversionRate;
@@ -85,12 +86,12 @@ const Index = () => {
         });
     };
 
-    if (userStores.length === 0 && !loading) {
+    if (!authLoading && userStores.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center h-[70vh] text-center">
-                <span className="material-icons-round text-6xl text-gray-700 mb-4">storefront</span>
+                <span className="material-icons-round text-6xl text-gray-700 mb-4 shadow-sm p-4 rounded-full bg-surface-dark-lighter border border-white/5">storefront</span>
                 <h2 className="text-2xl font-light text-white mb-2">Niciun magazin configurat</h2>
-                <p className="text-gray-500 max-w-md">Contactați echipa Nanoassist pentru a configura accesul la magazinele dumneavoastră.</p>
+                <p className="text-gray-500 max-w-md font-light">Contactați echipa Nanoassist pentru a configura accesul la magazinele dumneavoastră.</p>
             </div>
         );
     }
@@ -99,7 +100,7 @@ const Index = () => {
         <>
             <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h2 className="text-3xl font-light dark:text-white mb-2 tracking-tight">Bine ai revenit, {latestMetrics?.nume_admin || profile?.full_name || 'Admin'}!</h2>
+                    <h2 className="text-3xl font-light dark:text-white mb-2 tracking-tight">Bine ai revenit, {latestMetrics?.nume_admin || profile?.full_name || 'Utilizator'}!</h2>
                 </div>
                 <div className="flex flex-wrap gap-3 relative z-50">
                     <div className="flex items-center gap-2 bg-[#13141a] p-1 rounded-xl border border-white/5 shadow-inner">
@@ -164,6 +165,7 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {/* Widgets */}
                 <div className="widget-sculpted-3d p-6 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
                     <div className="absolute -right-6 -top-6 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all"></div>
                     <div className="relative z-10">
@@ -235,7 +237,7 @@ const Index = () => {
                         <div className="mt-4">
                             <p className="text-sm text-purple-200 font-light mb-1">Vânzări Generate</p>
                             <h3 className="text-4xl font-light mt-1 drop-shadow-md font-num glow-text">
-                                {displayValue(loading && !latestMetrics ? '...' : `${vanzariGenerate.toLocaleString()} RON`)}
+                                {displayValue(metricsLoading && !latestMetrics ? '...' : `${vanzariGenerate.toLocaleString()} RON`)}
                             </h3>
                         </div>
                     </div>
@@ -243,6 +245,7 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+                {/* Volume Chart */}
                 <div className="lg:col-span-2 card-depth p-6 rounded-2xl relative">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-xl font-light dark:text-white tracking-tight">Volum</h3>
@@ -261,7 +264,7 @@ const Index = () => {
                     <div className="h-80 w-full relative">
                         <ResponsiveContainer width="100%" height="100%">
                             {isChartLoading ? (
-                                <div className="flex items-center justify-center h-full text-gray-500">Se încarcă graficul...</div>
+                                <div className="flex items-center justify-center h-full text-gray-500 font-light">Se încarcă graficul...</div>
                             ) : (
                                 <AreaChart data={chartData || []}>
                                     <defs>
@@ -274,7 +277,7 @@ const Index = () => {
                                     <XAxis dataKey="name" tick={{fill: '#6b7280', fontSize: 11}} axisLine={false} tickLine={false} />
                                     <YAxis tick={{fill: '#6b7280', fontSize: 11}} axisLine={false} tickLine={false} />
                                     <Tooltip 
-                                        contentStyle={{ backgroundColor: 'rgba(22, 24, 34, 0.9)', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#fff' }}
+                                        contentStyle={{ backgroundColor: 'rgba(22, 24, 34, 0.9)', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#fff', borderRadius: '12px' }}
                                         itemStyle={{ color: '#cbd5e1' }}
                                     />
                                     <Area type="monotone" dataKey="calls" name="Apeluri" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorCalls)" />
@@ -284,6 +287,7 @@ const Index = () => {
                     </div>
                 </div>
 
+                {/* Conversion Pies */}
                 <div className="lg:col-span-1 card-depth p-6 rounded-2xl flex flex-col justify-between">
                     <h3 className="text-xl font-light dark:text-white tracking-tight">Conversie Drafturi</h3>
                     <div className="relative w-56 h-56 mx-auto my-4 flex items-center justify-center">
@@ -321,6 +325,7 @@ const Index = () => {
                 </div>
             </div>
 
+            {/* Activity Table */}
             <div className="card-depth p-6 rounded-2xl mb-8">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-light dark:text-white tracking-tight">Activitate Recentă</h3>
@@ -343,23 +348,23 @@ const Index = () => {
                         </thead>
                         <tbody className="text-sm">
                             {recordingsLoading ? (
-                                <tr><td colSpan={6} className="py-8 text-center text-gray-500 font-light">Se încarcă...</td></tr>
+                                <tr><td colSpan={6} className="py-8 text-center text-gray-500 font-light italic">Se încarcă activitatea...</td></tr>
                             ) : recentRecordings.length === 0 ? (
-                                <tr><td colSpan={6} className="py-8 text-center text-gray-500 font-light">Fără activitate.</td></tr>
+                                <tr><td colSpan={6} className="py-8 text-center text-gray-500 font-light italic">Fără activitate în perioada selectată.</td></tr>
                             ) : (
                                 recentRecordings.map((rec) => (
                                     <tr key={rec.id} className="group hover:bg-white/5 transition-colors border-b border-gray-800/50 last:border-0">
                                         <td className="py-4 px-4 font-light dark:text-white font-num">{rec.client_personal_id || '-'}</td>
-                                        <td className="py-4 px-4">{rec.phone_number || 'Necunoscut'}</td>
+                                        <td className="py-4 px-4 font-light">{rec.phone_number || 'Necunoscut'}</td>
                                         <td className="py-4 px-4">
-                                            <span className={`px-2 py-0.5 rounded text-[10px] ${rec.direction === 'inbound' ? 'text-green-400 bg-green-500/10' : 'text-blue-400 bg-blue-500/10'}`}>
+                                            <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-medium ${rec.direction === 'inbound' ? 'text-green-400 bg-green-500/10 border border-green-500/20' : 'text-blue-400 bg-blue-500/10 border border-blue-500/20'}`}>
                                                 {rec.direction === 'inbound' ? 'Primit' : 'Inițiat'}
                                             </span>
                                         </td>
-                                        <td className="py-4 px-4">{formatDuration(rec.duration_seconds)}</td>
-                                        <td className="py-4 px-4 text-gray-500">{formatDate(rec.created_at)}</td>
+                                        <td className="py-4 px-4 font-num">{formatDuration(rec.duration_seconds)}</td>
+                                        <td className="py-4 px-4 text-gray-500 font-light">{formatDate(rec.created_at)}</td>
                                         <td className="py-4 px-4 text-right">
-                                            <audio controls className="h-6 w-32 inline-block opacity-60" src={rec.recording_url} />
+                                            <audio controls className="h-6 w-32 inline-block opacity-40 hover:opacity-100 transition-opacity" src={rec.recording_url} />
                                         </td>
                                     </tr>
                                 ))
