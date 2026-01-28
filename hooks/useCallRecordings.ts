@@ -2,9 +2,6 @@ import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-quer
 import { useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-// Specific ID provided for the recordings data view
-const DEMO_USER_ID = 'a9b05492-7393-4c77-a895-015b2c12781b';
-
 export interface CallRecording {
   id: number;
   user_id: string;
@@ -29,6 +26,8 @@ async function fetchRecordingsByDateRange(
   searchQuery: string = '',
   statusFilter: string = 'all'
 ): Promise<{ data: CallRecording[], count: number }> {
+  if (!userId) return { data: [], count: 0 };
+
   // Append time to ensure full day coverage
   const startTimestamp = `${startDate}T00:00:00`;
   const endTimestamp = `${endDate}T23:59:59`;
@@ -79,6 +78,7 @@ async function fetchRecordingsByDateRange(
 }
 
 export const useCallRecordingsOptimized = (
+  userId: string,
   storeName: string, 
   startDate: string, 
   endDate: string,
@@ -87,8 +87,6 @@ export const useCallRecordingsOptimized = (
   searchQuery: string = '',
   statusFilter: string = 'all'
 ) => {
-  // Use fixed demo ID for visibility of specific data set requested
-  const userId = DEMO_USER_ID;
   const queryClient = useQueryClient();
   const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

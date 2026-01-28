@@ -8,6 +8,7 @@ export interface UserProfile {
   role: 'admin' | 'user';
   full_name?: string | null;
   avatar_url?: string | null;
+  stores: string[]; // Dynamically parsed from DB
 }
 
 interface AuthContextType {
@@ -25,6 +26,11 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const parseStores = (storesStr: string | null): string[] => {
+    if (!storesStr) return [];
+    return storesStr.split(',').map(s => s.trim()).filter(Boolean);
+  };
+
   const refreshProfile = async () => {
     if (!session?.user) return;
 
@@ -36,6 +42,7 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
           role: (profileData.role as 'admin' | 'user') ?? 'user',
           full_name: (profileData.full_name as string | null) ?? null,
           avatar_url: (profileData.avatar_url as string | null) ?? null,
+          stores: parseStores(profileData.stores as string | null),
         };
         setProfile(freshProfile);
       }
@@ -61,16 +68,13 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
 
     const initializeAuth = async () => {
       try {
-        // 1. Get Session
         const { data: { session }, error } = await supabase.auth.getSession();
-        
         if (error) throw error;
         
         if (mounted) {
           setSession(session);
         }
 
-        // 2. If Session exists, try to get Profile
         if (session?.user) {
            try {
                const profileData = await getProfile(session.user.id);
@@ -81,15 +85,15 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
                        role: (profileData.role as 'admin' | 'user') ?? 'user',
                        full_name: (profileData.full_name as string | null) ?? null,
                        avatar_url: (profileData.avatar_url as string | null) ?? null,
+                       stores: parseStores(profileData.stores as string | null),
                    });
                  } else {
-                   // Profile doesn't exist or error in fetch
-                   setProfile({ id: session.user.id, role: 'user' });
+                   setProfile({ id: session.user.id, role: 'user', stores: [] });
                  }
                }
            } catch (profileError) {
-               console.warn("Profile fetch failed, defaulting to basic user", profileError);
-               if (mounted) setProfile({ id: session.user.id, role: 'user' });
+               console.warn("Profile fetch failed", profileError);
+               if (mounted) setProfile({ id: session.user.id, role: 'user', stores: [] });
            }
         }
       } catch (error) {
@@ -103,74 +107,42 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
 
     initializeAuth();
 
-    // 3. Set up Real-time Listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
         if (!mounted) return;
-        
-        // Update session
-        setSession(session);
+        setSession(newSession);
 
         if (event === 'SIGNED_OUT') {
              setProfile(null);
-             // Ensure loading is cleared on sign out
              setLoading(false);
         } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-             // We generally handle profile fetch in initializeAuth, but if this happens 
-             // after initial load (e.g. magic link), we might need profile.
-             // For now, relies on the fact that if we have a session, we let the user in.
+             if (newSession?.user && !profile) {
+                const profileData = await getProfile(newSession.user.id);
+                if (mounted && profileData) {
+                    setProfile({
+                        id: newSession.user.id,
+                        role: (profileData.role as 'admin' | 'user') ?? 'user',
+                        full_name: (profileData.full_name as string | null) ?? null,
+                        avatar_url: (profileData.avatar_url as string | null) ?? null,
+                        stores: parseStores(profileData.stores as string | null),
+                    });
+                }
+             }
              setLoading(false);
         }
     });
 
-    // 4. Fail-safe timeout to prevent infinite loading
     const safetyTimeout = setTimeout(() => {
         if (mounted && loading) {
-            console.warn("Auth loading timed out, forcing render.");
             setLoading(false);
         }
-    }, 3000); // 3 seconds max
+    }, 3000);
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
       clearTimeout(safetyTimeout);
     };
-  }, []); // Remove loading dependency to avoid re-running
-
-  // Real-time profile updates
-  useEffect(() => {
-    let profileChannel: ReturnType<typeof supabase.channel> | null = null;
-    if (session?.user) {
-      profileChannel = supabase
-        .channel(`profile:${session.user.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'profiles',
-            filter: `id=eq.${session.user.id}`,
-          },
-          async (payload) => {
-            const newData = payload.new as any;
-            const freshProfile: UserProfile = {
-              id: session.user.id,
-              role: (newData.role as 'admin' | 'user') ?? 'user',
-              full_name: (newData.full_name as string | null) ?? null,
-              avatar_url: (newData.avatar_url as string | null) ?? null,
-            };
-            setProfile(freshProfile);
-          }
-        )
-        .subscribe();
-    }
-
-    return () => {
-      if (profileChannel) {
-        supabase.removeChannel(profileChannel);
-      }
-    };
-  }, [session?.user?.id]);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ session, profile, loading, refreshProfile, signOut }}>

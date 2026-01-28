@@ -1,10 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
 import { queryKeys } from '../lib/queryClient';
-import { useAuth } from '../contexts/AuthContext';
-
-// Specific ID provided for the metrics data view
-const DEMO_USER_ID = 'a9b05492-7393-4c77-a895-015b2c12781b';
 
 export interface CallMetrics {
   id: number;
@@ -26,6 +22,7 @@ export interface CallMetrics {
 }
 
 async function fetchLatestMetrics(userId: string, storeName: string): Promise<CallMetrics | null> {
+  if (!userId) return null;
   try {
       console.log('🔄 Fetching metrics for:', { userId, storeName });
       
@@ -52,6 +49,7 @@ async function fetchLatestMetrics(userId: string, storeName: string): Promise<Ca
 }
 
 async function fetchMetricsHistory(userId: string, storeName: string, days: number = 7): Promise<CallMetrics[]> {
+  if (!userId) return [];
   try {
       const { data, error } = await supabase
         .from('call_metrics')
@@ -73,10 +71,7 @@ async function fetchMetricsHistory(userId: string, storeName: string, days: numb
   }
 }
 
-export const useDashboardMetrics = (storeName: string) => {
-  // Use fixed demo ID for visibility of specific data set requested
-  const userId = DEMO_USER_ID;
-
+export const useDashboardMetrics = (userId: string, storeName: string) => {
   const latestQuery = useQuery({
     queryKey: queryKeys.dashboard.latest(userId, storeName),
     queryFn: () => fetchLatestMetrics(userId, storeName),

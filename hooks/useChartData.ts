@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
 
-const DEMO_USER_ID = 'a9b05492-7393-4c77-a895-015b2c12781b';
-
 export type ChartPeriod = 'day' | 'week' | 'month';
 
 interface ChartDataPoint {
@@ -15,6 +13,7 @@ interface ChartDataPoint {
 }
 
 async function fetchChartData(userId: string, storeName: string, period: ChartPeriod): Promise<ChartDataPoint[]> {
+  if (!userId) return [];
   const now = new Date();
   let startDate = new Date();
   let dateFormat: Intl.DateTimeFormatOptions = { weekday: 'short' };
@@ -104,38 +103,23 @@ async function fetchChartData(userId: string, storeName: string, period: ChartPe
       groupedData[key].calls += 1;
     } else if (period !== 'day') {
         // Fallback for timezone issues or slightly out of bounds
-        // Just ignore if not in initialized buckets or create new?
-        // For chart stability, we ignore or map to nearest.
-        // Let's rely on initialized buckets.
     }
   });
 
   // Fill Metrics (Orders, Drafts, Sales)
-  // Metrics are assumed to be Daily. If period is 'day', we can't easily map daily metric to an hour.
-  // Strategy: For 'day' view, spread the daily metric evenly? Or just show 0? 
-  // User asked for "sales generated every day chart", implying daily granularity is key.
-  // If period is 'day', we will likely see 0 for orders/sales/drafts unless metrics has hourly data (unlikely).
-  // We will simply populate if key matches.
   (metrics || []).forEach(met => {
     const key = getBucketKey(met.created_at);
-    // If period is 'day', metric.created_at might be '2023-10-27T10:00:00'.
-    // If metrics are generated once a day, they will appear at a specific hour.
     if (groupedData[key]) {
       groupedData[key].orders += met.comenzi_confirmate || 0;
       groupedData[key].drafts += met.cosuri_abandonate || 0;
       groupedData[key].sales += met.vanzari_generate || 0;
-    } else if (period === 'day') {
-        // If the metric timestamp doesn't match an exact hour bucket (unlikely if strictly hourly),
-        // we might miss it. But usually metrics are daily summaries. 
-        // We'll leave it as is.
     }
   });
 
   // Convert to array
   let result = Object.values(groupedData);
 
-  // Sort if needed (Week/Month usually rely on key order, but object iteration order isn't guaranteed)
-  // Re-sort by date/time
+  // Sort if needed
   if (period === 'day') {
     result.sort((a, b) => parseInt(a.name) - parseInt(b.name));
   } else {
@@ -145,12 +129,11 @@ async function fetchChartData(userId: string, storeName: string, period: ChartPe
   return result;
 }
 
-export const useChartData = (storeName: string, period: ChartPeriod) => {
-  const userId = DEMO_USER_ID;
-
+export const useChartData = (userId: string, storeName: string, period: ChartPeriod) => {
   return useQuery({
     queryKey: ['chart-data', userId, storeName, period],
     queryFn: () => fetchChartData(userId, storeName, period),
+    enabled: !!userId && !!storeName,
     staleTime: 60 * 1000, // 1 minute
   });
 };
