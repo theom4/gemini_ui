@@ -29,13 +29,22 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
 
   const parseStores = (storesStr: string | null): string[] => {
     if (!storesStr) return [];
-    return storesStr.split(',').map(s => s.trim()).filter(Boolean);
+    const stores = storesStr.split(',').map(s => s.trim()).filter(Boolean);
+    console.log('📦 [AuthContext] Parsed Stores Array:', stores);
+    return stores;
   };
 
   const fetchProfileAndSet = async (email: string, fallbackId: string) => {
+    console.log('🔍 [AuthContext] Initiating Profile Lookup for email:', email);
     try {
       const profileData = await getProfileByEmail(email);
       if (profileData) {
+        console.log('✅ [AuthContext] Profile Found in DB:', {
+            pulled_id: profileData.id,
+            email: profileData.email,
+            raw_stores_string: profileData.stores
+        });
+        
         setProfile({
           id: profileData.id, 
           email: email,
@@ -45,7 +54,7 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
           stores: parseStores(profileData.stores),
         });
       } else {
-        // Fallback if no profile row exists, use Auth ID
+        console.warn('⚠️ [AuthContext] No profile found in public.profiles for email:', email, '. Falling back to Auth ID:', fallbackId);
         setProfile({
           id: fallbackId,
           email: email,
@@ -54,7 +63,7 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
         });
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('❌ [AuthContext] Error in fetchProfileAndSet:', error);
     }
   };
 
@@ -65,13 +74,13 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   };
 
   const signOut = async () => {
+    console.log('🚪 [AuthContext] Signing out user...');
     await supabase.auth.signOut();
     setSession(null);
     setProfile(null);
   };
 
   useEffect(() => {
-    // 1. Get current session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
       if (currentSession?.user?.email) {
@@ -83,8 +92,8 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
       }
     });
 
-    // 2. Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log('🔔 [AuthContext] Auth State Change Event:', event);
       setSession(newSession);
       if (newSession?.user?.email) {
         await fetchProfileAndSet(newSession.user.email, newSession.user.id);

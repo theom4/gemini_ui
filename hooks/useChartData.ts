@@ -13,14 +13,16 @@ interface ChartDataPoint {
 }
 
 async function fetchChartData(userId: string, storeName: string, period: ChartPeriod): Promise<ChartDataPoint[]> {
-  if (!userId) return [];
+  if (!userId || !storeName) return [];
+  
+  console.log('📉 [useChartData] Fetching Chart Data for:', { user_id: userId, store_name: storeName, period });
+
   const now = new Date();
   let startDate = new Date();
   let dateFormat: Intl.DateTimeFormatOptions = { weekday: 'short' };
 
-  // 1. Determine Date Range and Format
   if (period === 'day') {
-    startDate.setHours(0, 0, 0, 0); // Start of today
+    startDate.setHours(0, 0, 0, 0); 
     dateFormat = { hour: '2-digit', minute: '2-digit' };
   } else if (period === 'week') {
     startDate.setDate(now.getDate() - 7);
@@ -32,8 +34,6 @@ async function fetchChartData(userId: string, storeName: string, period: ChartPe
 
   const startIso = startDate.toISOString();
 
-  // 2. Fetch Call Recordings (For Call Counts) - Source of truth for Calls
-  // We fetch only created_at to minimize data transfer
   const { data: recordings, error: recError } = await supabase
     .from('call_recordings')
     .select('created_at')
@@ -43,12 +43,9 @@ async function fetchChartData(userId: string, storeName: string, period: ChartPe
     .order('created_at', { ascending: true });
 
   if (recError) {
-    console.error('Error fetching recordings for chart:', recError);
-    return [];
+    console.error('❌ [useChartData] Recordings error:', recError);
   }
 
-  // 3. Fetch Call Metrics (For Orders, Drafts, Sales) - Daily summaries
-  // Note: Metrics are typically daily. For 'day' view, we might not have hourly breakdown of sales/orders.
   const { data: metrics, error: metError } = await supabase
     .from('call_metrics')
     .select('created_at, comenzi_confirmate, cosuri_abandonate, vanzari_generate')
@@ -58,15 +55,14 @@ async function fetchChartData(userId: string, storeName: string, period: ChartPe
     .order('created_at', { ascending: true });
 
   if (metError) {
-    console.error('Error fetching metrics for chart:', metError);
+    console.error('❌ [useChartData] Metrics history error:', metError);
   }
 
-  // 4. Aggregate Data
+  console.log(`✨ [useChartData] Aggregate raw data: ${recordings?.length || 0} recordings, ${metrics?.length || 0} daily metrics records.`);
+
   const groupedData: Record<string, ChartDataPoint> = {};
 
-  // Initialize buckets based on period to ensure continuous axis
   if (period === 'day') {
-    // 24 hours
     for (let i = 0; i < 24; i++) {
       const d = new Date(startDate);
       d.setHours(i, 0, 0, 0);
@@ -74,19 +70,16 @@ async function fetchChartData(userId: string, storeName: string, period: ChartPe
       groupedData[key] = { name: key, calls: 0, orders: 0, drafts: 0, sales: 0 };
     }
   } else {
-    // Daily buckets
     const days = period === 'week' ? 7 : 30;
     for (let i = 0; i <= days; i++) {
        const d = new Date(startDate);
        d.setDate(d.getDate() + i);
-       // Normalize key to YYYY-MM-DD for matching
        const key = d.toISOString().split('T')[0];
        const name = d.toLocaleDateString('ro-RO', dateFormat);
        groupedData[key] = { name, calls: 0, orders: 0, drafts: 0, sales: 0, fullDate: key };
     }
   }
 
-  // Helper to get bucket key
   const getBucketKey = (dateStr: string) => {
     const d = new Date(dateStr);
     if (period === 'day') {
@@ -96,17 +89,13 @@ async function fetchChartData(userId: string, storeName: string, period: ChartPe
     }
   };
 
-  // Fill Calls
   (recordings || []).forEach(rec => {
     const key = getBucketKey(rec.created_at);
     if (groupedData[key]) {
       groupedData[key].calls += 1;
-    } else if (period !== 'day') {
-        // Fallback for timezone issues or slightly out of bounds
     }
   });
 
-  // Fill Metrics (Orders, Drafts, Sales)
   (metrics || []).forEach(met => {
     const key = getBucketKey(met.created_at);
     if (groupedData[key]) {
@@ -116,10 +105,8 @@ async function fetchChartData(userId: string, storeName: string, period: ChartPe
     }
   });
 
-  // Convert to array
   let result = Object.values(groupedData);
 
-  // Sort if needed
   if (period === 'day') {
     result.sort((a, b) => parseInt(a.name) - parseInt(b.name));
   } else {
@@ -134,6 +121,6 @@ export const useChartData = (userId: string, storeName: string, period: ChartPer
     queryKey: ['chart-data', userId, storeName, period],
     queryFn: () => fetchChartData(userId, storeName, period),
     enabled: !!userId && !!storeName,
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: 60 * 1000,
   });
 };

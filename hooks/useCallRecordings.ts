@@ -26,13 +26,21 @@ async function fetchRecordingsByDateRange(
   searchQuery: string = '',
   statusFilter: string = 'all'
 ): Promise<{ data: CallRecording[], count: number }> {
-  if (!userId) return { data: [], count: 0 };
+  if (!userId || !storeName) {
+      console.warn('⏳ [useCallRecordings] Skipping fetch: userId or storeName missing.');
+      return { data: [], count: 0 };
+  }
 
-  // Append time to ensure full day coverage
+  console.log('🎙️ [useCallRecordings] Fetching Recordings for:', { 
+      user_id: userId, 
+      store_name: storeName,
+      range: `${startDate} to ${endDate}`,
+      page,
+      search: searchQuery || 'none'
+  });
+
   const startTimestamp = `${startDate}T00:00:00`;
   const endTimestamp = `${endDate}T23:59:59`;
-  
-  // Calculate range for pagination
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
@@ -42,18 +50,14 @@ async function fetchRecordingsByDateRange(
     .eq('user_id', userId)
     .eq('store_name', storeName);
 
-  // If a search query is provided, filter by client_personal_id OR phone_number and IGNORE date range
   if (searchQuery && searchQuery.trim() !== '') {
       const term = searchQuery.trim();
-      // Search in both client_personal_id and phone_number using case-insensitive partial match
       query = query.or(`client_personal_id.ilike.%${term}%,phone_number.ilike.%${term}%`);
   } else {
-      // Only apply date filters if NOT searching for a specific ID/Phone
       query = query.gte('created_at', startTimestamp)
                    .lte('created_at', endTimestamp);
   }
 
-  // Apply Status Filter
   if (statusFilter && statusFilter !== 'all') {
       const statusMap: Record<string, string> = {
           'confirmata': 'Confirmata',
@@ -69,7 +73,12 @@ async function fetchRecordingsByDateRange(
     .order('created_at', { ascending: false })
     .range(from, to);
 
-  if (error) throw error;
+  if (error) {
+      console.error('❌ [useCallRecordings] Error fetching recordings:', error);
+      throw error;
+  }
+  
+  console.log(`✅ [useCallRecordings] Successfully Pulled ${data?.length || 0} recordings. Total count in DB: ${count}`);
   return { data: (data as CallRecording[]) || [], count: count || 0 };
 }
 
@@ -110,6 +119,7 @@ export const useCallRecordingsOptimized = (
         clearTimeout(debounceTimerRef.current);
       }
       debounceTimerRef.current = setTimeout(() => {
+        console.log('🔄 [useCallRecordings] Real-time Update Triggered: Invalidating recordings queries.');
         queryClient.invalidateQueries({ queryKey: ['call-recordings', 'range', userId, storeName, startDate, endDate] });
       }, 500);
     };

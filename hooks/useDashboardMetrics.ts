@@ -22,9 +22,13 @@ export interface CallMetrics {
 }
 
 async function fetchLatestMetrics(userId: string, storeName: string): Promise<CallMetrics | null> {
-  if (!userId) return null;
+  if (!userId || !storeName) {
+      console.warn('⏳ [useDashboardMetrics] Skipping fetch: userId or storeName missing.', { userId, storeName });
+      return null;
+  }
+  
   try {
-      console.log('🔄 Fetching metrics for:', { userId, storeName });
+      console.log('📈 [useDashboardMetrics] Fetching latest metrics for:', { user_id: userId, store_name: storeName });
       
       const { data, error } = await supabase
         .from('call_metrics')
@@ -36,37 +40,41 @@ async function fetchLatestMetrics(userId: string, storeName: string): Promise<Ca
         .maybeSingle();
 
       if (error) {
-        console.error('❌ Error fetching metrics:', error);
+        console.error('❌ [useDashboardMetrics] Error fetching latest metrics:', error);
         return null;
       }
       
-      console.log('✅ Metrics fetched:', data);
+      if (data) {
+          console.log('✅ [useDashboardMetrics] Latest Metrics Data Pulled:', data);
+      } else {
+          console.warn(`👀 [useDashboardMetrics] No records found in call_metrics for user: ${userId} and store: ${storeName}`);
+      }
       return data;
   } catch (err) {
-      console.error('💥 Unexpected error fetching metrics:', err);
+      console.error('💥 [useDashboardMetrics] Unexpected crash during fetch:', err);
       return null;
   }
 }
 
 async function fetchMetricsHistory(userId: string, storeName: string, days: number = 7): Promise<CallMetrics[]> {
-  if (!userId) return [];
+  if (!userId || !storeName) return [];
   try {
+      console.log(`📊 [useDashboardMetrics] Fetching history (${days} entries) for:`, { user_id: userId, store_name: storeName });
       const { data, error } = await supabase
         .from('call_metrics')
         .select('*')
         .eq('user_id', userId)
         .eq('store_name', storeName)
-        .order('created_at', { ascending: false }) // Get latest first
+        .order('created_at', { ascending: false })
         .limit(days);
 
       if (error) {
-          console.error('Error fetching history:', error);
+          console.error('❌ [useDashboardMetrics] Error fetching history:', error);
           return [];
       }
-      // Reverse to chronological order for charts
       return (data || []).reverse();
   } catch (err) {
-      console.error('Unexpected error fetching history:', err);
+      console.error('💥 [useDashboardMetrics] History fetch error:', err);
       return [];
   }
 }
