@@ -77,52 +77,61 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   const signOut = async () => {
     console.log('🚪 [AuthContext] STARTING logout sequence...');
     try {
-      // Clear Supabase session
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.warn('⚠️ [AuthContext] Supabase signOut warning (session might already be gone):', error.message);
-      } else {
-        console.log('✅ [AuthContext] Supabase signOut successful.');
+        console.warn('⚠️ [AuthContext] Supabase signOut warning:', error.message);
       }
     } catch (err) {
       console.error('❌ [AuthContext] Error during Supabase signOut:', err);
     } finally {
-      // FORCE local state clearing regardless of what happened above
-      console.log('🧹 [AuthContext] FINISHED: Clearing local context session and profile.');
       setSession(null);
       setProfile(null);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
+    let mounted = true;
+
     // Initial Session Check
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
+      if (!mounted) return;
+      
       console.log('🔑 [AuthContext] Initial session check:', currentSession ? `User: ${currentSession.user.email}` : 'No session');
       setSession(currentSession);
+      
       if (currentSession?.user) {
-        fetchProfileAndSet(currentSession.user.id, currentSession.user.email || '').finally(() => {
-          setLoading(false);
-        });
-      } else {
-        setLoading(false);
+        await fetchProfileAndSet(currentSession.user.id, currentSession.user.email || '');
       }
+      
+      setLoading(false);
     });
 
     // Auth Change Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      if (!mounted) return;
+      
       console.log('🔔 [AuthContext] Auth state change detected:', event);
       setSession(newSession);
-      if (newSession?.user) {
-        console.log(`👤 [AuthContext] User Session Active: ${newSession.user.email}`);
-        await fetchProfileAndSet(newSession.user.id, newSession.user.email || '');
-      } else {
-        console.log('👤 [AuthContext] User Session Cleared (Logged Out).');
-        setProfile(null);
+
+      try {
+        if (newSession?.user) {
+          console.log(`👤 [AuthContext] User Session Active: ${newSession.user.email}`);
+          await fetchProfileAndSet(newSession.user.id, newSession.user.email || '');
+        } else {
+          console.log('👤 [AuthContext] User Session Cleared.');
+          setProfile(null);
+        }
+      } catch (err) {
+        console.error('❌ [AuthContext] Error processing auth state change:', err);
+      } finally {
+        // Crucial: Always stop loading even if profile fetch fails
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
