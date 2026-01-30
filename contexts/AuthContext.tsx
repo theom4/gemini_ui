@@ -28,43 +28,32 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const parseStores = (storesStr: string | null): string[] => {
-    if (!storesStr) {
-        console.log('🏪 [AuthContext] No stores string found in profile.');
-        return [];
-    }
-    const stores = storesStr.split(',').map(s => s.trim()).filter(Boolean);
-    console.log('🏪 [AuthContext] Successfully parsed stores array:', stores);
-    return stores;
+    if (!storesStr) return [];
+    return storesStr.split(',').map(s => s.trim()).filter(Boolean);
   };
 
   const fetchProfileAndSet = async (authUserId: string, email: string) => {
-    console.log(`🛰️ [AuthContext] Attempting to pull profile from public.profiles for ID: ${authUserId}`);
+    console.log(`🛰️ [AuthContext] Background fetch for profile: ${authUserId}`);
     try {
+      // We don't block the UI for this fetch anymore
       const profileData = await getProfile(authUserId);
       if (profileData) {
-        console.log('📦 [AuthContext] Profile data successfully pulled:', profileData);
-        
-        const userStores = parseStores(profileData.stores);
-        
         setProfile({
           id: profileData.id, 
           email: email,
           role: (profileData.role as 'admin' | 'user') ?? 'user',
           full_name: profileData.full_name,
           avatar_url: profileData.avatar_url,
-          stores: userStores,
+          stores: parseStores(profileData.stores),
         });
+        console.log('✅ [AuthContext] Profile loaded.');
       } else {
-        console.warn('⚠️ [AuthContext] Profile row not found in public.profiles for ID:', authUserId);
-        setProfile({
-          id: authUserId,
-          email: email,
-          role: 'user',
-          stores: [],
-        });
+        setProfile({ id: authUserId, email, role: 'user', stores: [] });
       }
     } catch (error) {
-      console.error('❌ [AuthContext] Critical error during profile fetch:', error);
+      console.error('❌ [AuthContext] Profile fetch error:', error);
+      // Fallback to basic profile so UI doesn't break
+      setProfile({ id: authUserId, email, role: 'user', stores: [] });
     }
   };
 
@@ -75,14 +64,9 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    console.log('🚪 [AuthContext] STARTING logout sequence...');
+    setLoading(true);
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.warn('⚠️ [AuthContext] Supabase signOut warning:', error.message);
-      }
-    } catch (err) {
-      console.error('❌ [AuthContext] Error during Supabase signOut:', err);
+      await supabase.auth.signOut();
     } finally {
       setSession(null);
       setProfile(null);
@@ -93,39 +77,20 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
-    // Initial Session Check
-    supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
-      if (!mounted) return;
-      
-      console.log('🔑 [AuthContext] Initial session check:', currentSession ? `User: ${currentSession.user.email}` : 'No session');
-      setSession(currentSession);
-      
-      if (currentSession?.user) {
-        await fetchProfileAndSet(currentSession.user.id, currentSession.user.email || '');
-      }
-      
-      setLoading(false);
-    });
-
-    // Auth Change Listener
+    // Use only the listener - it handles initial session check automatically in v2
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
       
-      console.log('🔔 [AuthContext] Auth state change detected:', event);
+      console.log('🔔 [AuthContext] Auth Event:', event);
       setSession(newSession);
 
-      try {
-        if (newSession?.user) {
-          console.log(`👤 [AuthContext] User Session Active: ${newSession.user.email}`);
-          await fetchProfileAndSet(newSession.user.id, newSession.user.email || '');
-        } else {
-          console.log('👤 [AuthContext] User Session Cleared.');
-          setProfile(null);
-        }
-      } catch (err) {
-        console.error('❌ [AuthContext] Error processing auth state change:', err);
-      } finally {
-        // Crucial: Always stop loading even if profile fetch fails
+      if (newSession?.user) {
+        // 1. Immediately stop blocking the UI if we have a user
+        setLoading(false); 
+        // 2. Load profile details in background
+        fetchProfileAndSet(newSession.user.id, newSession.user.email || '');
+      } else {
+        setProfile(null);
         setLoading(false);
       }
     });
@@ -145,8 +110,6 @@ export const AuthProvider = ({ children }: { children?: React.ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
