@@ -26,17 +26,22 @@ async function fetchRecordingsByDateRange(
   searchQuery: string = '',
   statusFilter: string = 'all'
 ): Promise<{ data: CallRecording[], count: number }> {
-  if (!userId || !storeName) {
-      console.warn('⏳ [Recordings] Skipping fetch - missing userId or storeName.');
+  const cleanUserId = userId?.trim();
+  const cleanStoreName = storeName?.trim();
+
+  if (!cleanUserId || !cleanStoreName) {
+      console.warn('⏳ [Recordings] Skipping fetch - missing userId or storeName.', { userId, storeName });
       return { data: [], count: 0 };
   }
 
-  console.log('🎙️ [Recordings] Requesting recordings:', { 
-      user_id: userId, 
-      store_name: storeName,
+  console.log('🎙️ [Recordings] Requesting data for Tab/Dashboard:', { 
+      user_id: cleanUserId, 
+      store: cleanStoreName,
       range: `${startDate} to ${endDate}`,
       page,
-      search: searchQuery || 'none'
+      pageSize,
+      search: searchQuery || 'none',
+      status: statusFilter
   });
 
   const startTimestamp = `${startDate}T00:00:00`;
@@ -44,42 +49,48 @@ async function fetchRecordingsByDateRange(
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  let query = supabase
-    .from('call_recordings')
-    .select('id,user_id,created_at,duration_seconds,recording_url,phone_number,direction,store_name,client_personal_id,recording_transcript,status', { count: 'exact' })
-    .eq('user_id', userId)
-    .eq('store_name', storeName);
+  try {
+      let query = supabase
+        .from('call_recordings')
+        .select('id,user_id,created_at,duration_seconds,recording_url,phone_number,direction,store_name,client_personal_id,recording_transcript,status', { count: 'exact' })
+        .eq('user_id', cleanUserId)
+        .eq('store_name', cleanStoreName);
 
-  if (searchQuery && searchQuery.trim() !== '') {
-      const term = searchQuery.trim();
-      query = query.or(`client_personal_id.ilike.%${term}%,phone_number.ilike.%${term}%`);
-  } else {
-      query = query.gte('created_at', startTimestamp)
-                   .lte('created_at', endTimestamp);
+      if (searchQuery && searchQuery.trim() !== '') {
+          const term = searchQuery.trim();
+          console.log(`🔍 [Recordings] Applying search filter for term: "${term}"`);
+          query = query.or(`client_personal_id.ilike.%${term}%,phone_number.ilike.%${term}%`);
+      } else {
+          query = query.gte('created_at', startTimestamp)
+                       .lte('created_at', endTimestamp);
+      }
+
+      if (statusFilter && statusFilter !== 'all') {
+          const statusMap: Record<string, string> = {
+              'confirmata': 'Confirmata',
+              'anulata': 'Anulata',
+              'neraspuns': 'Neraspuns',
+              'upsell': 'Upsell'
+          };
+          const dbStatus = statusMap[statusFilter] || (statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1));
+          query = query.eq('status', dbStatus);
+      }
+
+      const { data, error, count } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (error) {
+          console.error('❌ [Recordings] Supabase error during fetch:', error);
+          throw error;
+      }
+      
+      console.log(`✨ [Recordings] SUCCESS: Found ${data?.length || 0} items for current view. Total matching in DB: ${count}`);
+      return { data: (data as CallRecording[]) || [], count: count || 0 };
+  } catch (err) {
+      console.error('💥 [Recordings] Critical fetch failure:', err);
+      return { data: [], count: 0 };
   }
-
-  if (statusFilter && statusFilter !== 'all') {
-      const statusMap: Record<string, string> = {
-          'confirmata': 'Confirmata',
-          'anulata': 'Anulata',
-          'neraspuns': 'Neraspuns',
-          'upsell': 'Upsell'
-      };
-      const dbStatus = statusMap[statusFilter] || (statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1));
-      query = query.eq('status', dbStatus);
-  }
-
-  const { data, error, count } = await query
-    .order('created_at', { ascending: false })
-    .range(from, to);
-
-  if (error) {
-      console.error('❌ [Recordings] Fetch error:', error);
-      throw error;
-  }
-  
-  console.log(`✨ [Recordings] Found ${data?.length || 0} items. Total count in DB: ${count}`);
-  return { data: (data as CallRecording[]) || [], count: count || 0 };
 }
 
 export const useCallRecordingsOptimized = (
@@ -119,8 +130,8 @@ export const useCallRecordingsOptimized = (
         clearTimeout(debounceTimerRef.current);
       }
       debounceTimerRef.current = setTimeout(() => {
-        console.log('🔄 [Recordings] Real-time notification received. Refreshing list...');
-        queryClient.invalidateQueries({ queryKey: ['call-recordings', 'range', userId, storeName, startDate, endDate] });
+        console.log('🔄 [Recordings] Real-time notification received. Invaliding queries...');
+        queryClient.invalidateQueries({ queryKey: ['call-recordings'] });
       }, 500);
     };
 
@@ -148,12 +159,13 @@ export const useCallRecordingsOptimized = (
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
       if (realtimeChannelRef.current) supabase.removeChannel(realtimeChannelRef.current);
     };
-  }, [userId, queryClient, query.data, storeName, startDate, endDate]);
+  }, [userId, queryClient, query.data, storeName]);
 
   return {
     recordings: query.data?.data || [],
     totalCount: query.data?.count || 0,
     loading: query.isLoading,
+    isFetching: query.isFetching,
     error: query.error ? (query.error as Error).message : null,
     isRefetching: query.isRefetching,
     refetch: query.refetch,

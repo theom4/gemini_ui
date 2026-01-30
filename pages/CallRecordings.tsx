@@ -4,7 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function CallRecordings() {
     const { profile, loading: authLoading } = useAuth();
-    // Use the ID pulled from the database lookup
+    
+    // Explicitly derive ID and Stores
     const userId = profile?.id || '';
     const userStores = profile?.stores || [];
 
@@ -14,6 +15,7 @@ export default function CallRecordings() {
     // Auto-select first brand on load
     useEffect(() => {
         if (userStores.length > 0 && !selectedBrand) {
+            console.log(`🎯 [CallRecordings] Auto-selecting initial store: ${userStores[0]}`);
             setSelectedBrand(userStores[0]);
         }
     }, [userStores, selectedBrand]);
@@ -31,9 +33,19 @@ export default function CallRecordings() {
     const pageSize = 10;
     const [selectedRecording, setSelectedRecording] = useState<CallRecording | null>(null);
 
+    // Reset pagination on filter change
     useEffect(() => {
         setPage(1);
     }, [selectedBrand, startDate, endDate, activeSearch, statusFilter]);
+
+    // Close modal on Escape key
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setSelectedRecording(null);
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -45,7 +57,7 @@ export default function CallRecordings() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const { recordings, totalCount, loading: recordingsLoading, error, isRefetching } = useCallRecordingsOptimized(
+    const { recordings, totalCount, loading: recordingsLoading, isFetching, error } = useCallRecordingsOptimized(
         userId,
         selectedBrand, 
         startDate, 
@@ -91,12 +103,16 @@ export default function CallRecordings() {
         );
     }
 
+    const isLoadingData = (recordingsLoading || isFetching) && recordings.length === 0;
+
     return (
         <div className="space-y-6 relative">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                 <div className="xl:min-w-[200px]">
                     <h2 className="text-3xl font-light dark:text-white mb-2 tracking-tight">Înregistrări Apeluri</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 font-light">Ultimele conversații AI pentru {selectedBrand}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-light">
+                        {selectedBrand ? `Conversații pentru ${selectedBrand}` : 'Selectați un magazin'}
+                    </p>
                 </div>
                 
                 <div className="flex-1 max-w-lg w-full relative group">
@@ -114,27 +130,27 @@ export default function CallRecordings() {
                 
                 <div className="flex flex-wrap gap-3 items-center justify-end">
                     <div className="flex items-center gap-2 bg-[#13141a] p-1 rounded-xl border border-white/5 shadow-inner">
-                        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-transparent text-gray-200 text-sm border-none focus:ring-0 cursor-pointer" />
+                        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-transparent text-gray-200 text-sm border-none focus:ring-0 cursor-pointer outline-none" />
                         <span className="text-gray-600">-</span>
-                        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-transparent text-gray-200 text-sm border-none focus:ring-0 cursor-pointer" />
+                        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-transparent text-gray-200 text-sm border-none focus:ring-0 cursor-pointer outline-none" />
                     </div>
 
                     <div className="relative">
-                        <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="btn-3d-secondary px-5 py-2.5 rounded-xl text-sm min-w-[160px] flex justify-between items-center h-[42px]">
+                        <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="btn-3d-secondary px-5 py-2.5 rounded-xl text-sm min-w-[160px] flex justify-between items-center h-[42px] hover:text-white transition-all">
                             <span>{selectedBrand || 'Selectează'}</span>
                             <span className={`material-icons-round transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
                         </button>
                         {isDropdownOpen && (
                             <>
                                 <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
-                                <div className="absolute right-0 top-full mt-2 w-full rounded-xl bg-[#13141a] border border-white/5 shadow-xl z-50 overflow-hidden">
+                                <div className="absolute right-0 top-full mt-2 w-full rounded-xl bg-[#13141a] border border-white/5 shadow-xl z-50 overflow-hidden backdrop-blur-md">
                                     {userStores.map(store => (
                                         <button 
                                             key={store} 
                                             onClick={() => { setSelectedBrand(store); setIsDropdownOpen(false); }}
                                             className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
                                         >
-                                            <span className={`w-1.5 h-1.5 rounded-full ${selectedBrand === store ? 'bg-primary' : 'bg-transparent border border-gray-600'}`}></span>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${selectedBrand === store ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.4)]' : 'bg-transparent border border-gray-600'}`}></span>
                                             {store}
                                         </button>
                                     ))}
@@ -145,7 +161,13 @@ export default function CallRecordings() {
                 </div>
             </div>
 
-            <div className="card-depth p-1 rounded-2xl overflow-hidden min-h-[400px]">
+            <div className="card-depth p-1 rounded-2xl overflow-hidden min-h-[400px] border border-white/5 relative">
+                {isFetching && !recordingsLoading && (
+                    <div className="absolute top-0 left-0 w-full h-1 bg-primary/20 overflow-hidden">
+                        <div className="h-full bg-primary animate-progress-indefinite w-1/3"></div>
+                    </div>
+                )}
+
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -159,10 +181,24 @@ export default function CallRecordings() {
                             </tr>
                         </thead>
                         <tbody className="text-sm divide-y divide-gray-800/50">
-                            {recordingsLoading ? (
-                                <tr><td colSpan={6} className="py-12 text-center text-gray-500 font-light italic">Se încarcă înregistrările...</td></tr>
+                            {isLoadingData ? (
+                                <tr>
+                                    <td colSpan={6} className="py-24 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <span className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></span>
+                                            <span className="text-gray-500 font-light italic">Se încarcă înregistrările...</span>
+                                        </div>
+                                    </td>
+                                </tr>
                             ) : recordings.length === 0 ? (
-                                <tr><td colSpan={6} className="py-12 text-center text-gray-500 font-light italic">Nu s-au găsit rezultate.</td></tr>
+                                <tr>
+                                    <td colSpan={6} className="py-24 text-center">
+                                        <div className="flex flex-col items-center gap-2 opacity-40">
+                                            <span className="material-icons-round text-5xl mb-2">history</span>
+                                            <span className="text-gray-500 font-light italic text-base">Nu s-au găsit înregistrări pentru perioada selectată.</span>
+                                        </div>
+                                    </td>
+                                </tr>
                             ) : (
                                 recordings.map((rec) => (
                                     <tr key={rec.id} className="group hover:bg-white/5 transition-colors">
@@ -171,7 +207,12 @@ export default function CallRecordings() {
                                         <td className="py-4 px-6 text-gray-300 font-num">{rec.phone_number || 'Necunoscut'}</td>
                                         <td className="py-4 px-6 text-gray-300 font-num">{formatDuration(rec.duration_seconds)}</td>
                                         <td className="py-4 px-6">
-                                            <audio controls className="h-8 w-64 opacity-50 hover:opacity-100 transition-opacity" src={rec.recording_url} preload="none" />
+                                            <audio 
+                                                controls 
+                                                className="h-8 w-64 opacity-30 group-hover:opacity-100 transition-opacity" 
+                                                src={rec.recording_url} 
+                                                preload="none" 
+                                            />
                                         </td>
                                         <td className="py-4 px-6 text-right">
                                             <button onClick={() => setSelectedRecording(rec)} className="w-8 h-8 btn-3d-secondary rounded-lg inline-flex items-center justify-center hover:text-white transition-colors">
@@ -202,6 +243,126 @@ export default function CallRecordings() {
                     </div>
                 </div>
             )}
+
+            {/* Recording Details Modal */}
+            {selectedRecording && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div 
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" 
+                        onClick={() => setSelectedRecording(null)}
+                    ></div>
+                    
+                    {/* Modal Content */}
+                    <div className="glass-panel-3d w-full max-w-2xl rounded-2xl overflow-hidden relative z-10 border border-white/10 shadow-2xl animate-in zoom-in-95 duration-200">
+                        {/* Header */}
+                        <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-white/5">
+                            <h3 className="text-xl font-light text-white flex items-center gap-2">
+                                <span className="material-icons-round text-primary">analytics</span>
+                                Detalii Înregistrare
+                            </h3>
+                            <button 
+                                onClick={() => setSelectedRecording(null)} 
+                                className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                            >
+                                <span className="material-icons-round">close</span>
+                            </button>
+                        </div>
+                        
+                        {/* Body */}
+                        <div className="p-8 space-y-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                <div className="space-y-1">
+                                    <p className="text-xs text-gray-500 uppercase tracking-widest font-medium">Client / Telefon</p>
+                                    <p className="text-xl text-white font-num flex items-center gap-2">
+                                        <span className="material-icons-round text-primary/70 text-lg">phone</span>
+                                        {selectedRecording.phone_number || 'Necunoscut'}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-gray-500 uppercase tracking-widest font-medium">Dată & Oră</p>
+                                    <p className="text-xl text-white font-num flex items-center gap-2">
+                                        <span className="material-icons-round text-primary/70 text-lg">event</span>
+                                        {formatDate(selectedRecording.created_at)}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-gray-500 uppercase tracking-widest font-medium">Durată Apel</p>
+                                    <p className="text-xl text-white font-num flex items-center gap-2">
+                                        <span className="material-icons-round text-primary/70 text-lg">schedule</span>
+                                        {formatDuration(selectedRecording.duration_seconds)}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-gray-500 uppercase tracking-widest font-medium">Status Conversație</p>
+                                    <div className="mt-1 flex">{getStatusBadge(selectedRecording.status)}</div>
+                                </div>
+                            </div>
+
+                            <div className="p-6 rounded-2xl bg-black/40 border border-white/5 space-y-4 shadow-inner">
+                                <div className="flex justify-between items-center">
+                                    <p className="text-xs text-gray-500 uppercase tracking-widest font-medium">Ascultă Înregistrarea</p>
+                                    <span className="text-[10px] text-gray-600 font-mono">ID: {selectedRecording.id}</span>
+                                </div>
+                                <audio controls className="w-full h-10 filter brightness-110" src={selectedRecording.recording_url} autoPlay={false} />
+                            </div>
+
+                            {selectedRecording.recording_transcript ? (
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-icons-round text-primary text-sm">auto_awesome</span>
+                                        <p className="text-xs text-gray-500 uppercase tracking-widest font-medium">Transcriere AI</p>
+                                    </div>
+                                    <div className="p-5 rounded-2xl bg-white/5 border border-white/5 max-h-60 overflow-y-auto text-sm text-gray-300 font-light leading-relaxed scrollbar-thin hover:border-white/10 transition-colors">
+                                        {selectedRecording.recording_transcript}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="p-8 rounded-2xl border border-dashed border-white/5 text-center">
+                                    <span className="material-icons-round text-gray-700 text-3xl mb-2">description</span>
+                                    <p className="text-xs text-gray-600 font-light italic">Nu există o transcriere disponibilă pentru acest apel.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-8 py-6 bg-black/20 border-t border-white/5 flex justify-end items-center gap-4">
+                            <p className="text-[10px] text-gray-600 mr-auto flex items-center gap-1 uppercase tracking-tighter">
+                                <span className="material-icons-round text-xs">shield</span> SECURED BY NANOASSIST AI
+                            </p>
+                            <button 
+                                onClick={() => setSelectedRecording(null)} 
+                                className="btn-3d-secondary px-8 py-2.5 rounded-xl text-sm font-medium hover:text-white"
+                            >
+                                ÎNCHIDE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style>{`
+                @keyframes progress-indefinite {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(300%); }
+                }
+                .animate-progress-indefinite {
+                    animation: progress-indefinite 1.5s infinite linear;
+                }
+                .scrollbar-thin::-webkit-scrollbar {
+                    width: 4px;
+                }
+                .scrollbar-thin::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .scrollbar-thin::-webkit-scrollbar-thumb {
+                    background: rgba(168, 85, 247, 0.2);
+                    border-radius: 10px;
+                }
+                .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+                    background: rgba(168, 85, 247, 0.4);
+                }
+            `}</style>
         </div>
     );
 }
