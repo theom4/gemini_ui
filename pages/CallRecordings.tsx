@@ -4,14 +4,14 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function CallRecordings() {
     const { profile, loading: authLoading } = useAuth();
-    
+
     // Explicitly derive ID and Stores
     const userId = profile?.id || '';
     const userStores = profile?.stores || [];
 
     const [selectedBrand, setSelectedBrand] = useState<string>('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    
+
     // Auto-select first brand on load
     useEffect(() => {
         if (userStores.length > 0 && !selectedBrand) {
@@ -59,10 +59,10 @@ export default function CallRecordings() {
 
     const { recordings, totalCount, loading: recordingsLoading, isFetching, error } = useCallRecordingsOptimized(
         userId,
-        selectedBrand, 
-        startDate, 
-        endDate, 
-        page, 
+        selectedBrand,
+        startDate,
+        endDate,
+        page,
         pageSize,
         activeSearch,
         statusFilter
@@ -86,7 +86,7 @@ export default function CallRecordings() {
     const getStatusBadge = (status: string | null | undefined) => {
         if (!status) return <span className="text-gray-500 font-light italic text-xs">Nespecificat</span>;
         const s = status.toLowerCase();
-        let colorClass = 'bg-gray-500/10 text-gray-400 border-gray-500/20'; 
+        let colorClass = 'bg-gray-500/10 text-gray-400 border-gray-500/20';
         if (s.includes('confirm')) colorClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
         else if (s.includes('anulat')) colorClass = 'bg-red-500/10 text-red-400 border-red-500/20';
         else if (s.includes('neraspuns')) colorClass = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
@@ -114,10 +114,10 @@ export default function CallRecordings() {
                         {selectedBrand ? `Conversații pentru ${selectedBrand}` : 'Selectați un magazin'}
                     </p>
                 </div>
-                
+
                 <div className="flex-1 max-w-lg w-full relative group">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 material-icons-round text-gray-500">search</span>
-                    <input 
+                    <input
                         type="text"
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
@@ -127,7 +127,7 @@ export default function CallRecordings() {
                     />
                     <button onClick={() => setActiveSearch(searchInput)} className="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-surface-dark-lighter border border-white/5 text-gray-400 hover:text-white text-xs font-medium rounded-lg transition-colors">Caută</button>
                 </div>
-                
+
                 <div className="flex flex-wrap gap-3 items-center justify-end">
                     <div className="flex items-center gap-2 bg-[#13141a] p-1 rounded-xl border border-white/5 shadow-inner">
                         <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-transparent text-gray-200 text-sm border-none focus:ring-0 cursor-pointer outline-none" />
@@ -145,8 +145,8 @@ export default function CallRecordings() {
                                 <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
                                 <div className="absolute right-0 top-full mt-2 w-full rounded-xl bg-[#13141a] border border-white/5 shadow-xl z-50 overflow-hidden backdrop-blur-md">
                                     {userStores.map(store => (
-                                        <button 
-                                            key={store} 
+                                        <button
+                                            key={store}
                                             onClick={() => { setSelectedBrand(store); setIsDropdownOpen(false); }}
                                             className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
                                         >
@@ -207,11 +207,11 @@ export default function CallRecordings() {
                                         <td className="py-4 px-6 text-gray-300 font-num">{rec.phone_number || 'Necunoscut'}</td>
                                         <td className="py-4 px-6 text-gray-300 font-num">{formatDuration(rec.duration_seconds)}</td>
                                         <td className="py-4 px-6">
-                                            <audio 
-                                                controls 
-                                                className="h-8 w-64 opacity-30 group-hover:opacity-100 transition-opacity" 
-                                                src={rec.recording_url} 
-                                                preload="none" 
+                                            <audio
+                                                controls
+                                                className="h-8 w-64 opacity-30 group-hover:opacity-100 transition-opacity"
+                                                src={rec.recording_url}
+                                                preload="none"
                                             />
                                         </td>
                                         <td className="py-4 px-6 text-right">
@@ -226,7 +226,7 @@ export default function CallRecordings() {
                     </table>
                 </div>
             </div>
-            
+
             {!recordingsLoading && totalCount > 0 && (
                 <div className="flex justify-between items-center px-2">
                     <p className="text-xs text-gray-500 italic font-light">Afișare {recordings.length} din {totalCount} înregistrări</p>
@@ -248,11 +248,11 @@ export default function CallRecordings() {
             {selectedRecording && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     {/* Backdrop */}
-                    <div 
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" 
+                    <div
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
                         onClick={() => setSelectedRecording(null)}
                     ></div>
-                    
+
                     {/* Modal Content */}
                     <div className="glass-panel-3d w-full max-w-2xl rounded-2xl overflow-hidden relative z-10 border border-white/10 shadow-2xl animate-in zoom-in-95 duration-200">
                         {/* Header */}
@@ -260,15 +260,20 @@ export default function CallRecordings() {
                             <h3 className="text-xl font-light text-white flex items-center gap-2">
                                 <span className="material-icons-round text-primary">analytics</span>
                                 Detalii Înregistrare
+                                {selectedRecording.client_personal_id && (
+                                    <span className="ml-2 px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-lg text-sm font-medium">
+                                        #{selectedRecording.client_personal_id}
+                                    </span>
+                                )}
                             </h3>
-                            <button 
-                                onClick={() => setSelectedRecording(null)} 
+                            <button
+                                onClick={() => setSelectedRecording(null)}
                                 className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
                             >
                                 <span className="material-icons-round">close</span>
                             </button>
                         </div>
-                        
+
                         {/* Body */}
                         <div className="p-8 space-y-8">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -277,13 +282,6 @@ export default function CallRecordings() {
                                     <p className="text-xl text-white font-num flex items-center gap-2">
                                         <span className="material-icons-round text-primary/70 text-lg">phone</span>
                                         {selectedRecording.phone_number || 'Necunoscut'}
-                                    </p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs text-gray-500 uppercase tracking-widest font-medium">ID Comandă</p>
-                                    <p className="text-xl text-white font-num flex items-center gap-2">
-                                        <span className="material-icons-round text-primary/70 text-lg">shopping_cart</span>
-                                        {selectedRecording.client_personal_id || 'N/A'}
                                     </p>
                                 </div>
                                 <div className="space-y-1">
@@ -337,8 +335,8 @@ export default function CallRecordings() {
                             <p className="text-[10px] text-gray-600 mr-auto flex items-center gap-1 uppercase tracking-tighter">
                                 <span className="material-icons-round text-xs">shield</span> SECURED BY NANOASSIST AI
                             </p>
-                            <button 
-                                onClick={() => setSelectedRecording(null)} 
+                            <button
+                                onClick={() => setSelectedRecording(null)}
                                 className="btn-3d-secondary px-8 py-2.5 rounded-xl text-sm font-medium hover:text-white"
                             >
                                 ÎNCHIDE
