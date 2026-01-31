@@ -280,6 +280,13 @@ export default function CallRecordings() {
                                     </p>
                                 </div>
                                 <div className="space-y-1">
+                                    <p className="text-xs text-gray-500 uppercase tracking-widest font-medium">ID Comandă</p>
+                                    <p className="text-xl text-white font-num flex items-center gap-2">
+                                        <span className="material-icons-round text-primary/70 text-lg">shopping_cart</span>
+                                        {selectedRecording.client_personal_id || 'N/A'}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
                                     <p className="text-xs text-gray-500 uppercase tracking-widest font-medium">Dată & Oră</p>
                                     <p className="text-xl text-white font-num flex items-center gap-2">
                                         <span className="material-icons-round text-primary/70 text-lg">event</span>
