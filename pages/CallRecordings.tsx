@@ -173,7 +173,62 @@ export default function CallRecordings() {
                         <thead>
                             <tr className="text-xs text-gray-500 uppercase tracking-widest border-b border-gray-800/50 bg-surface-dark-lighter/30">
                                 <th className="py-4 px-6 font-medium">Data</th>
-                                <th className="py-4 px-6 font-medium">Status</th>
+                                <th className="py-4 px-6 font-medium">
+                                    <div className="flex items-center gap-2">
+                                        <span>Status</span>
+                                        <div className="relative" ref={statusDropdownRef}>
+                                            <button
+                                                onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                                                className="w-6 h-6 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center transition-colors"
+                                                title="Filtrează după status"
+                                            >
+                                                <span className="material-icons-round text-sm">filter_list</span>
+                                            </button>
+                                            {isStatusDropdownOpen && (
+                                                <>
+                                                    <div className="fixed inset-0 z-40" onClick={() => setIsStatusDropdownOpen(false)}></div>
+                                                    <div className="absolute left-0 top-full mt-2 w-48 rounded-xl bg-[#13141a] border border-white/5 shadow-xl z-50 overflow-hidden backdrop-blur-md">
+                                                        <button
+                                                            onClick={() => { setStatusFilter('all'); setIsStatusDropdownOpen(false); }}
+                                                            className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                                                        >
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${statusFilter === 'all' ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.4)]' : 'bg-transparent border border-gray-600'}`}></span>
+                                                            Toate
+                                                        </button>
+                                                        <button
+                                                            onClick={() => { setStatusFilter('Confirmata'); setIsStatusDropdownOpen(false); }}
+                                                            className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                                                        >
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${statusFilter === 'Confirmata' ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.4)]' : 'bg-transparent border border-gray-600'}`}></span>
+                                                            Confirmata
+                                                        </button>
+                                                        <button
+                                                            onClick={() => { setStatusFilter('Anulata'); setIsStatusDropdownOpen(false); }}
+                                                            className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                                                        >
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${statusFilter === 'Anulata' ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.4)]' : 'bg-transparent border border-gray-600'}`}></span>
+                                                            Anulata
+                                                        </button>
+                                                        <button
+                                                            onClick={() => { setStatusFilter('Upsell'); setIsStatusDropdownOpen(false); }}
+                                                            className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                                                        >
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${statusFilter === 'Upsell' ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.4)]' : 'bg-transparent border border-gray-600'}`}></span>
+                                                            Upsell
+                                                        </button>
+                                                        <button
+                                                            onClick={() => { setStatusFilter('Neraspuns'); setIsStatusDropdownOpen(false); }}
+                                                            className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                                                        >
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${statusFilter === 'Neraspuns' ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.4)]' : 'bg-transparent border border-gray-600'}`}></span>
+                                                            Neraspuns
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </th>
                                 <th className="py-4 px-6 font-medium">Telefon</th>
                                 <th className="py-4 px-6 font-medium">Durată</th>
                                 <th className="py-4 px-6 font-medium">Înregistrare</th>
