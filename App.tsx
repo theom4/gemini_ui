@@ -6,12 +6,13 @@ import Index from "./pages/Index";
 import CallRecordings from "./pages/CallRecordings";
 import WhatsappPage from "./pages/WhatsappPage";
 import ChatPage from "./pages/ChatPage";
+import ControlRobotPage from "./pages/ControlRobotPage";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
 
 export default function App() {
     const { session, loading: authLoading } = useAuth();
-    
+
     // While loading initial auth, show nothing or a loader
     if (authLoading) {
         return (
@@ -32,16 +33,17 @@ export default function App() {
                     <div className="flex flex-1 overflow-hidden">
                         <Sidebar />
                         <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
-                             <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-purple-900/10 via-purple-900/5 to-transparent pointer-events-none z-0"></div>
-                             
-                             <Header userEmail={session.user.email} />
-        
+                            <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-purple-900/10 via-purple-900/5 to-transparent pointer-events-none z-0"></div>
+
+                            <Header userEmail={session.user.email} />
+
                             <div className="flex-1 overflow-y-auto p-8 z-10 scroll-smooth">
                                 <Routes>
                                     <Route path="/" element={<Index />} />
                                     <Route path="/call-recordings" element={<CallRecordings />} />
                                     <Route path="/whatsapp" element={<WhatsappPage />} />
                                     <Route path="/chat" element={<ChatPage />} />
+                                    <Route path="/control-robot" element={<ControlRobotPage />} />
                                     <Route path="*" element={<PlaceholderPage />} />
                                 </Routes>
                             </div>
@@ -73,9 +75,9 @@ function AuthPage() {
             if (error) throw error;
         } catch (error: any) {
             if (error.message && (error.message.includes('fetch') || error.message.includes('URL'))) {
-                 setError("Eroare conexiune: Verificați configurația Supabase.");
+                setError("Eroare conexiune: Verificați configurația Supabase.");
             } else if (error.message === "Invalid login credentials") {
-                 setError("Email sau parolă incorectă.");
+                setError("Email sau parolă incorectă.");
             } else {
                 setError(error.message);
             }
@@ -209,10 +211,10 @@ function Sidebar() {
     const handleLogout = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation(); // Stop any parent container clicks
-        
+
         console.log('🔘 [Sidebar] Logout interaction started.');
         setIsLoggingOut(true);
-        
+
         try {
             await signOut();
             console.log('✅ [Sidebar] Logout sequence triggered successfully.');
@@ -250,6 +252,7 @@ function Sidebar() {
                         <li><SidebarLink to="/chat" icon="smart_toy" label="Chat AI" /></li>
                         <li><SidebarLink to="/whatsapp" icon={whatsappIcon} label="Whatsapp" /></li>
                         <li><SidebarLink to="/call-recordings" icon="keyboard_voice" label="Înregistrări Apeluri" /></li>
+                        <li><SidebarLink to="/control-robot" icon="settings_remote" label="Control Robot" /></li>
                     </ul>
                 </div>
             </nav>
@@ -257,9 +260,9 @@ function Sidebar() {
             <div className="p-4 border-t border-gray-200 dark:border-gray-800">
                 <div className="flex items-center gap-3 p-3 rounded-xl glass-panel-3d transition-all group relative">
                     <div className="relative">
-                        <img 
-                            alt="User Profile" 
-                            className="w-10 h-10 rounded-full ring-2 ring-purple-500/50 shadow-lg" 
+                        <img
+                            alt="User Profile"
+                            className="w-10 h-10 rounded-full ring-2 ring-purple-500/50 shadow-lg"
                             src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU74HU2GRRRCYR-y4C1o61_xlf-GzgQpiMNTsr3T3-zTKJvGn7N3WilTiZKPnPS_5A_Br7ktYW-DlTNeX9zU5rGJSDSh8g5Z-Qp2Fk_CPVxEYAq4wiZbjIIgViNUU8XHUi67qBn09PAjmrocgGdbNKg9e8rR1vQ6ht3YUPh5sP9DOyuxBRmzpgiJN28BA9jOm-jgx7ldZI1RocbOo5bhIkHaQIEQcSRJ2XovxY079dty-_nwbSz-VMbWbo4Uo3vOJ7V8BnBEo-cT_z"
                         />
                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#161822] rounded-full"></div>
@@ -268,7 +271,7 @@ function Sidebar() {
                         <p className="text-sm font-normal text-gray-900 dark:text-white truncate">{userEmail || 'Admin User'}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 truncate font-light">Online</p>
                     </div>
-                    <button 
+                    <button
                         onClick={handleLogout}
                         disabled={isLoggingOut}
                         className={`w-9 h-9 ml-auto flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-gray-400 transition-all focus:outline-none active:scale-95 ${isLoggingOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-400'}`}
@@ -302,7 +305,7 @@ function SidebarLink({ to, icon, label, badge }: { to: string; icon: React.React
                     {typeof icon === 'string' ? (
                         <span className="material-icons-round text-xl group-hover:text-primary transition-colors drop-shadow-md">{icon}</span>
                     ) : (
-                         <span className="text-xl group-hover:text-primary transition-colors drop-shadow-md flex items-center justify-center w-[24px] h-[24px]">{icon}</span>
+                        <span className="text-xl group-hover:text-primary transition-colors drop-shadow-md flex items-center justify-center w-[24px] h-[24px]">{icon}</span>
                     )}
                     <span className={isActive ? "" : "font-light"}>{label}</span>
                     {badge && (
