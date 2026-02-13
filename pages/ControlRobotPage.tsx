@@ -10,6 +10,7 @@ const ControlRobotPage = () => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [isLoadingCall, setIsLoadingCall] = useState(false);
     const [isLoadingActivate, setIsLoadingActivate] = useState(false);
+    const [isRobotStopped, setIsRobotStopped] = useState(false);
 
     useEffect(() => {
         if (userStores.length > 0 && !selectedBrand) {
@@ -72,6 +73,17 @@ const ControlRobotPage = () => {
             alert("A apărut o eroare la trimiterea comenzii.");
         } finally {
             setIsLoadingActivate(false);
+        }
+    };
+
+    const handleFullStopToggle = () => {
+        const message = isRobotStopped
+            ? "Ești sigur că vrei să repornești robotul?"
+            : "Ești sigur că vrei să oprești complet robotul?";
+
+        if (window.confirm(message)) {
+            setIsRobotStopped(!isRobotStopped);
+            // No backend action for now as requested
         }
     };
 
@@ -143,6 +155,22 @@ const ControlRobotPage = () => {
                             )}
                         </button>
                     </div>
+                </div>
+
+                <div className="bg-surface-light dark:bg-surface-dark-lighter p-8 rounded-2xl border border-gray-200 dark:border-white/5 shadow-lg flex items-center justify-between">
+                    <div>
+                        <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Oprire completa</p>
+                        <p className="text-sm text-gray-400 font-light">
+                            Ascunde sau dezactivează complet funcționalitatea robotului.
+                        </p>
+                    </div>
+
+                    <button
+                        onClick={handleFullStopToggle}
+                        className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 ${isRobotStopped ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-700'}`}
+                    >
+                        <div className={`w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 ${isRobotStopped ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                    </button>
                 </div>
             </div>
         </div>
