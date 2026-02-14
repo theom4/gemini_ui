@@ -11,6 +11,9 @@ const ControlRobotPage = () => {
     const [isLoadingCall, setIsLoadingCall] = useState(false);
     const [isLoadingActivate, setIsLoadingActivate] = useState(false);
     const [isRobotStopped, setIsRobotStopped] = useState(false);
+    const [productId, setProductId] = useState('');
+    const [isLoadingStopProduct, setIsLoadingStopProduct] = useState(false);
+    const [isLoadingStartProduct, setIsLoadingStartProduct] = useState(false);
 
     useEffect(() => {
         if (userStores.length > 0 && !selectedBrand) {
@@ -73,6 +76,64 @@ const ControlRobotPage = () => {
             alert("A apărut o eroare la trimiterea comenzii.");
         } finally {
             setIsLoadingActivate(false);
+        }
+    };
+
+    const handleStopProductAction = async () => {
+        if (!productId || !selectedBrand) {
+            alert("Te rugăm să selectezi un magazin și să introduci ID-ul produsului.");
+            return;
+        }
+
+        setIsLoadingStopProduct(true);
+        try {
+            await fetch('https://n8n.voisero.info/webhook/product-control-vt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    shop: selectedBrand,
+                    product_id: productId,
+                    action: 'stop_product'
+                }),
+            });
+            alert("Comanda de oprire a produsului a fost trimisă cu succes!");
+            setProductId('');
+        } catch (error) {
+            console.error("Eroare la trimiterea comenzii:", error);
+            alert("A apărut o eroare la trimiterea comenzii.");
+        } finally {
+            setIsLoadingStopProduct(false);
+        }
+    };
+
+    const handleStartProductAction = async () => {
+        if (!productId || !selectedBrand) {
+            alert("Te rugăm să selectezi un magazin și să introduci ID-ul produsului.");
+            return;
+        }
+
+        setIsLoadingStartProduct(true);
+        try {
+            await fetch('https://n8n.voisero.info/webhook/product-control-vt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    shop: selectedBrand,
+                    product_id: productId,
+                    action: 'start_product'
+                }),
+            });
+            alert("Comanda de pornire a produsului a fost trimisă cu succes!");
+            setProductId('');
+        } catch (error) {
+            console.error("Eroare la trimiterea comenzii:", error);
+            alert("A apărut o eroare la trimiterea comenzii.");
+        } finally {
+            setIsLoadingStartProduct(false);
         }
     };
 
@@ -171,6 +232,45 @@ const ControlRobotPage = () => {
                     >
                         <div className={`w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 ${isRobotStopped ? 'translate-x-6' : 'translate-x-0'}`}></div>
                     </button>
+                </div>
+
+                <div className="bg-surface-light dark:bg-surface-dark-lighter p-8 rounded-2xl border border-gray-200 dark:border-white/5 shadow-lg">
+                    <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Oprire sunat produs</p>
+                    <p className="text-sm text-gray-400 font-light mb-6">
+                        Pe acest produs robotul nu va mai suna. Introdu ID-ul produsului din Shopify, se gaseste in link-ul acestuia
+                    </p>
+
+                    <div className="max-w-md flex gap-4">
+                        <input
+                            type="text"
+                            value={productId}
+                            onChange={(e) => setProductId(e.target.value)}
+                            placeholder="ID Produs Shopify"
+                            className="flex-1 px-4 py-3 rounded-xl bg-background-light dark:bg-[#0a0b14] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-light"
+                        />
+                        <button
+                            onClick={handleStopProductAction}
+                            disabled={isLoadingStopProduct}
+                            className={`btn-3d-primary min-w-[100px] px-6 py-3 rounded-xl text-white font-medium text-sm tracking-wide flex items-center justify-center gap-2 transition-all ${isLoadingStopProduct ? 'opacity-70 cursor-not-allowed' : 'hover:scale-[1.02] active:scale-[0.98]'}`}
+                        >
+                            {isLoadingStopProduct ? (
+                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                            ) : (
+                                "Opreste"
+                            )}
+                        </button>
+                        <button
+                            onClick={handleStartProductAction}
+                            disabled={isLoadingStartProduct}
+                            className={`btn-3d-primary min-w-[100px] px-6 py-3 rounded-xl text-white font-medium text-sm tracking-wide flex items-center justify-center gap-2 transition-all ${isLoadingStartProduct ? 'opacity-70 cursor-not-allowed' : 'hover:scale-[1.02] active:scale-[0.98]'}`}
+                        >
+                            {isLoadingStartProduct ? (
+                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                            ) : (
+                                "Porneste"
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
