@@ -132,7 +132,7 @@ const ControlRobotPage = () => {
                     <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Oprire apeluri asupra unui client</p>
                     <p className="text-sm text-yellow-500 font-light flex items-center gap-2 mb-6">
                         <span className="material-icons-round text-base">warning</span>
-                        Atentie, pentru urmatoarele 5 zile, clientul nu va mai fi sunat de loc
+                        Atentie, pentru urmatoarele 5 zile, clientul nu va mai fi sunat deloc
                     </p>
 
                     <div className="max-w-md flex gap-4">
@@ -140,7 +140,7 @@ const ControlRobotPage = () => {
                             type="text"
                             value={phoneNumber}
                             onChange={(e) => setPhoneNumber(e.target.value)}
-                            placeholder="Numarul de telefon, de ex. 0734 343 343"
+                            placeholder="0733333333"
                             className="flex-1 px-4 py-3 rounded-xl bg-background-light dark:bg-[#0a0b14] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-light"
                         />
                         <button
