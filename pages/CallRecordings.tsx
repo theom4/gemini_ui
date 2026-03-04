@@ -232,13 +232,14 @@ export default function CallRecordings() {
                                 <th className="py-4 px-6 font-medium">Telefon</th>
                                 <th className="py-4 px-6 font-medium">Durată</th>
                                 <th className="py-4 px-6 font-medium">Înregistrare</th>
+                                <th className="py-4 px-6 font-medium">TIP</th>
                                 <th className="py-4 px-6 text-right font-medium">Acțiune</th>
                             </tr>
                         </thead>
                         <tbody className="text-sm divide-y divide-gray-800/50">
                             {isLoadingData ? (
                                 <tr>
-                                    <td colSpan={6} className="py-24 text-center">
+                                    <td colSpan={7} className="py-24 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <span className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></span>
                                             <span className="text-gray-500 font-light italic">Se încarcă înregistrările...</span>
@@ -247,7 +248,7 @@ export default function CallRecordings() {
                                 </tr>
                             ) : recordings.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="py-24 text-center">
+                                    <td colSpan={7} className="py-24 text-center">
                                         <div className="flex flex-col items-center gap-2 opacity-40">
                                             <span className="material-icons-round text-5xl mb-2">history</span>
                                             <span className="text-gray-500 font-light italic text-base">Nu s-au găsit înregistrări pentru perioada selectată.</span>
@@ -268,6 +269,15 @@ export default function CallRecordings() {
                                                 src={rec.recording_url}
                                                 preload="none"
                                             />
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            {(() => {
+                                                const tip = rec.type && rec.type.trim() !== '' ? rec.type.trim() : 'Comanda';
+                                                if (tip === 'Draft') {
+                                                    return <span className="px-2 py-0.5 rounded-lg text-[10px] border font-medium bg-blue-500/10 text-blue-400 border-blue-500/20">Draft</span>;
+                                                }
+                                                return <span className="px-2 py-0.5 rounded-lg text-[10px] border font-medium bg-emerald-800/20 text-emerald-600 border-emerald-700/30">Comanda</span>;
+                                            })()}
                                         </td>
                                         <td className="py-4 px-6 text-right">
                                             <button onClick={() => setSelectedRecording(rec)} className="w-8 h-8 btn-3d-secondary rounded-lg inline-flex items-center justify-center hover:text-white transition-colors">
