@@ -229,7 +229,7 @@ export default function StatisticiProduse() {
                                             {[row.pret_1_bucata, row.pret_2_bucati, row.pret_3_bucati, row.pret_4_bucati, row.pret_5_bucati].map((p, pi) => (
                                                 <td key={pi} className="py-4 px-6 font-num whitespace-nowrap">
                                                     {p ? (
-                                                        <span className="px-2 py-0.5 rounded-lg text-[11px] border font-medium bg-emerald-800/20 text-emerald-400 border-emerald-700/30">{p} lei</span>
+                                                        <span className="px-2 py-0.5 rounded-lg text-sm border font-medium bg-emerald-800/20 text-emerald-400 border-emerald-700/30">{p} lei</span>
                                                     ) : <span className="text-gray-700">—</span>}
                                                 </td>
                                             ))}
@@ -239,8 +239,8 @@ export default function StatisticiProduse() {
                                                     <button onClick={() => { }} className="btn-3d-secondary px-4 py-2 rounded-xl text-xs font-medium hover:text-white transition-all whitespace-nowrap">
                                                         Analizeaza vanzare
                                                     </button>
-                                                    <button onClick={() => { }} className="btn-3d-secondary px-4 py-2 rounded-xl text-xs font-medium hover:text-white transition-all whitespace-nowrap">
-                                                        Editeaza
+                                                    <button onClick={() => { }} className="btn-3d-secondary py-2 px-2 rounded-xl hover:text-white transition-all leading-none" title="Editeaza">
+                                                        <span className="material-icons-round text-[18px] leading-none">edit</span>
                                                     </button>
                                                 </div>
                                             </td>
