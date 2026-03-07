@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactECharts from 'echarts-for-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const dummyData = [
@@ -95,6 +96,8 @@ interface ProductItem {
     status?: string;
     sku?: string;
 }
+
+
 
 export default function StatisticiProduse() {
     const { profile } = useAuth();
@@ -193,6 +196,7 @@ export default function StatisticiProduse() {
                                     <th className="py-4 px-6 font-medium">Pret 3 buc</th>
                                     <th className="py-4 px-6 font-medium">Pret 4 buc</th>
                                     <th className="py-4 px-6 font-medium">Pret 5 buc</th>
+                                    <th className="py-4 px-6 font-medium">Trend</th>
                                     <th className="py-4 px-6 font-medium overflow-visible">
                                         <div className="relative inline-flex items-center gap-1 group/tip cursor-default">
                                             <span>Sanatate</span>
@@ -233,6 +237,15 @@ export default function StatisticiProduse() {
                                                     ) : <span className="text-gray-700">—</span>}
                                                 </td>
                                             ))}
+                                            <td className="py-4 px-6">
+                                                <SparkBar
+                                                    history={[Math.random() * 10, Math.random() * 10, Math.random() * 20, Math.random() * 30, Math.random() * 20, Math.random() * 10, Math.random() * 15]}
+                                                    pct={0}
+                                                    color="bg-purple-500"
+                                                    trackColor="bg-purple-500/20"
+                                                    labelColor="text-purple-400"
+                                                />
+                                            </td>
                                             <td className="py-4 px-6"><HealthBar value={sv} /></td>
                                             <td className="py-4 px-6">
                                                 <div className="flex items-center gap-2">
