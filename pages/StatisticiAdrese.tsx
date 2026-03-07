@@ -9,9 +9,9 @@ interface CountyData {
 
 // Mock data with specific values for requested counties
 const MOCK_DATA: CountyData[] = [
-    { name: 'București', value: 1500 },
+    { name: 'Bucharest', value: 1500 },
     { name: 'Cluj', value: 800 },
-    { name: 'Timiș', value: 500 },
+    { name: 'Timis', value: 500 },
     // Rest are 0 by default, ECharts handles missing data as 0 or we can seed them if the JSON names match
 ];
 
@@ -20,27 +20,19 @@ export default function StatisticiAdrese() {
     const [mapError, setMapError] = useState<string | null>(null);
 
     useEffect(() => {
-        // Try to fetch a reliable Romania GeoJSON
+        // Fetch local Romania GeoJSON
         const fetchGeoJson = async () => {
-            const urls = [
-                'https://raw.githubusercontent.com/gingeleschi/romania-geojson/master/romania-counties.geojson',
-                'https://raw.githubusercontent.com/george-stepan/romania-geojson/master/counties.geojson',
-                'https://raw.githubusercontent.com/Andrei087/Romania-GeoJson/master/romania.geojson'
-            ];
-
-            for (const url of urls) {
-                try {
-                    const res = await fetch(url);
-                    if (!res.ok) continue;
-                    const geojson = await res.json();
-                    echarts.registerMap('ROMANIA_COUNTIES', geojson);
-                    setMapLoaded(true);
-                    return; // exit on first success
-                } catch (e) {
-                    console.warn(`Failed to fetch GeoJSON from ${url}`, e);
-                }
+            try {
+                // Fetch the GeoJSON which we saved to the public directory
+                const res = await fetch('/romania-counties.json');
+                if (!res.ok) throw new Error('Network response was not ok');
+                const geojson = await res.json();
+                echarts.registerMap('ROMANIA_COUNTIES', geojson);
+                setMapLoaded(true);
+            } catch (e) {
+                console.warn('Failed to fetch local GeoJSON', e);
+                setMapError('Nu s-a putut încărca harta județelor (Eroare rețea). Verificați dacă fisierul exista in public/romania-counties.json');
             }
-            setMapError('Nu s-a putut încărca harta județelor (Eroare rețea sau GeoJSON indisponibil).');
         };
 
         fetchGeoJson();
@@ -60,7 +52,11 @@ export default function StatisticiAdrese() {
                 padding: [12, 16],
                 formatter: (params: any) => {
                     const value = params.value || 0;
-                    const countyName = params.name || 'Necunoscut';
+                    // Provide a nice fallback name
+                    let countyName = params.name || 'Necunoscut';
+                    if (countyName === 'Bucharest') countyName = 'București';
+                    if (countyName === 'Timis') countyName = 'Timiș';
+
                     return `
                         <div style="font-weight: 600; margin-bottom: 4px; color: #a855f7;">${countyName}</div>
                         <div style="font-size: 13px; color: #9ca3af;">
