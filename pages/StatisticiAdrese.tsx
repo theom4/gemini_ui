@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
+import { useAuth } from '../contexts/AuthContext';
+import StoreSelector from '../components/StoreSelector';
 
 interface CountyData {
     name: string;
@@ -16,8 +18,19 @@ const MOCK_DATA: CountyData[] = [
 ];
 
 export default function StatisticiAdrese() {
+    const { profile } = useAuth();
+    const userStores = profile?.stores || [];
+
+    const [selectedBrand, setSelectedBrand] = useState<string>('');
     const [mapLoaded, setMapLoaded] = useState(false);
     const [mapError, setMapError] = useState<string | null>(null);
+
+    // Auto-select first store
+    useEffect(() => {
+        if (userStores.length > 0 && !selectedBrand) {
+            setSelectedBrand(userStores[0]);
+        }
+    }, [userStores, selectedBrand]);
 
     useEffect(() => {
         // Fetch local Romania GeoJSON
@@ -60,7 +73,7 @@ export default function StatisticiAdrese() {
                     return `
                         <div style="font-weight: 600; margin-bottom: 4px; color: #a855f7;">${countyName}</div>
                         <div style="font-size: 13px; color: #9ca3af;">
-                            Comenzi: <span style="color: #fff; font-weight: 600;">${value}</span>
+                            Total comenzi: <span style="color: #fff; font-weight: 600;">${value}</span>
                         </div>
                     `;
                 }
@@ -85,7 +98,7 @@ export default function StatisticiAdrese() {
                     name: 'Comenzi',
                     type: 'map',
                     map: 'ROMANIA_COUNTIES',
-                    roam: true, // Allow zooming/panning
+                    roam: false, // Disables zooming/panning
                     zoom: 1.1, // Initial zoom
                     aspectScale: 1.1, // <-- this makes it wider horizontally (fixes the vertical stretch)
                     itemStyle: {
@@ -119,9 +132,19 @@ export default function StatisticiAdrese() {
 
     return (
         <div className="space-y-6 h-full flex flex-col">
-            <div>
-                <h2 className="text-3xl font-light dark:text-white mb-2 tracking-tight">Statistici Adrese</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-light">Distribuția pe județe a comenzilor sosite</p>
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                <div className="xl:min-w-[200px]">
+                    <h2 className="text-3xl font-light dark:text-white mb-2 tracking-tight">Statistici Adrese</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-light">
+                        {selectedBrand ? `Distribuția comenzilor pe județe pentru ${selectedBrand}` : 'Distribuția pe județe a comenzilor sosite'}
+                    </p>
+                </div>
+
+                <StoreSelector
+                    selectedBrand={selectedBrand}
+                    setSelectedBrand={setSelectedBrand}
+                    userStores={userStores}
+                />
             </div>
 
             <div className="card-depth rounded-2xl border border-white/5 relative flex-1 min-h-[500px] flex items-center justify-center overflow-hidden">
