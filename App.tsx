@@ -9,6 +9,7 @@ import ChatPage from "./pages/ChatPage";
 import ControlRobotPage from "./pages/ControlRobotPage";
 import StatisticiProduse from "./pages/StatisticiProduse";
 import ScriptVanzare from "./pages/ScriptVanzare";
+import StatisticiAdrese from "./pages/StatisticiAdrese";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
 
@@ -48,6 +49,7 @@ export default function App() {
                                     <Route path="/control-robot" element={<ControlRobotPage />} />
                                     <Route path="/statistici-produse" element={<StatisticiProduse />} />
                                     <Route path="/script-vanzare" element={<ScriptVanzare />} />
+                                    <Route path="/statistici-adrese" element={<StatisticiAdrese />} />
                                     <Route path="*" element={<PlaceholderPage />} />
                                 </Routes>
                             </div>
@@ -248,6 +250,7 @@ function Sidebar() {
                     <ul className="space-y-1">
                         <li><SidebarLink to="/" icon="dashboard" label="Dashboard" /></li>
                         <li><SidebarLink to="/statistici-produse" icon="bar_chart" label="Statistici produse" /></li>
+                        <li><SidebarLink to="/statistici-adrese" icon="map" label="Statistici adrese" /></li>
                         <li><SidebarLink to="/processed-orders" icon="shopping_cart" label="Comenzi procesate" /></li>
                         <li><SidebarLink to="/customers" icon="people" label="Clienți" /></li>
                         <li><SidebarLink to="/script-vanzare" icon="description" label="Script vanzare" /></li>

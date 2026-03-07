@@ -151,14 +151,14 @@ export default function ScriptVanzare() {
                                 {products.map((row, i) => (
                                     <tr key={i} className="group hover:bg-white/5 transition-colors">
                                         {/* Produs */}
-                                        <td className="py-4 px-4 text-gray-200 font-medium sticky left-0 bg-[#0d0e19] group-hover:bg-[#13141a] transition-colors z-10 max-w-[160px]">
-                                            <span className="line-clamp-2 leading-snug text-xs" title={row.denumire}>{row.denumire}</span>
+                                        <td className="py-4 px-4 text-gray-200 font-medium sticky left-0 bg-[#0d0e19] group-hover:bg-[#13141a] transition-colors z-10 min-w-[180px]">
+                                            <span className="leading-snug text-sm">{row.denumire}</span>
                                         </td>
                                         {/* Prices */}
                                         {prices(row).map((p, pi) => (
                                             <td key={pi} className="py-4 px-4 font-num whitespace-nowrap">
                                                 {p
-                                                    ? <span className="px-2 py-0.5 rounded-lg text-sm border font-medium bg-emerald-800/20 text-emerald-400 border-emerald-700/30">{p} lei</span>
+                                                    ? <span className="px-2 py-0.5 rounded-lg text-base border font-semibold bg-emerald-800/20 text-emerald-400 border-emerald-700/30">{p} lei</span>
                                                     : <span className="text-gray-700">—</span>}
                                             </td>
                                         ))}

@@ -224,12 +224,12 @@ export default function StatisticiProduse() {
                                     return (
                                         <tr key={i} className="group hover:bg-white/5 transition-colors">
                                             <td className="py-4 px-6 text-gray-200 font-medium max-w-[200px]">
-                                                <span className="line-clamp-2 leading-snug" title={row.denumire}>{row.denumire}</span>
+                                                <span className="leading-snug">{row.denumire}</span>
                                             </td>
                                             {[row.pret_1_bucata, row.pret_2_bucati, row.pret_3_bucati, row.pret_4_bucati, row.pret_5_bucati].map((p, pi) => (
                                                 <td key={pi} className="py-4 px-6 font-num whitespace-nowrap">
                                                     {p ? (
-                                                        <span className="px-2 py-0.5 rounded-lg text-sm border font-medium bg-emerald-800/20 text-emerald-400 border-emerald-700/30">{p} lei</span>
+                                                        <span className="px-2 py-0.5 rounded-lg text-base border font-semibold bg-emerald-800/20 text-emerald-400 border-emerald-700/30">{p} lei</span>
                                                     ) : <span className="text-gray-700">—</span>}
                                                 </td>
                                             ))}
