@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 const dummyData = [
     {
@@ -64,12 +65,65 @@ const dummyData = [
 ];
 
 export default function ScriptVanzare() {
+    const { profile } = useAuth();
+    const userStores = profile?.stores || [];
+
+    const [selectedBrand, setSelectedBrand] = useState<string>('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    // Auto-select first store
+    useEffect(() => {
+        if (userStores.length > 0 && !selectedBrand) {
+            setSelectedBrand(userStores[0]);
+        }
+    }, [userStores, selectedBrand]);
+
+    // Fire webhook on brand change
+    useEffect(() => {
+        if (!selectedBrand) return;
+        fetch('https://n8n.voisero.info/webhook/products-list-vt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ brand: selectedBrand }),
+        }).catch(() => {/* silent fail */ });
+    }, [selectedBrand]);
+
     return (
         <div className="space-y-6 relative">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                 <div className="xl:min-w-[200px]">
                     <h2 className="text-3xl font-light dark:text-white mb-2 tracking-tight">Script Vanzare</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 font-light">Scripturi și prețuri per produs</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-light">
+                        {selectedBrand ? `Scripturi pentru ${selectedBrand}` : 'Scripturi și prețuri per produs'}
+                    </p>
+                </div>
+
+                {/* Store selector */}
+                <div className="relative">
+                    <button
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        className="btn-3d-secondary px-5 py-2.5 rounded-xl text-sm min-w-[160px] flex justify-between items-center h-[42px] hover:text-white transition-all"
+                    >
+                        <span>{selectedBrand || 'Selectează'}</span>
+                        <span className={`material-icons-round transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                    </button>
+                    {isDropdownOpen && (
+                        <>
+                            <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                            <div className="absolute right-0 top-full mt-2 w-full rounded-xl bg-[#13141a] border border-white/5 shadow-xl z-50 overflow-hidden backdrop-blur-md">
+                                {userStores.map(store => (
+                                    <button
+                                        key={store}
+                                        onClick={() => { setSelectedBrand(store); setIsDropdownOpen(false); }}
+                                        className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                                    >
+                                        <span className={`w-1.5 h-1.5 rounded-full ${selectedBrand === store ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.4)]' : 'bg-transparent border border-gray-600'}`} />
+                                        {store}
+                                    </button>
+                                ))}
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 

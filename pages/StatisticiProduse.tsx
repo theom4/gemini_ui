@@ -82,6 +82,20 @@ function HealthBar({ value }: { value: number }) {
     );
 }
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface ProductItem {
+    denumire: string;
+    idProdus: string;
+    pret: number;
+    pret_1_bucata?: string;
+    pret_2_bucati?: string;
+    pret_3_bucati?: string;
+    pret_4_bucati?: string;
+    pret_5_bucati?: string;
+    status?: string;
+    sku?: string;
+}
+
 export default function StatisticiProduse() {
     const { profile } = useAuth();
     const userStores = profile?.stores || [];
@@ -91,12 +105,29 @@ export default function StatisticiProduse() {
     const [endDate, setEndDate] = useState(today);
     const [selectedBrand, setSelectedBrand] = useState<string>('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [products, setProducts] = useState<ProductItem[]>([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (userStores.length > 0 && !selectedBrand) {
             setSelectedBrand(userStores[0]);
         }
     }, [userStores, selectedBrand]);
+
+    // Fire webhook & populate table from response
+    useEffect(() => {
+        if (!selectedBrand) return;
+        setLoading(true);
+        fetch('https://n8n.voisero.info/webhook/products-list-vt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ brand: selectedBrand }),
+        })
+            .then(r => r.json())
+            .then((data: ProductItem[]) => { if (Array.isArray(data)) setProducts(data); })
+            .catch(() => { })
+            .finally(() => setLoading(false));
+    }, [selectedBrand]);
 
     return (
         <div className="space-y-6 relative">
@@ -113,27 +144,17 @@ export default function StatisticiProduse() {
                 <div className="flex flex-wrap gap-3 items-center justify-end">
                     {/* Date range */}
                     <div className="flex items-center gap-2 bg-[#13141a] p-1 rounded-xl border border-white/5 shadow-inner">
-                        <input
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="bg-transparent text-gray-200 text-sm border-none focus:ring-0 cursor-pointer outline-none"
-                        />
+                        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
+                            className="bg-transparent text-gray-200 text-sm border-none focus:ring-0 cursor-pointer outline-none" />
                         <span className="text-gray-600">-</span>
-                        <input
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="bg-transparent text-gray-200 text-sm border-none focus:ring-0 cursor-pointer outline-none"
-                        />
+                        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
+                            className="bg-transparent text-gray-200 text-sm border-none focus:ring-0 cursor-pointer outline-none" />
                     </div>
 
                     {/* Store selector */}
                     <div className="relative">
-                        <button
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="btn-3d-secondary px-5 py-2.5 rounded-xl text-sm min-w-[160px] flex justify-between items-center h-[42px] hover:text-white transition-all"
-                        >
+                        <button onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className="btn-3d-secondary px-5 py-2.5 rounded-xl text-sm min-w-[160px] flex justify-between items-center h-[42px] hover:text-white transition-all">
                             <span>{selectedBrand || 'Selectează'}</span>
                             <span className={`material-icons-round transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
                         </button>
@@ -142,11 +163,8 @@ export default function StatisticiProduse() {
                                 <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
                                 <div className="absolute right-0 top-full mt-2 w-full rounded-xl bg-[#13141a] border border-white/5 shadow-xl z-50 overflow-hidden backdrop-blur-md">
                                     {userStores.map(store => (
-                                        <button
-                                            key={store}
-                                            onClick={() => { setSelectedBrand(store); setIsDropdownOpen(false); }}
-                                            className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
-                                        >
+                                        <button key={store} onClick={() => { setSelectedBrand(store); setIsDropdownOpen(false); }}
+                                            className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
                                             <span className={`w-1.5 h-1.5 rounded-full ${selectedBrand === store ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.4)]' : 'bg-transparent border border-gray-600'}`} />
                                             {store}
                                         </button>
@@ -159,74 +177,80 @@ export default function StatisticiProduse() {
             </div>
 
             <div className="card-depth p-1 rounded-2xl overflow-hidden min-h-[400px] border border-white/5 relative">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="text-xs text-gray-500 uppercase tracking-widest border-b border-gray-800/50 bg-surface-dark-lighter/30">
-                                <th className="py-4 px-6 font-medium">Produs</th>
-                                <th className="py-4 px-6 font-medium">Comenzi</th>
-                                <th className="py-4 px-6 font-medium">Drafturi</th>
-                                <th className="py-4 px-6 font-medium">Bucati Vandute</th>
-                                <th className="py-4 px-6 font-medium">Upsell Comenzi</th>
-                                <th className="py-4 px-6 font-medium">Upsell Drafturi</th>
-                                <th className="py-4 px-6 font-medium">
-                                    <div className="relative inline-flex items-center gap-1 group/tip cursor-default">
-                                        <span>Sanatate</span>
-                                        <span className="material-icons-round text-gray-600 text-sm">info</span>
-                                        {/* Tooltip */}
-                                        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 rounded-xl bg-[#13141a] border border-white/10 shadow-2xl text-gray-300 text-[11px] font-light leading-relaxed normal-case tracking-normal opacity-0 group-hover/tip:opacity-100 transition-opacity duration-200 z-50 whitespace-normal">
-                                            Reprezintă cât de rentabil este să menții upsell-urile pe acest produs. Dacă este mică, înseamnă că trebuie să schimbi produsul.
-                                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#13141a]" />
+                {loading && (
+                    <div className="flex items-center justify-center h-48 text-gray-600 text-sm gap-2">
+                        <span className="material-icons-round animate-spin text-base">autorenew</span> Se încarcă...
+                    </div>
+                )}
+                {!loading && (
+                    <div className="overflow-x-auto overflow-y-visible">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="text-xs text-gray-500 uppercase tracking-widest border-b border-gray-800/50 bg-surface-dark-lighter/30">
+                                    <th className="py-4 px-6 font-medium">Produs</th>
+                                    <th className="py-4 px-6 font-medium">Pret 1 buc</th>
+                                    <th className="py-4 px-6 font-medium">Pret 2 buc</th>
+                                    <th className="py-4 px-6 font-medium">Pret 3 buc</th>
+                                    <th className="py-4 px-6 font-medium">Pret 4 buc</th>
+                                    <th className="py-4 px-6 font-medium">Pret 5 buc</th>
+                                    <th className="py-4 px-6 font-medium overflow-visible">
+                                        <div className="relative inline-flex items-center gap-1 group/tip cursor-default">
+                                            <span>Sanatate</span>
+                                            <span className="material-icons-round text-gray-600 text-sm">info</span>
+                                            <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 rounded-xl bg-[#1a1b23] border border-white/10 shadow-2xl text-gray-300 text-[11px] font-light leading-relaxed normal-case tracking-normal opacity-0 group-hover/tip:opacity-100 transition-opacity duration-200 z-[999] whitespace-normal">
+                                                Reprezintă cât de rentabil este să menții upsell-urile pe acest produs. Dacă este mică, înseamnă că trebuie să schimbi produsul.
+                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#1a1b23]" />
+                                            </div>
                                         </div>
-                                    </div>
-                                </th>
-                                <th className="py-4 px-6 font-medium">
-                                    <div className="relative inline-flex items-center gap-1 group/tip2 cursor-default">
-                                        <span>Acțiune</span>
-                                        <span className="material-icons-round text-gray-600 text-sm">info</span>
-                                        <div className="pointer-events-none absolute bottom-full right-0 mb-2 w-64 p-3 rounded-xl bg-[#13141a] border border-white/10 shadow-2xl text-gray-300 text-[11px] font-light leading-relaxed normal-case tracking-normal opacity-0 group-hover/tip2:opacity-100 transition-opacity duration-200 z-50 whitespace-normal">
-                                            Începe analiza apelurilor, ce a mers la upsell și ce nu a mers.
-                                            <div className="absolute top-full right-4 border-4 border-transparent border-t-[#13141a]" />
+                                    </th>
+                                    <th className="py-4 px-6 font-medium overflow-visible">
+                                        <div className="relative inline-flex items-center gap-1 group/tip2 cursor-default">
+                                            <span>Acțiune</span>
+                                            <span className="material-icons-round text-gray-600 text-sm">info</span>
+                                            <div className="pointer-events-none absolute top-full right-0 mt-2 w-64 p-3 rounded-xl bg-[#1a1b23] border border-white/10 shadow-2xl text-gray-300 text-[11px] font-light leading-relaxed normal-case tracking-normal opacity-0 group-hover/tip2:opacity-100 transition-opacity duration-200 z-[999] whitespace-normal">
+                                                Începe analiza apelurilor, ce a mers la upsell și ce nu a mers.
+                                                <div className="absolute bottom-full right-4 border-4 border-transparent border-b-[#1a1b23]" />
+                                            </div>
                                         </div>
-                                    </div>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="text-sm divide-y divide-gray-800/50">
-                            {dummyData.map((row, i) => (
-                                <tr key={i} className="group hover:bg-white/5 transition-colors">
-                                    <td className="py-4 px-6 text-gray-200 font-medium">{row.produs}</td>
-                                    <td className="py-4 px-6 text-gray-300 font-num">{row.comenzi}</td>
-                                    <td className="py-4 px-6 text-gray-300 font-num">{row.drafturi}</td>
-                                    <td className="py-4 px-6 text-gray-300 font-num">{row.bucatiVandute}</td>
-                                    <td className="py-4 px-6">
-                                        <SparkBar
-                                            history={row.upsellComenziHistory} pct={row.upsellComenziPct}
-                                            color="#a855f7" trackColor="rgba(168,85,247,0.25)" labelColor="text-purple-400"
-                                        />
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <SparkBar
-                                            history={row.upsellDrafturiHistory} pct={row.upsellDrafturiPct}
-                                            color="#60a5fa" trackColor="rgba(96,165,250,0.25)" labelColor="text-blue-400"
-                                        />
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <HealthBar value={row.sanatate} />
-                                    </td>
-                                    <td className="py-4 px-6 text-right">
-                                        <button
-                                            onClick={() => { }}
-                                            className="btn-3d-secondary px-4 py-2 rounded-xl text-xs font-medium hover:text-white transition-all whitespace-nowrap"
-                                        >
-                                            Analizeaza vanzare
-                                        </button>
-                                    </td>
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody className="text-sm divide-y divide-gray-800/50">
+                                {products.length === 0 && !loading && (
+                                    <tr><td colSpan={8} className="py-12 text-center text-gray-600 text-sm">Niciun produs găsit.</td></tr>
+                                )}
+                                {products.map((row, i) => {
+                                    const sv = row.status === 'PORNIT' ? 92 : row.status === 'OPRIT' ? 40 : 70;
+                                    return (
+                                        <tr key={i} className="group hover:bg-white/5 transition-colors">
+                                            <td className="py-4 px-6 text-gray-200 font-medium max-w-[200px]">
+                                                <span className="line-clamp-2 leading-snug" title={row.denumire}>{row.denumire}</span>
+                                            </td>
+                                            {[row.pret_1_bucata, row.pret_2_bucati, row.pret_3_bucati, row.pret_4_bucati, row.pret_5_bucati].map((p, pi) => (
+                                                <td key={pi} className="py-4 px-6 font-num whitespace-nowrap">
+                                                    {p ? (
+                                                        <span className="px-2 py-0.5 rounded-lg text-[11px] border font-medium bg-emerald-800/20 text-emerald-400 border-emerald-700/30">{p} lei</span>
+                                                    ) : <span className="text-gray-700">—</span>}
+                                                </td>
+                                            ))}
+                                            <td className="py-4 px-6"><HealthBar value={sv} /></td>
+                                            <td className="py-4 px-6">
+                                                <div className="flex items-center gap-2">
+                                                    <button onClick={() => { }} className="btn-3d-secondary px-4 py-2 rounded-xl text-xs font-medium hover:text-white transition-all whitespace-nowrap">
+                                                        Analizeaza vanzare
+                                                    </button>
+                                                    <button onClick={() => { }} className="btn-3d-secondary px-4 py-2 rounded-xl text-xs font-medium hover:text-white transition-all whitespace-nowrap">
+                                                        Editeaza
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
         </div>
     );
