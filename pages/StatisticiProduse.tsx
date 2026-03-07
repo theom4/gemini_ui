@@ -169,8 +169,27 @@ export default function StatisticiProduse() {
                                 <th className="py-4 px-6 font-medium">Bucati Vandute</th>
                                 <th className="py-4 px-6 font-medium">Upsell Comenzi</th>
                                 <th className="py-4 px-6 font-medium">Upsell Drafturi</th>
-                                <th className="py-4 px-6 font-medium">Sanatate</th>
-                                <th className="py-4 px-6 font-medium">Acțiune</th>
+                                <th className="py-4 px-6 font-medium">
+                                    <div className="relative inline-flex items-center gap-1 group/tip cursor-default">
+                                        <span>Sanatate</span>
+                                        <span className="material-icons-round text-gray-600 text-sm">info</span>
+                                        {/* Tooltip */}
+                                        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 rounded-xl bg-[#13141a] border border-white/10 shadow-2xl text-gray-300 text-[11px] font-light leading-relaxed normal-case tracking-normal opacity-0 group-hover/tip:opacity-100 transition-opacity duration-200 z-50 whitespace-normal">
+                                            Reprezintă cât de rentabil este să menții upsell-urile pe acest produs. Dacă este mică, înseamnă că trebuie să schimbi produsul.
+                                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#13141a]" />
+                                        </div>
+                                    </div>
+                                </th>
+                                <th className="py-4 px-6 font-medium">
+                                    <div className="relative inline-flex items-center gap-1 group/tip2 cursor-default">
+                                        <span>Acțiune</span>
+                                        <span className="material-icons-round text-gray-600 text-sm">info</span>
+                                        <div className="pointer-events-none absolute bottom-full right-0 mb-2 w-64 p-3 rounded-xl bg-[#13141a] border border-white/10 shadow-2xl text-gray-300 text-[11px] font-light leading-relaxed normal-case tracking-normal opacity-0 group-hover/tip2:opacity-100 transition-opacity duration-200 z-50 whitespace-normal">
+                                            Începe analiza apelurilor, ce a mers la upsell și ce nu a mers.
+                                            <div className="absolute top-full right-4 border-4 border-transparent border-t-[#13141a]" />
+                                        </div>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="text-sm divide-y divide-gray-800/50">
