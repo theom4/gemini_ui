@@ -7,6 +7,8 @@ import CallRecordings from "./pages/CallRecordings";
 import WhatsappPage from "./pages/WhatsappPage";
 import ChatPage from "./pages/ChatPage";
 import ControlRobotPage from "./pages/ControlRobotPage";
+import StatisticiProduse from "./pages/StatisticiProduse";
+import ScriptVanzare from "./pages/ScriptVanzare";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
 
@@ -44,6 +46,8 @@ export default function App() {
                                     <Route path="/whatsapp" element={<WhatsappPage />} />
                                     <Route path="/chat" element={<ChatPage />} />
                                     <Route path="/control-robot" element={<ControlRobotPage />} />
+                                    <Route path="/statistici-produse" element={<StatisticiProduse />} />
+                                    <Route path="/script-vanzare" element={<ScriptVanzare />} />
                                     <Route path="*" element={<PlaceholderPage />} />
                                 </Routes>
                             </div>
@@ -239,16 +243,18 @@ function Sidebar() {
                 </h1>
             </div>
 
-            <nav className="flex-1 px-4 space-y-8 mt-2">
+            <nav className="flex-1 px-4 space-y-4 mt-2">
                 <div>
-                    <ul className="space-y-3">
+                    <ul className="space-y-1">
                         <li><SidebarLink to="/" icon="dashboard" label="Dashboard" /></li>
+                        <li><SidebarLink to="/statistici-produse" icon="bar_chart" label="Statistici produse" /></li>
                         <li><SidebarLink to="/processed-orders" icon="shopping_cart" label="Comenzi procesate" /></li>
                         <li><SidebarLink to="/customers" icon="people" label="Clienți" /></li>
+                        <li><SidebarLink to="/script-vanzare" icon="description" label="Script vanzare" /></li>
                     </ul>
                 </div>
                 <div>
-                    <ul className="space-y-3">
+                    <ul className="space-y-1">
                         <li><SidebarLink to="/chat" icon="smart_toy" label="Chat AI" /></li>
                         <li><SidebarLink to="/whatsapp" icon={whatsappIcon} label="Whatsapp" /></li>
                         <li><SidebarLink to="/call-recordings" icon="keyboard_voice" label="Înregistrări Apeluri" /></li>
@@ -296,8 +302,8 @@ function SidebarLink({ to, icon, label, badge }: { to: string; icon: React.React
             to={to}
             className={({ isActive }) =>
                 isActive
-                    ? "flex items-center space-x-3 px-3 py-3 rounded-xl bg-gradient-to-r from-purple-900/40 to-purple-800/10 border border-purple-500/20 text-primary font-normal shadow-[0_4px_12px_rgba(139,92,246,0.15)] transition-all transform hover:translate-y-[-2px]"
-                    : "flex items-center space-x-3 px-3 py-3 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-dark-lighter hover:text-gray-900 dark:hover:text-white transition-all transform hover:translate-y-[-1px] group"
+                    ? "flex items-center space-x-3 px-3 py-2 rounded-xl bg-gradient-to-r from-purple-900/40 to-purple-800/10 border border-purple-500/20 text-primary font-normal shadow-[0_4px_12px_rgba(139,92,246,0.15)] transition-all transform hover:translate-y-[-2px]"
+                    : "flex items-center space-x-3 px-3 py-2 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-dark-lighter hover:text-gray-900 dark:hover:text-white transition-all transform hover:translate-y-[-1px] group"
             }
         >
             {({ isActive }) => (
