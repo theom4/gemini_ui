@@ -21,6 +21,10 @@ export default function StatisticiAdrese() {
     const { profile } = useAuth();
     const userStores = profile?.stores || [];
 
+    const today = new Date().toISOString().split('T')[0];
+    const [startDate, setStartDate] = useState(today);
+    const [endDate, setEndDate] = useState(today);
+
     const [selectedBrand, setSelectedBrand] = useState<string>('');
     const [mapLoaded, setMapLoaded] = useState(false);
     const [mapError, setMapError] = useState<string | null>(null);
@@ -140,11 +144,19 @@ export default function StatisticiAdrese() {
                     </p>
                 </div>
 
-                <StoreSelector
-                    selectedBrand={selectedBrand}
-                    setSelectedBrand={setSelectedBrand}
-                    userStores={userStores}
-                />
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2 bg-[#13141a] p-1 rounded-xl border border-white/5 shadow-inner">
+                        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="pl-3 pr-3 py-2 bg-transparent text-gray-200 text-sm border-none focus:ring-0 cursor-pointer font-num outline-none" />
+                        <span className="text-gray-600">-</span>
+                        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="pl-3 pr-3 py-2 bg-transparent text-gray-200 text-sm border-none focus:ring-0 cursor-pointer font-num outline-none" />
+                    </div>
+
+                    <StoreSelector
+                        selectedBrand={selectedBrand}
+                        setSelectedBrand={setSelectedBrand}
+                        userStores={userStores}
+                    />
+                </div>
             </div>
 
             <div className="card-depth rounded-2xl border border-white/5 relative flex-1 min-h-[500px] flex items-center justify-center overflow-hidden">
