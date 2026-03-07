@@ -86,7 +86,8 @@ export default function StatisticiAdrese() {
                     type: 'map',
                     map: 'ROMANIA_COUNTIES',
                     roam: true, // Allow zooming/panning
-                    zoom: 1.2, // Initial zoom
+                    zoom: 1.1, // Initial zoom
+                    aspectScale: 1.1, // <-- this makes it wider horizontally (fixes the vertical stretch)
                     itemStyle: {
                         borderColor: 'rgba(255, 255, 255, 0.05)',
                         borderWidth: 1,
