@@ -196,7 +196,8 @@ export default function StatisticiProduse() {
                                     <th className="py-4 px-6 font-medium">Pret 3 buc</th>
                                     <th className="py-4 px-6 font-medium">Pret 4 buc</th>
                                     <th className="py-4 px-6 font-medium">Pret 5 buc</th>
-                                    <th className="py-4 px-6 font-medium">Trend</th>
+                                    <th className="py-4 px-6 font-medium">Trend Upsell</th>
+                                    <th className="py-4 px-6 font-medium">Trend Drafturi</th>
                                     <th className="py-4 px-6 font-medium overflow-visible">
                                         <div className="relative inline-flex items-center gap-1 group/tip cursor-default">
                                             <span>Sanatate</span>
@@ -221,7 +222,7 @@ export default function StatisticiProduse() {
                             </thead>
                             <tbody className="text-sm divide-y divide-gray-800/50">
                                 {products.length === 0 && !loading && (
-                                    <tr><td colSpan={8} className="py-12 text-center text-gray-600 text-sm">Niciun produs găsit.</td></tr>
+                                    <tr><td colSpan={10} className="py-12 text-center text-gray-600 text-sm">Niciun produs găsit.</td></tr>
                                 )}
                                 {products.map((row, i) => {
                                     const sv = row.status === 'PORNIT' ? 92 : row.status === 'OPRIT' ? 40 : 70;
@@ -239,11 +240,20 @@ export default function StatisticiProduse() {
                                             ))}
                                             <td className="py-4 px-6">
                                                 <SparkBar
-                                                    history={[Math.random() * 10, Math.random() * 10, Math.random() * 20, Math.random() * 30, Math.random() * 20, Math.random() * 10, Math.random() * 15]}
+                                                    history={[0, 0, 0, 0, 0, 0, 0]}
                                                     pct={0}
                                                     color="bg-purple-500"
                                                     trackColor="bg-purple-500/20"
                                                     labelColor="text-purple-400"
+                                                />
+                                            </td>
+                                            <td className="py-4 px-6">
+                                                <SparkBar
+                                                    history={[0, 0, 0, 0, 0, 0, 0]}
+                                                    pct={0}
+                                                    color="bg-blue-500"
+                                                    trackColor="bg-blue-500/20"
+                                                    labelColor="text-blue-400"
                                                 />
                                             </td>
                                             <td className="py-4 px-6"><HealthBar value={sv} /></td>

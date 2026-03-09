@@ -29,6 +29,10 @@ export default function StatisticiAdrese() {
     const [mapLoaded, setMapLoaded] = useState(false);
     const [mapError, setMapError] = useState<string | null>(null);
 
+    const [selectedCounty, setSelectedCounty] = useState<string | null>(null);
+    const [randomOrders, setRandomOrders] = useState<number>(0);
+    const [randomWrong, setRandomWrong] = useState<number>(0);
+
     // Auto-select first store
     useEffect(() => {
         if (userStores.length > 0 && !selectedBrand) {
@@ -160,6 +164,33 @@ export default function StatisticiAdrese() {
             </div>
 
             <div className="card-depth rounded-2xl border border-white/5 relative flex-1 min-h-[500px] flex items-center justify-center overflow-hidden">
+                <div className="absolute top-6 right-6 z-10 bg-[#13141a]/90 backdrop-blur-md p-5 rounded-2xl border border-white/10 shadow-lg min-w-[280px] max-w-xs pointer-events-auto">
+                    {!selectedCounty ? (
+                        <p className="text-gray-300 text-sm font-medium leading-relaxed">
+                            Selecteaza judetul pentru a vedea numarul de comenzi si adrese gresite
+                        </p>
+                    ) : (
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-lg font-medium text-white tracking-tight">{selectedCounty}</h3>
+                                <button onClick={() => setSelectedCounty(null)} className="text-gray-500 hover:text-white transition-colors flex items-center justify-center">
+                                    <span className="material-icons-round text-sm">close</span>
+                                </button>
+                            </div>
+                            <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-400">Total comenzi:</span>
+                                    <span className="font-num font-semibold text-purple-400 text-base">{randomOrders}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-400">Adrese greșite:</span>
+                                    <span className="font-num font-semibold text-red-400 text-base">{randomWrong}</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 {mapError && (
                     <div className="text-red-400 text-sm">{mapError}</div>
                 )}
@@ -178,6 +209,19 @@ export default function StatisticiAdrese() {
                             style={{ height: '100%', width: '100%' }}
                             notMerge={true}
                             lazyUpdate={true}
+                            onEvents={{
+                                click: (params: any) => {
+                                    if (params.name) {
+                                        let countyName = params.name;
+                                        if (countyName === 'Bucharest') countyName = 'București';
+                                        if (countyName === 'Timis') countyName = 'Timiș';
+
+                                        setSelectedCounty(countyName);
+                                        setRandomOrders(Math.floor(Math.random() * 900) + 100);
+                                        setRandomWrong(Math.floor(Math.random() * 90) + 10);
+                                    }
+                                }
+                            }}
                         />
                     </div>
                 )}
