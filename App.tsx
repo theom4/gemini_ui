@@ -249,7 +249,7 @@ function Sidebar() {
             {/* Header with logo */}
             <div className={`p-4 flex items-center py-6 ${collapsed ? 'justify-center' : 'justify-center px-6'}`}>
                 {collapsed ? (
-                    <span className="material-icons-round text-2xl text-purple-500 drop-shadow-[0_0_10px_rgba(139,92,246,0.4)]">hub</span>
+                    <span className="text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#a855f7] via-[#8b5cf6] to-[#6366f1] drop-shadow-[0_0_15px_rgba(139,92,246,0.3)]" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>N</span>
                 ) : (
                     <h1 className="text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#a855f7] via-[#8b5cf6] to-[#6366f1] drop-shadow-[0_0_15px_rgba(139,92,246,0.3)] font-mono whitespace-nowrap overflow-hidden" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
                         NANOASSIST
