@@ -213,11 +213,11 @@ function Sidebar() {
     const { session, signOut } = useAuth();
     const userEmail = session?.user?.email;
     const [isLoggingOut, setIsLoggingOut] = useState(false);
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
 
     const handleLogout = async (e: React.MouseEvent) => {
         e.preventDefault();
-        e.stopPropagation(); // Stop any parent container clicks
+        e.stopPropagation();
 
         console.log('🔘 [Sidebar] Logout interaction started.');
         setIsLoggingOut(true);
@@ -238,51 +238,48 @@ function Sidebar() {
         </svg>
     );
 
+    const collapsed = !isHovered;
+
     return (
         <aside
-            className={`flex-shrink-0 border-r border-gray-200 dark:border-gray-800 bg-surface-light dark:bg-[#0d0e19] flex flex-col h-screen overflow-hidden relative z-20 shadow-xl transition-all duration-300 ease-in-out ${isCollapsed ? 'w-[72px]' : 'w-64'}`}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            className={`flex-shrink-0 border-r border-gray-200 dark:border-gray-800 bg-surface-light dark:bg-[#0d0e19] flex flex-col h-screen overflow-hidden relative z-20 shadow-xl transition-all duration-300 ease-in-out ${collapsed ? 'w-[72px]' : 'w-64'}`}
         >
-            {/* Header with logo and toggle */}
-            <div className={`p-4 flex items-center py-6 ${isCollapsed ? 'justify-center' : 'justify-between px-6'}`}>
-                {!isCollapsed && (
+            {/* Header with logo */}
+            <div className={`p-4 flex items-center py-6 ${collapsed ? 'justify-center' : 'justify-center px-6'}`}>
+                {collapsed ? (
+                    <span className="material-icons-round text-2xl text-purple-500 drop-shadow-[0_0_10px_rgba(139,92,246,0.4)]">hub</span>
+                ) : (
                     <h1 className="text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#a855f7] via-[#8b5cf6] to-[#6366f1] drop-shadow-[0_0_15px_rgba(139,92,246,0.3)] font-mono whitespace-nowrap overflow-hidden" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
                         NANOASSIST
                     </h1>
                 )}
-                <button
-                    onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:bg-purple-500/20 hover:border-purple-500/30 hover:text-purple-400 transition-all focus:outline-none active:scale-90 flex-shrink-0"
-                    title={isCollapsed ? 'Extinde meniul' : 'Restrânge meniul'}
-                >
-                    <span className={`material-icons-round text-lg transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`}>
-                        chevron_left
-                    </span>
-                </button>
             </div>
 
-            <nav className={`flex-1 space-y-4 mt-2 overflow-y-auto overflow-x-hidden ${isCollapsed ? 'px-2' : 'px-4'}`}>
+            <nav className={`flex-1 space-y-4 mt-2 overflow-y-auto overflow-x-hidden ${collapsed ? 'px-2' : 'px-4'}`}>
                 <div>
                     <ul className="space-y-1">
-                        <li><SidebarLink to="/" icon="dashboard" label="Dashboard" collapsed={isCollapsed} /></li>
-                        <li><SidebarLink to="/statistici-produse" icon="bar_chart" label="Statistici produse" collapsed={isCollapsed} /></li>
-                        <li><SidebarLink to="/statistici-adrese" icon="map" label="Statistici adrese" collapsed={isCollapsed} /></li>
-                        <li><SidebarLink to="/processed-orders" icon="shopping_cart" label="Comenzi procesate" collapsed={isCollapsed} /></li>
-                        <li><SidebarLink to="/customers" icon="people" label="Clienți" collapsed={isCollapsed} /></li>
-                        <li><SidebarLink to="/script-vanzare" icon="description" label="Script vanzare" collapsed={isCollapsed} /></li>
+                        <li><SidebarLink to="/" icon="dashboard" label="Dashboard" collapsed={collapsed} /></li>
+                        <li><SidebarLink to="/statistici-produse" icon="bar_chart" label="Statistici produse" collapsed={collapsed} /></li>
+                        <li><SidebarLink to="/statistici-adrese" icon="map" label="Statistici adrese" collapsed={collapsed} /></li>
+                        <li><SidebarLink to="/processed-orders" icon="shopping_cart" label="Comenzi procesate" collapsed={collapsed} /></li>
+                        <li><SidebarLink to="/customers" icon="people" label="Clienți" collapsed={collapsed} /></li>
+                        <li><SidebarLink to="/script-vanzare" icon="description" label="Script vanzare" collapsed={collapsed} /></li>
                     </ul>
                 </div>
                 <div>
                     <ul className="space-y-1">
-                        <li><SidebarLink to="/chat" icon="smart_toy" label="Chat AI" collapsed={isCollapsed} /></li>
-                        <li><SidebarLink to="/whatsapp" icon={whatsappIcon} label="Whatsapp" collapsed={isCollapsed} /></li>
-                        <li><SidebarLink to="/call-recordings" icon="keyboard_voice" label="Înregistrări Apeluri" collapsed={isCollapsed} /></li>
-                        <li><SidebarLink to="/control-robot" icon="settings_remote" label="Control Robot" collapsed={isCollapsed} /></li>
+                        <li><SidebarLink to="/chat" icon="smart_toy" label="Chat AI" collapsed={collapsed} /></li>
+                        <li><SidebarLink to="/whatsapp" icon={whatsappIcon} label="Whatsapp" collapsed={collapsed} /></li>
+                        <li><SidebarLink to="/call-recordings" icon="keyboard_voice" label="Înregistrări Apeluri" collapsed={collapsed} /></li>
+                        <li><SidebarLink to="/control-robot" icon="settings_remote" label="Control Robot" collapsed={collapsed} /></li>
                     </ul>
                 </div>
             </nav>
 
-            <div className={`border-t border-gray-200 dark:border-gray-800 ${isCollapsed ? 'p-2' : 'p-4'}`}>
-                {isCollapsed ? (
+            <div className={`border-t border-gray-200 dark:border-gray-800 ${collapsed ? 'p-2' : 'p-4'}`}>
+                {collapsed ? (
                     <div className="flex flex-col items-center gap-2">
                         <div className="relative">
                             <img
@@ -292,19 +289,6 @@ function Sidebar() {
                             />
                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#161822] rounded-full"></div>
                         </div>
-                        <button
-                            onClick={handleLogout}
-                            disabled={isLoggingOut}
-                            className={`w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-gray-400 transition-all focus:outline-none active:scale-95 ${isLoggingOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-400'}`}
-                            title="Deconectare"
-                            type="button"
-                        >
-                            {isLoggingOut ? (
-                                <span className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin"></span>
-                            ) : (
-                                <span className="material-icons-round text-lg">logout</span>
-                            )}
-                        </button>
                     </div>
                 ) : (
                     <div className="flex items-center gap-3 p-3 rounded-xl glass-panel-3d transition-all group relative">
