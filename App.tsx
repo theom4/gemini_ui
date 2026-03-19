@@ -213,6 +213,7 @@ function Sidebar() {
     const { session, signOut } = useAuth();
     const userEmail = session?.user?.email;
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     const handleLogout = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -238,86 +239,129 @@ function Sidebar() {
     );
 
     return (
-        <aside className="w-64 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 bg-surface-light dark:bg-[#0d0e19] flex flex-col h-screen overflow-y-auto relative z-20 shadow-xl">
-            <div className="p-6 flex items-center justify-center py-8">
-                <h1 className="text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#a855f7] via-[#8b5cf6] to-[#6366f1] drop-shadow-[0_0_15px_rgba(139,92,246,0.3)] font-mono" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                    NANOASSIST
-                </h1>
+        <aside
+            className={`flex-shrink-0 border-r border-gray-200 dark:border-gray-800 bg-surface-light dark:bg-[#0d0e19] flex flex-col h-screen overflow-hidden relative z-20 shadow-xl transition-all duration-300 ease-in-out ${isCollapsed ? 'w-[72px]' : 'w-64'}`}
+        >
+            {/* Header with logo and toggle */}
+            <div className={`p-4 flex items-center py-6 ${isCollapsed ? 'justify-center' : 'justify-between px-6'}`}>
+                {!isCollapsed && (
+                    <h1 className="text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#a855f7] via-[#8b5cf6] to-[#6366f1] drop-shadow-[0_0_15px_rgba(139,92,246,0.3)] font-mono whitespace-nowrap overflow-hidden" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+                        NANOASSIST
+                    </h1>
+                )}
+                <button
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:bg-purple-500/20 hover:border-purple-500/30 hover:text-purple-400 transition-all focus:outline-none active:scale-90 flex-shrink-0"
+                    title={isCollapsed ? 'Extinde meniul' : 'Restrânge meniul'}
+                >
+                    <span className={`material-icons-round text-lg transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`}>
+                        chevron_left
+                    </span>
+                </button>
             </div>
 
-            <nav className="flex-1 px-4 space-y-4 mt-2">
+            <nav className={`flex-1 space-y-4 mt-2 overflow-y-auto overflow-x-hidden ${isCollapsed ? 'px-2' : 'px-4'}`}>
                 <div>
                     <ul className="space-y-1">
-                        <li><SidebarLink to="/" icon="dashboard" label="Dashboard" /></li>
-                        <li><SidebarLink to="/statistici-produse" icon="bar_chart" label="Statistici produse" /></li>
-                        <li><SidebarLink to="/statistici-adrese" icon="map" label="Statistici adrese" /></li>
-                        <li><SidebarLink to="/processed-orders" icon="shopping_cart" label="Comenzi procesate" /></li>
-                        <li><SidebarLink to="/customers" icon="people" label="Clienți" /></li>
-                        <li><SidebarLink to="/script-vanzare" icon="description" label="Script vanzare" /></li>
+                        <li><SidebarLink to="/" icon="dashboard" label="Dashboard" collapsed={isCollapsed} /></li>
+                        <li><SidebarLink to="/statistici-produse" icon="bar_chart" label="Statistici produse" collapsed={isCollapsed} /></li>
+                        <li><SidebarLink to="/statistici-adrese" icon="map" label="Statistici adrese" collapsed={isCollapsed} /></li>
+                        <li><SidebarLink to="/processed-orders" icon="shopping_cart" label="Comenzi procesate" collapsed={isCollapsed} /></li>
+                        <li><SidebarLink to="/customers" icon="people" label="Clienți" collapsed={isCollapsed} /></li>
+                        <li><SidebarLink to="/script-vanzare" icon="description" label="Script vanzare" collapsed={isCollapsed} /></li>
                     </ul>
                 </div>
                 <div>
                     <ul className="space-y-1">
-                        <li><SidebarLink to="/chat" icon="smart_toy" label="Chat AI" /></li>
-                        <li><SidebarLink to="/whatsapp" icon={whatsappIcon} label="Whatsapp" /></li>
-                        <li><SidebarLink to="/call-recordings" icon="keyboard_voice" label="Înregistrări Apeluri" /></li>
-                        <li><SidebarLink to="/control-robot" icon="settings_remote" label="Control Robot" /></li>
+                        <li><SidebarLink to="/chat" icon="smart_toy" label="Chat AI" collapsed={isCollapsed} /></li>
+                        <li><SidebarLink to="/whatsapp" icon={whatsappIcon} label="Whatsapp" collapsed={isCollapsed} /></li>
+                        <li><SidebarLink to="/call-recordings" icon="keyboard_voice" label="Înregistrări Apeluri" collapsed={isCollapsed} /></li>
+                        <li><SidebarLink to="/control-robot" icon="settings_remote" label="Control Robot" collapsed={isCollapsed} /></li>
                     </ul>
                 </div>
             </nav>
 
-            <div className="p-4 border-t border-gray-200 dark:border-gray-800">
-                <div className="flex items-center gap-3 p-3 rounded-xl glass-panel-3d transition-all group relative">
-                    <div className="relative">
-                        <img
-                            alt="User Profile"
-                            className="w-10 h-10 rounded-full ring-2 ring-purple-500/50 shadow-lg"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU74HU2GRRRCYR-y4C1o61_xlf-GzgQpiMNTsr3T3-zTKJvGn7N3WilTiZKPnPS_5A_Br7ktYW-DlTNeX9zU5rGJSDSh8g5Z-Qp2Fk_CPVxEYAq4wiZbjIIgViNUU8XHUi67qBn09PAjmrocgGdbNKg9e8rR1vQ6ht3YUPh5sP9DOyuxBRmzpgiJN28BA9jOm-jgx7ldZI1RocbOo5bhIkHaQIEQcSRJ2XovxY079dty-_nwbSz-VMbWbo4Uo3vOJ7V8BnBEo-cT_z"
-                        />
-                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#161822] rounded-full"></div>
+            <div className={`border-t border-gray-200 dark:border-gray-800 ${isCollapsed ? 'p-2' : 'p-4'}`}>
+                {isCollapsed ? (
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="relative">
+                            <img
+                                alt="User Profile"
+                                className="w-10 h-10 rounded-full ring-2 ring-purple-500/50 shadow-lg"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU74HU2GRRRCYR-y4C1o61_xlf-GzgQpiMNTsr3T3-zTKJvGn7N3WilTiZKPnPS_5A_Br7ktYW-DlTNeX9zU5rGJSDSh8g5Z-Qp2Fk_CPVxEYAq4wiZbjIIgViNUU8XHUi67qBn09PAjmrocgGdbNKg9e8rR1vQ6ht3YUPh5sP9DOyuxBRmzpgiJN28BA9jOm-jgx7ldZI1RocbOo5bhIkHaQIEQcSRJ2XovxY079dty-_nwbSz-VMbWbo4Uo3vOJ7V8BnBEo-cT_z"
+                            />
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#161822] rounded-full"></div>
+                        </div>
+                        <button
+                            onClick={handleLogout}
+                            disabled={isLoggingOut}
+                            className={`w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-gray-400 transition-all focus:outline-none active:scale-95 ${isLoggingOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-400'}`}
+                            title="Deconectare"
+                            type="button"
+                        >
+                            {isLoggingOut ? (
+                                <span className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin"></span>
+                            ) : (
+                                <span className="material-icons-round text-lg">logout</span>
+                            )}
+                        </button>
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-normal text-gray-900 dark:text-white truncate">{userEmail || 'Admin User'}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate font-light">Online</p>
+                ) : (
+                    <div className="flex items-center gap-3 p-3 rounded-xl glass-panel-3d transition-all group relative">
+                        <div className="relative flex-shrink-0">
+                            <img
+                                alt="User Profile"
+                                className="w-10 h-10 rounded-full ring-2 ring-purple-500/50 shadow-lg"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU74HU2GRRRCYR-y4C1o61_xlf-GzgQpiMNTsr3T3-zTKJvGn7N3WilTiZKPnPS_5A_Br7ktYW-DlTNeX9zU5rGJSDSh8g5Z-Qp2Fk_CPVxEYAq4wiZbjIIgViNUU8XHUi67qBn09PAjmrocgGdbNKg9e8rR1vQ6ht3YUPh5sP9DOyuxBRmzpgiJN28BA9jOm-jgx7ldZI1RocbOo5bhIkHaQIEQcSRJ2XovxY079dty-_nwbSz-VMbWbo4Uo3vOJ7V8BnBEo-cT_z"
+                            />
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#161822] rounded-full"></div>
+                        </div>
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                            <p className="text-sm font-normal text-gray-900 dark:text-white truncate">{userEmail || 'Admin User'}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate font-light">Online</p>
+                        </div>
+                        <button
+                            onClick={handleLogout}
+                            disabled={isLoggingOut}
+                            className={`w-9 h-9 ml-auto flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-gray-400 transition-all focus:outline-none active:scale-95 flex-shrink-0 ${isLoggingOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-400'}`}
+                            title="Deconectare"
+                            type="button"
+                        >
+                            {isLoggingOut ? (
+                                <span className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin"></span>
+                            ) : (
+                                <span className="material-icons-round text-lg">logout</span>
+                            )}
+                        </button>
                     </div>
-                    <button
-                        onClick={handleLogout}
-                        disabled={isLoggingOut}
-                        className={`w-9 h-9 ml-auto flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-gray-400 transition-all focus:outline-none active:scale-95 ${isLoggingOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-400'}`}
-                        title="Deconectare"
-                        type="button"
-                    >
-                        {isLoggingOut ? (
-                            <span className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin"></span>
-                        ) : (
-                            <span className="material-icons-round text-lg">logout</span>
-                        )}
-                    </button>
-                </div>
+                )}
             </div>
         </aside>
     );
 }
 
-function SidebarLink({ to, icon, label, badge }: { to: string; icon: React.ReactNode | string; label: string; badge?: string }) {
+function SidebarLink({ to, icon, label, badge, collapsed }: { to: string; icon: React.ReactNode | string; label: string; badge?: string; collapsed?: boolean }) {
     return (
         <NavLink
             to={to}
+            title={collapsed ? label : undefined}
             className={({ isActive }) =>
                 isActive
-                    ? "flex items-center space-x-3 px-3 py-2 rounded-xl bg-gradient-to-r from-purple-900/40 to-purple-800/10 border border-purple-500/20 text-primary font-normal shadow-[0_4px_12px_rgba(139,92,246,0.15)] transition-all transform hover:translate-y-[-2px]"
-                    : "flex items-center space-x-3 px-3 py-2 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-dark-lighter hover:text-gray-900 dark:hover:text-white transition-all transform hover:translate-y-[-1px] group"
+                    ? `flex items-center rounded-xl bg-gradient-to-r from-purple-900/40 to-purple-800/10 border border-purple-500/20 text-primary font-normal shadow-[0_4px_12px_rgba(139,92,246,0.15)] transition-all transform hover:translate-y-[-2px] ${collapsed ? 'justify-center px-2 py-2' : 'space-x-3 px-3 py-2'}`
+                    : `flex items-center rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-dark-lighter hover:text-gray-900 dark:hover:text-white transition-all transform hover:translate-y-[-1px] group ${collapsed ? 'justify-center px-2 py-2' : 'space-x-3 px-3 py-2'}`
             }
         >
             {({ isActive }) => (
                 <>
                     {typeof icon === 'string' ? (
-                        <span className="material-icons-round text-xl group-hover:text-primary transition-colors drop-shadow-md">{icon}</span>
+                        <span className="material-icons-round text-xl group-hover:text-primary transition-colors drop-shadow-md flex-shrink-0">{icon}</span>
                     ) : (
-                        <span className="text-xl group-hover:text-primary transition-colors drop-shadow-md flex items-center justify-center w-[24px] h-[24px]">{icon}</span>
+                        <span className="text-xl group-hover:text-primary transition-colors drop-shadow-md flex items-center justify-center w-[24px] h-[24px] flex-shrink-0">{icon}</span>
                     )}
-                    <span className={isActive ? "" : "font-light"}>{label}</span>
-                    {badge && (
+                    {!collapsed && (
+                        <span className={`whitespace-nowrap overflow-hidden ${isActive ? "" : "font-light"}`}>{label}</span>
+                    )}
+                    {!collapsed && badge && (
                         <span className="ml-auto bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-normal px-2 py-0.5 rounded-full shadow-lg font-num">
                             {badge}
                         </span>
