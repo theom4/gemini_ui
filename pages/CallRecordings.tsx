@@ -393,6 +393,17 @@ export default function CallRecordings() {
                                     <p className="text-xs text-gray-600 font-light italic">Nu există o transcriere disponibilă pentru acest apel.</p>
                                 </div>
                             )}
+
+                            {/* Raționament Section */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <span className="material-icons-round text-primary text-sm">psychology</span>
+                                    <p className="text-xs text-gray-500 uppercase tracking-widest font-medium">Raționament</p>
+                                </div>
+                                <div className="p-5 rounded-2xl bg-white/5 border border-white/5 max-h-60 overflow-y-auto text-sm text-gray-300 font-light leading-relaxed scrollbar-thin hover:border-white/10 transition-colors">
+                                    <span className="text-gray-600 italic">Niciun raționament disponibil.</span>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Footer */}
