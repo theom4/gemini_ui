@@ -24,7 +24,7 @@ const StoreSelector: React.FC<StoreSelectorProps> = ({ selectedBrand, setSelecte
                     <div className="absolute right-0 top-full mt-2 w-full rounded-xl bg-[#13141a] border border-white/5 shadow-xl z-50 overflow-hidden backdrop-blur-xl animate-in fade-in zoom-in-95 duration-100">
                         {userStores.map((store) => (
                             <button key={store} onClick={() => { setSelectedBrand(store); setIsDropdownOpen(false); }} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 hover:bg-white/5 ${selectedBrand === store ? 'text-white bg-white/5' : 'text-gray-400'}`}>
-                                <span className={`w-2 h-2 rounded-full ${selectedBrand === store ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-transparent border border-gray-600'}`}></span>
+                                <span className={`w-2 h-2 rounded-full ${selectedBrand === store ? 'bg-primary shadow-[0_0_8px_rgba(0,210,255,0.5)]' : 'bg-transparent border border-gray-600'}`}></span>
                                 {store}
                             </button>
                         ))}

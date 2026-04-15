@@ -104,7 +104,12 @@ export default function StatisticiProduse() {
     const userStores = profile?.stores || [];
 
     const today = new Date().toISOString().split('T')[0];
-    const [startDate, setStartDate] = useState(today);
+    const oneMonthAgo = (() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 1);
+        return d.toISOString().split('T')[0];
+    })();
+    const [startDate, setStartDate] = useState(oneMonthAgo);
     const [endDate, setEndDate] = useState(today);
     const [selectedBrand, setSelectedBrand] = useState<string>('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -168,7 +173,7 @@ export default function StatisticiProduse() {
                                     {userStores.map(store => (
                                         <button key={store} onClick={() => { setSelectedBrand(store); setIsDropdownOpen(false); }}
                                             className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
-                                            <span className={`w-1.5 h-1.5 rounded-full ${selectedBrand === store ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.4)]' : 'bg-transparent border border-gray-600'}`} />
+                                            <span className={`w-1.5 h-1.5 rounded-full ${selectedBrand === store ? 'bg-primary shadow-[0_0_8px_rgba(0,210,255,0.4)]' : 'bg-transparent border border-gray-600'}`} />
                                             {store}
                                         </button>
                                     ))}
@@ -242,9 +247,9 @@ export default function StatisticiProduse() {
                                                 <SparkBar
                                                     history={[0, 0, 0, 0, 0, 0, 0]}
                                                     pct={0}
-                                                    color="bg-purple-500"
-                                                    trackColor="bg-purple-500/20"
-                                                    labelColor="text-purple-400"
+                                                    color="bg-cyan-500"
+                                                    trackColor="bg-cyan-500/20"
+                                                    labelColor="text-cyan-400"
                                                 />
                                             </td>
                                             <td className="py-4 px-6">

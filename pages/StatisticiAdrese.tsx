@@ -79,7 +79,7 @@ export default function StatisticiAdrese() {
                     if (countyName === 'Timis') countyName = 'Timiș';
 
                     return `
-                        <div style="font-weight: 600; margin-bottom: 4px; color: #a855f7;">${countyName}</div>
+                        <div style="font-weight: 600; margin-bottom: 4px; color: #00d2ff;">${countyName}</div>
                         <div style="font-size: 13px; color: #9ca3af;">
                             Total comenzi: <span style="color: #fff; font-weight: 600;">${value}</span>
                         </div>
@@ -96,7 +96,7 @@ export default function StatisticiAdrese() {
                 calculable: true,
                 inRange: {
                     // Start deeply neutral (for 0 values), go up to bright purple/cyan
-                    color: ['#1e1f2e', '#4f46e5', '#8b5cf6', '#a855f7', '#d946ef']
+                    color: ['#1e1f2e', '#0074e4', '#00b0ff', '#00d2ff', '#00e5ff']
                 },
                 itemWidth: 15,
                 itemHeight: 120,
@@ -128,7 +128,7 @@ export default function StatisticiAdrese() {
                     },
                     select: {
                         itemStyle: {
-                            areaColor: '#a855f7'
+                            areaColor: '#00d2ff'
                         },
                         label: { show: true, color: '#fff' }
                     },
@@ -180,7 +180,7 @@ export default function StatisticiAdrese() {
                             <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="text-gray-400">Total comenzi:</span>
-                                    <span className="font-num font-semibold text-purple-400 text-base">{randomOrders}</span>
+                                    <span className="font-num font-semibold text-cyan-400 text-base">{randomOrders}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="text-gray-400">Adrese greșite:</span>
@@ -197,7 +197,7 @@ export default function StatisticiAdrese() {
 
                 {!mapLoaded && !mapError && (
                     <div className="flex flex-col items-center gap-3 text-gray-500">
-                        <span className="material-icons-round animate-spin text-2xl text-purple-500">autorenew</span>
+                        <span className="material-icons-round animate-spin text-2xl text-cyan-500">autorenew</span>
                         <span className="text-sm">Se încarcă harta județelor...</span>
                     </div>
                 )}

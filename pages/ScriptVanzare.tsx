@@ -110,7 +110,7 @@ export default function ScriptVanzare() {
                                 {userStores.map(store => (
                                     <button key={store} onClick={() => { setSelectedBrand(store); setIsDropdownOpen(false); }}
                                         className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
-                                        <span className={`w-1.5 h-1.5 rounded-full ${selectedBrand === store ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.4)]' : 'bg-transparent border border-gray-600'}`} />
+                                        <span className={`w-1.5 h-1.5 rounded-full ${selectedBrand === store ? 'bg-primary shadow-[0_0_8px_rgba(0,210,255,0.4)]' : 'bg-transparent border border-gray-600'}`} />
                                         {store}
                                     </button>
                                 ))}
@@ -140,7 +140,7 @@ export default function ScriptVanzare() {
                                             Script {n} {n === 1 ? 'bucata' : 'bucati'}
                                         </th>
                                     ))}
-                                    <th className="py-4 px-4 font-medium whitespace-nowrap text-purple-400">ID Produs</th>
+                                    <th className="py-4 px-4 font-medium whitespace-nowrap text-cyan-400">ID Produs</th>
                                     <th className="py-4 px-4 font-medium">Actiune</th>
                                 </tr>
                             </thead>
@@ -180,7 +180,7 @@ export default function ScriptVanzare() {
                                         ))}
                                         {/* ID */}
                                         <td className="py-4 px-4">
-                                            <span className="px-2 py-0.5 rounded-lg text-[11px] border font-mono font-medium bg-purple-500/10 text-purple-400 border-purple-500/20">
+                                            <span className="px-2 py-0.5 rounded-lg text-[11px] border font-mono font-medium bg-cyan-500/10 text-cyan-400 border-cyan-500/20">
                                                 {row.idProdus}
                                             </span>
                                         </td>

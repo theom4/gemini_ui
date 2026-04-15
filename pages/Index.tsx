@@ -66,7 +66,7 @@ const Index = () => {
         { name: 'Finalizate', value: conversionRate },
         { name: 'Abandonate', value: abandonedRate < 0 ? 0 : abandonedRate },
     ];
-    const conversionColors = ['#8b5cf6', '#374151'];
+    const conversionColors = ['#00d2ff', '#374151'];
 
     const draftConversionRate = latestMetrics?.rata_conversie_drafturi || 0;
     const draftAbandonedRate = 100 - draftConversionRate;
@@ -121,7 +121,7 @@ const Index = () => {
                                 <div className="absolute right-0 top-full mt-2 w-full rounded-xl bg-[#13141a] border border-white/5 shadow-xl z-50 overflow-hidden backdrop-blur-xl animate-in fade-in zoom-in-95 duration-100">
                                     {userStores.map((store) => (
                                         <button key={store} onClick={() => { setSelectedBrand(store); setIsDropdownOpen(false); }} className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-3 hover:bg-white/5 ${selectedBrand === store ? 'text-white bg-white/5' : 'text-gray-400'}`}>
-                                            <span className={`w-2 h-2 rounded-full ${selectedBrand === store ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-transparent border border-gray-600'}`}></span>
+                                            <span className={`w-2 h-2 rounded-full ${selectedBrand === store ? 'bg-primary shadow-[0_0_8px_rgba(0,210,255,0.5)]' : 'bg-transparent border border-gray-600'}`}></span>
                                             {store}
                                         </button>
                                     ))}
@@ -154,11 +154,11 @@ const Index = () => {
                         <h3 className="text-5xl font-light dark:text-white tracking-tight font-num glow-text">{displayValue(comenziConfirmate.toLocaleString())}</h3>
                     </div>
                 </div>
-                <div className="widget-sculpted-3d p-6 rounded-2xl bg-gradient-to-b from-[#090a0e] from-10% via-[#1a0f30] to-[#5943b6] text-white group hover:-translate-y-1 transition-transform">
+                <div className="widget-sculpted-3d p-6 rounded-2xl bg-gradient-to-b from-[#090a0e] from-10% via-[#001f3f] to-[#006bb3] text-white group hover:-translate-y-1 transition-transform">
                     <div className="relative z-10 h-full flex flex-col justify-between">
-                        <div className="icon-cart-v3"><span className="material-icons-round icon-symbol-purple">payments</span></div>
+                        <div className="icon-cart-v3"><span className="material-icons-round icon-symbol-laser-blue">payments</span></div>
                         <div className="mt-4">
-                            <p className="text-sm text-purple-200 font-light mb-1">Vânzări Generate</p>
+                            <p className="text-sm text-cyan-200 font-light mb-1">Vânzări Generate</p>
                             <h3 className="text-4xl font-light mt-1 font-num glow-text">{displayValue(metricsLoading && !latestMetrics ? '...' : `${vanzariGenerate.toLocaleString()} RON`)}</h3>
                         </div>
                     </div>
@@ -171,7 +171,7 @@ const Index = () => {
                         <h3 className="text-xl font-light dark:text-white tracking-tight">Volum</h3>
                         <div className="flex p-1 bg-surface-dark-lighter rounded-xl border border-white/5">
                             {['day', 'week', 'month'].map((p) => (
-                                <button key={p} onClick={() => setChartPeriod(p as ChartPeriod)} className={`px-4 py-1.5 text-xs rounded-lg transition-colors capitalize ${chartPeriod === p ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>
+                                <button key={p} onClick={() => setChartPeriod(p as ChartPeriod)} className={`px-4 py-1.5 text-xs rounded-lg transition-colors capitalize ${chartPeriod === p ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>
                                     {p === 'day' ? 'Zi' : p === 'week' ? 'Săpt.' : 'Lună'}
                                 </button>
                             ))}
@@ -181,12 +181,12 @@ const Index = () => {
                         <ResponsiveContainer width="100%" height="100%">
                             {isChartLoading ? <div className="flex items-center justify-center h-full text-gray-500 font-light">Se încarcă graficul...</div> :
                                 <AreaChart data={chartData || []}>
-                                    <defs><linearGradient id="colorCalls" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.6}/><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/></linearGradient></defs>
+                                    <defs><linearGradient id="colorCalls" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#00d2ff" stopOpacity={0.6}/><stop offset="95%" stopColor="#00d2ff" stopOpacity={0}/></linearGradient></defs>
                                     <CartesianGrid strokeDasharray="0" vertical={false} stroke="rgba(255,255,255,0.03)" />
                                     <XAxis dataKey="name" tick={{fill: '#6b7280', fontSize: 11}} axisLine={false} tickLine={false} />
                                     <YAxis tick={{fill: '#6b7280', fontSize: 11}} axisLine={false} tickLine={false} />
                                     <Tooltip contentStyle={{ backgroundColor: 'rgba(22, 24, 34, 0.9)', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#fff', borderRadius: '12px' }} />
-                                    <Area type="monotone" dataKey="calls" name="Apeluri" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorCalls)" />
+                                    <Area type="monotone" dataKey="calls" name="Apeluri" stroke="#00d2ff" strokeWidth={3} fillOpacity={1} fill="url(#colorCalls)" />
                                 </AreaChart>
                             }
                         </ResponsiveContainer>
@@ -219,7 +219,7 @@ const Index = () => {
             <div className="card-depth p-6 rounded-2xl mb-8">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-light dark:text-white tracking-tight">Activitate Recentă</h3>
-                    <a className="text-sm text-primary hover:text-purple-300 font-normal flex items-center gap-1 transition-colors" href="/#/call-recordings">Vezi toate<span className="material-icons-round text-base">arrow_forward</span></a>
+                    <a className="text-sm text-primary hover:text-cyan-300 font-normal flex items-center gap-1 transition-colors" href="/#/call-recordings">Vezi toate<span className="material-icons-round text-base">arrow_forward</span></a>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">

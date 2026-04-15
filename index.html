@@ -15,13 +15,13 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: "#a855f7", 
+                        primary: "#00d2ff", 
                         "background-light": "#eef2f6", 
                         "background-dark": "#0a0b14", 
                         "surface-light": "#ffffff",
                         "surface-dark": "#161822", 
                         "surface-dark-lighter": "#1e2130", 
-                        "accent-purple": "#8b5cf6",
+                        "accent-laser-blue": "#00b0ff",
                     },
                     fontFamily: {
                         display: ["Inter", "sans-serif"],
@@ -34,7 +34,7 @@
                         '2xl': "1.5rem",
                     },
                     boxShadow: {
-                        'glow': '0 0 20px rgba(139, 92, 246, 0.25)',
+                        'glow': '0 0 20px rgba(0, 176, 255, 0.25)',
                         '3d-light': '5px 5px 10px #d1d5db, -5px -5px 10px #ffffff',
                         '3d-dark': '5px 5px 10px #0b0c11, -5px -5px 10px #212433',
                         'inner-3d': 'inset 2px 2px 5px rgba(0,0,0,0.2), inset -2px -2px 5px rgba(255,255,255,0.05)',
@@ -59,7 +59,7 @@
             background: #4b5563;
         }
         .gradient-text {
-            background: linear-gradient(to right, #c084fc, #8b5cf6);
+            background: linear-gradient(to right, #00e5ff, #00b0ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -75,15 +75,15 @@
             border: 1px solid rgba(255, 255, 255, 0.8);
             box-shadow: 5px 5px 15px rgba(0,0,0,0.05), -5px -5px 15px rgba(255,255,255,0.8);
         }.btn-3d-primary {
-            background: linear-gradient(180deg, #a855f7 0%, #7e22ce 100%);
+            background: linear-gradient(180deg, #00d2ff 0%, #0074e4 100%);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            border-bottom: 1px solid #581c87;
+            border-bottom: 1px solid #0050a1;
             box-shadow: 
                 inset 0 1px 0 rgba(255, 255, 255, 0.4), 
                 inset 0 -1px 0 rgba(0, 0, 0, 0.2), 
-                0 3px 0 #4c1d95, 
+                0 3px 0 #004080, 
                 0 6px 6px rgba(0, 0, 0, 0.4),
-                0 0 15px rgba(168, 85, 247, 0.2);
+                0 0 15px rgba(0, 210, 255, 0.2);
             transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
             position: relative;
@@ -94,16 +94,16 @@
             box-shadow: 
                 inset 0 1px 0 rgba(255, 255, 255, 0.5), 
                 inset 0 -1px 0 rgba(0, 0, 0, 0.2), 
-                0 4px 0 #4c1d95, 
+                0 4px 0 #004080, 
                 0 8px 10px rgba(0, 0, 0, 0.4),
-                0 0 25px rgba(168, 85, 247, 0.4);
+                0 0 25px rgba(0, 210, 255, 0.4);
             filter: brightness(1.1);
         }
         .btn-3d-primary:active {
             transform: translateY(2px);
             box-shadow: 
                 inset 0 1px 0 rgba(255, 255, 255, 0.2), 
-                0 1px 0 #4c1d95, 
+                0 1px 0 #004080, 
                 0 2px 4px rgba(0, 0, 0, 0.4);
         }
         .btn-3d-secondary {
@@ -280,12 +280,12 @@
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 4px 6px rgba(16, 185, 129, 0.3));
         }
-        .icon-symbol-purple {
+        .icon-symbol-laser-blue {
             font-size: 26px;
-            background: linear-gradient(135deg, #e9d5ff 0%, #a855f7 100%);
+            background: linear-gradient(135deg, #e0f7ff 0%, #00d2ff 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 4px 6px rgba(168, 85, 247, 0.3));
+            filter: drop-shadow(0 4px 6px rgba(0, 210, 255, 0.3));
         }
     </style>
   <script type="importmap">

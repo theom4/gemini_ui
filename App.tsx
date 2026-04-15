@@ -12,6 +12,7 @@ import ScriptVanzare from "./pages/ScriptVanzare";
 import StatisticiAdrese from "./pages/StatisticiAdrese";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
+import OnboardingPage from "./pages/OnboardingPage";
 
 export default function App() {
     const { session, loading: authLoading } = useAuth();
@@ -20,7 +21,7 @@ export default function App() {
     if (authLoading) {
         return (
             <div className="h-screen w-full bg-[#0a0b14] flex items-center justify-center">
-                <span className="w-8 h-8 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin"></span>
+                <span className="w-8 h-8 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></span>
             </div>
         );
     }
@@ -36,7 +37,7 @@ export default function App() {
                     <div className="flex flex-1 overflow-hidden">
                         <Sidebar />
                         <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
-                            <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-purple-900/10 via-purple-900/5 to-transparent pointer-events-none z-0"></div>
+                            <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-cyan-900/10 via-cyan-900/5 to-transparent pointer-events-none z-0"></div>
 
                             <Header userEmail={session.user.email} />
 
@@ -50,6 +51,7 @@ export default function App() {
                                     <Route path="/statistici-produse" element={<StatisticiProduse />} />
                                     <Route path="/script-vanzare" element={<ScriptVanzare />} />
                                     <Route path="/statistici-adrese" element={<StatisticiAdrese />} />
+                                    <Route path="/setup" element={<OnboardingPage />} />
                                     <Route path="*" element={<PlaceholderPage />} />
                                 </Routes>
                             </div>
@@ -96,7 +98,7 @@ function AuthPage() {
         <div className="h-screen w-full bg-[#0a0b14] flex items-center justify-center relative overflow-hidden">
             {/* Background Effects */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 blur-[120px] rounded-full"></div>
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-cyan-900/20 blur-[120px] rounded-full"></div>
                 <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/10 blur-[120px] rounded-full"></div>
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]"></div>
             </div>
@@ -104,7 +106,7 @@ function AuthPage() {
             <div className="w-full max-w-md p-8 relative z-10">
                 <div className="glass-panel-3d rounded-2xl p-8 border border-white/5 shadow-2xl">
                     <div className="text-center mb-8">
-                        <h1 className="text-4xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#a855f7] via-[#8b5cf6] to-[#6366f1] drop-shadow-[0_0_15px_rgba(139,92,246,0.3)] font-mono mb-2" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+                        <h1 className="text-4xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#00d2ff] via-[#00b0ff] to-[#008cff] drop-shadow-[0_0_15px_rgba(0,176,255,0.3)] font-mono mb-2" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
                             NANOASSIST
                         </h1>
                         <p className="text-gray-400 text-sm font-light">
@@ -121,7 +123,7 @@ function AuthPage() {
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-[#a855f7] text-gray-900 placeholder-gray-500 text-sm focus:outline-none focus:ring-1 focus:ring-[#a855f7] transition-all shadow-none"
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-[#00d2ff] text-gray-900 placeholder-gray-500 text-sm focus:outline-none focus:ring-1 focus:ring-[#00d2ff] transition-all shadow-none"
                                     placeholder="nume@companie.ro"
                                     required
                                 />
@@ -249,9 +251,9 @@ function Sidebar() {
             {/* Header with logo */}
             <div className={`p-4 flex items-center py-6 ${collapsed ? 'justify-center' : 'justify-center px-6'}`}>
                 {collapsed ? (
-                    <span className="text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#a855f7] via-[#8b5cf6] to-[#6366f1] drop-shadow-[0_0_15px_rgba(139,92,246,0.3)]" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>N</span>
+                    <span className="text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#00d2ff] via-[#00b0ff] to-[#008cff] drop-shadow-[0_0_15px_rgba(0,176,255,0.3)]" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>N</span>
                 ) : (
-                    <h1 className="text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#a855f7] via-[#8b5cf6] to-[#6366f1] drop-shadow-[0_0_15px_rgba(139,92,246,0.3)] font-mono whitespace-nowrap overflow-hidden" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+                    <h1 className="text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#00d2ff] via-[#00b0ff] to-[#008cff] drop-shadow-[0_0_15px_rgba(0,176,255,0.3)] font-mono whitespace-nowrap overflow-hidden" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
                         NANOASSIST
                     </h1>
                 )}
@@ -266,6 +268,7 @@ function Sidebar() {
                         <li><SidebarLink to="/processed-orders" icon="shopping_cart" label="Comenzi procesate" collapsed={collapsed} /></li>
                         <li><SidebarLink to="/customers" icon="people" label="Clienți" collapsed={collapsed} /></li>
                         <li><SidebarLink to="/script-vanzare" icon="description" label="Script vanzare" collapsed={collapsed} /></li>
+                        <li><SidebarLink to="/setup" icon="add_circle" label="Adaugă magazin" collapsed={collapsed} /></li>
                     </ul>
                 </div>
                 <div>
@@ -284,7 +287,7 @@ function Sidebar() {
                         <div className="relative">
                             <img
                                 alt="User Profile"
-                                className="w-10 h-10 rounded-full ring-2 ring-purple-500/50 shadow-lg"
+                                className="w-10 h-10 rounded-full ring-2 ring-cyan-500/50 shadow-lg"
                                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU74HU2GRRRCYR-y4C1o61_xlf-GzgQpiMNTsr3T3-zTKJvGn7N3WilTiZKPnPS_5A_Br7ktYW-DlTNeX9zU5rGJSDSh8g5Z-Qp2Fk_CPVxEYAq4wiZbjIIgViNUU8XHUi67qBn09PAjmrocgGdbNKg9e8rR1vQ6ht3YUPh5sP9DOyuxBRmzpgiJN28BA9jOm-jgx7ldZI1RocbOo5bhIkHaQIEQcSRJ2XovxY079dty-_nwbSz-VMbWbo4Uo3vOJ7V8BnBEo-cT_z"
                             />
                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#161822] rounded-full"></div>
@@ -295,7 +298,7 @@ function Sidebar() {
                         <div className="relative flex-shrink-0">
                             <img
                                 alt="User Profile"
-                                className="w-10 h-10 rounded-full ring-2 ring-purple-500/50 shadow-lg"
+                                className="w-10 h-10 rounded-full ring-2 ring-cyan-500/50 shadow-lg"
                                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU74HU2GRRRCYR-y4C1o61_xlf-GzgQpiMNTsr3T3-zTKJvGn7N3WilTiZKPnPS_5A_Br7ktYW-DlTNeX9zU5rGJSDSh8g5Z-Qp2Fk_CPVxEYAq4wiZbjIIgViNUU8XHUi67qBn09PAjmrocgGdbNKg9e8rR1vQ6ht3YUPh5sP9DOyuxBRmzpgiJN28BA9jOm-jgx7ldZI1RocbOo5bhIkHaQIEQcSRJ2XovxY079dty-_nwbSz-VMbWbo4Uo3vOJ7V8BnBEo-cT_z"
                             />
                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#161822] rounded-full"></div>
@@ -331,7 +334,7 @@ function SidebarLink({ to, icon, label, badge, collapsed }: { to: string; icon: 
             title={collapsed ? label : undefined}
             className={({ isActive }) =>
                 isActive
-                    ? `flex items-center rounded-xl bg-gradient-to-r from-purple-900/40 to-purple-800/10 border border-purple-500/20 text-primary font-normal shadow-[0_4px_12px_rgba(139,92,246,0.15)] transition-all transform hover:translate-y-[-2px] ${collapsed ? 'justify-center px-2 py-2' : 'space-x-3 px-3 py-2'}`
+                    ? `flex items-center rounded-xl bg-gradient-to-r from-cyan-900/40 to-cyan-800/10 border border-cyan-500/20 text-primary font-normal shadow-[0_4px_12px_rgba(0,176,255,0.15)] transition-all transform hover:translate-y-[-2px] ${collapsed ? 'justify-center px-2 py-2' : 'space-x-3 px-3 py-2'}`
                     : `flex items-center rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-dark-lighter hover:text-gray-900 dark:hover:text-white transition-all transform hover:translate-y-[-1px] group ${collapsed ? 'justify-center px-2 py-2' : 'space-x-3 px-3 py-2'}`
             }
         >
@@ -346,7 +349,7 @@ function SidebarLink({ to, icon, label, badge, collapsed }: { to: string; icon: 
                         <span className={`whitespace-nowrap overflow-hidden ${isActive ? "" : "font-light"}`}>{label}</span>
                     )}
                     {!collapsed && badge && (
-                        <span className="ml-auto bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-normal px-2 py-0.5 rounded-full shadow-lg font-num">
+                        <span className="ml-auto bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-[10px] font-normal px-2 py-0.5 rounded-full shadow-lg font-num">
                             {badge}
                         </span>
                     )}
