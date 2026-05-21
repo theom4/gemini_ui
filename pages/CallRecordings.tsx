@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCallRecordingsOptimized, CallRecording } from '../hooks/useCallRecordings';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 
 export default function CallRecordings() {
     const { profile, loading: authLoading } = useAuth();
@@ -32,6 +33,122 @@ export default function CallRecordings() {
     const [page, setPage] = useState(1);
     const pageSize = 10;
     const [selectedRecording, setSelectedRecording] = useState<CallRecording | null>(null);
+
+    // --- Export Modal State ---
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+    const [exportStartDate, setExportStartDate] = useState(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 1);
+        return d.toISOString().split('T')[0];
+    });
+    const [exportEndDate, setExportEndDate] = useState(today);
+    const [exportStores, setExportStores] = useState<string[]>([]);
+    const [exportLimit, setExportLimit] = useState<string>('');
+    const [isExporting, setIsExporting] = useState(false);
+    const [exportError, setExportError] = useState<string | null>(null);
+
+    // Initialize export stores with all user stores when modal opens
+    useEffect(() => {
+        if (isExportModalOpen && userStores.length > 0 && exportStores.length === 0) {
+            setExportStores([...userStores]);
+        }
+    }, [isExportModalOpen, userStores]);
+
+    const toggleExportStore = (store: string) => {
+        setExportStores(prev =>
+            prev.includes(store) ? prev.filter(s => s !== store) : [...prev, store]
+        );
+    };
+
+    const handleExportCSV = async () => {
+        if (exportStores.length === 0) {
+            setExportError('Selectați cel puțin un magazin pentru export.');
+            return;
+        }
+        setIsExporting(true);
+        setExportError(null);
+
+        try {
+            const startTimestamp = `${exportStartDate}T00:00:00`;
+            const endTimestamp = `${exportEndDate}T23:59:59`;
+            const limitNum = exportLimit.trim() !== '' ? parseInt(exportLimit, 10) : null;
+
+            let allRows: CallRecording[] = [];
+
+            for (const store of exportStores) {
+                let query = supabase
+                    .from('call_recordings')
+                    .select('id,user_id,created_at,duration_seconds,recording_url,phone_number,direction,store_name,client_personal_id,recording_transcript,status,type')
+                    .eq('user_id', userId)
+                    .eq('store_name', store)
+                    .gte('created_at', startTimestamp)
+                    .lte('created_at', endTimestamp)
+                    .order('created_at', { ascending: false });
+
+                if (limitNum && limitNum > 0) {
+                    query = query.limit(limitNum);
+                }
+
+                const { data, error } = await query;
+                if (error) throw error;
+                if (data) allRows = [...allRows, ...(data as CallRecording[])];
+            }
+
+            if (allRows.length === 0) {
+                setExportError('Nu s-au găsit înregistrări pentru criteriile selectate.');
+                setIsExporting(false);
+                return;
+            }
+
+            // Build CSV
+            const headers = [
+                'ID', 'Magazin', 'Data', 'Telefon', 'Status', 'Tip',
+                'Durata (sec)', 'ID Comanda', 'Directie', 'URL Inregistrare', 'Transcriere'
+            ];
+
+            const escapeCSV = (val: unknown): string => {
+                if (val === null || val === undefined) return '';
+                const str = String(val);
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                    return `"${str.replace(/"/g, '""')}"`;
+                }
+                return str;
+            };
+
+            const rows = allRows.map(r => [
+                escapeCSV(r.id),
+                escapeCSV(r.store_name),
+                escapeCSV(r.created_at ? new Date(r.created_at).toLocaleString('ro-RO') : ''),
+                escapeCSV(r.phone_number),
+                escapeCSV(r.status),
+                escapeCSV(r.type || 'Comanda'),
+                escapeCSV(r.duration_seconds),
+                escapeCSV(r.client_personal_id),
+                escapeCSV(r.direction),
+                escapeCSV(r.recording_url),
+                escapeCSV(r.recording_transcript)
+            ].join(','));
+
+            const csvContent = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            const fileName = `inregistrari_${exportStartDate}_${exportEndDate}.csv`;
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            setIsExportModalOpen(false);
+        } catch (err: any) {
+            console.error('Export error:', err);
+            setExportError(`Eroare la export: ${err?.message || 'Necunoscută'}`);
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     // Reset pagination on filter change
     useEffect(() => {
@@ -158,6 +275,16 @@ export default function CallRecordings() {
                             </>
                         )}
                     </div>
+
+                    {/* Export CSV Button */}
+                    <button
+                        onClick={() => { setExportError(null); setIsExportModalOpen(true); }}
+                        className="btn-3d-secondary px-4 py-2.5 rounded-xl text-sm h-[42px] flex items-center gap-2 hover:text-white transition-all"
+                        title="Exportă înregistrări ca CSV"
+                    >
+                        <span className="material-icons-round text-base">download</span>
+                        Exportă CSV
+                    </button>
                 </div>
             </div>
 
@@ -416,6 +543,157 @@ export default function CallRecordings() {
                                 className="btn-3d-secondary px-8 py-2.5 rounded-xl text-sm font-medium hover:text-white"
                             >
                                 ÎNCHIDE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== EXPORT CSV MODAL ===== */}
+            {isExportModalOpen && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
+                        onClick={() => !isExporting && setIsExportModalOpen(false)}
+                    />
+                    <div className="glass-panel-3d w-full max-w-lg rounded-2xl overflow-hidden relative z-10 border border-white/10 shadow-2xl animate-in zoom-in-95 duration-200">
+                        {/* Header */}
+                        <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-white/5">
+                            <h3 className="text-xl font-light text-white flex items-center gap-2">
+                                <span className="material-icons-round text-emerald-400">download</span>
+                                Exportă Înregistrări CSV
+                            </h3>
+                            <button
+                                onClick={() => !isExporting && setIsExportModalOpen(false)}
+                                disabled={isExporting}
+                                className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors disabled:opacity-40"
+                            >
+                                <span className="material-icons-round">close</span>
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-6 space-y-5">
+                            {/* Date Range */}
+                            <div className="space-y-2">
+                                <label className="text-xs text-gray-500 uppercase tracking-widest font-medium">Interval de date</label>
+                                <div className="flex items-center gap-3 bg-[#13141a] p-2 px-3 rounded-xl border border-white/5">
+                                    <span className="material-icons-round text-gray-500 text-sm">calendar_today</span>
+                                    <input
+                                        type="date"
+                                        value={exportStartDate}
+                                        onChange={e => setExportStartDate(e.target.value)}
+                                        className="bg-transparent text-gray-200 text-sm border-none focus:ring-0 cursor-pointer outline-none flex-1"
+                                        disabled={isExporting}
+                                    />
+                                    <span className="text-gray-600">—</span>
+                                    <input
+                                        type="date"
+                                        value={exportEndDate}
+                                        onChange={e => setExportEndDate(e.target.value)}
+                                        className="bg-transparent text-gray-200 text-sm border-none focus:ring-0 cursor-pointer outline-none flex-1"
+                                        disabled={isExporting}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Store Selection */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs text-gray-500 uppercase tracking-widest font-medium">Magazine</label>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setExportStores([...userStores])}
+                                            disabled={isExporting}
+                                            className="text-[10px] text-primary/70 hover:text-primary transition-colors disabled:opacity-40"
+                                        >Toate</button>
+                                        <span className="text-gray-700">·</span>
+                                        <button
+                                            onClick={() => setExportStores([])}
+                                            disabled={isExporting}
+                                            className="text-[10px] text-gray-500 hover:text-gray-300 transition-colors disabled:opacity-40"
+                                        >Niciuna</button>
+                                    </div>
+                                </div>
+                                <div className="bg-[#13141a] rounded-xl border border-white/5 overflow-hidden">
+                                    {userStores.map(store => {
+                                        const isChecked = exportStores.includes(store);
+                                        return (
+                                            <button
+                                                key={store}
+                                                onClick={() => !isExporting && toggleExportStore(store)}
+                                                disabled={isExporting}
+                                                className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-3 border-b border-white/5 last:border-b-0 disabled:opacity-40"
+                                            >
+                                                <span className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border transition-colors ${
+                                                    isChecked
+                                                        ? 'bg-emerald-500/20 border-emerald-500/50'
+                                                        : 'bg-transparent border-gray-600'
+                                                }`}>
+                                                    {isChecked && <span className="material-icons-round text-emerald-400" style={{fontSize: '12px'}}>check</span>}
+                                                </span>
+                                                {store}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                {exportStores.length > 0 && (
+                                    <p className="text-[11px] text-gray-600 pt-1">{exportStores.length} magazin{exportStores.length !== 1 ? 'e' : ''} selectat{exportStores.length !== 1 ? 'e' : ''}</p>
+                                )}
+                            </div>
+
+                            {/* Max Records Limit */}
+                            <div className="space-y-2">
+                                <label className="text-xs text-gray-500 uppercase tracking-widest font-medium">Limită maximă înregistrări</label>
+                                <div className="flex items-center gap-3 bg-[#13141a] p-2 px-3 rounded-xl border border-white/5">
+                                    <span className="material-icons-round text-gray-500 text-sm">format_list_numbered</span>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={exportLimit}
+                                        onChange={e => setExportLimit(e.target.value)}
+                                        placeholder="Lasă gol pentru toate înregistrările"
+                                        className="bg-transparent text-gray-200 text-sm border-none focus:ring-0 outline-none flex-1 placeholder:text-gray-600"
+                                        disabled={isExporting}
+                                    />
+                                </div>
+                                <p className="text-[11px] text-gray-600 italic">Dacă lași câmpul gol, se vor descărca toate înregistrările din intervalul selectat.</p>
+                            </div>
+
+                            {/* Error message */}
+                            {exportError && (
+                                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                                    <span className="material-icons-round text-sm">error_outline</span>
+                                    {exportError}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-6 py-4 bg-black/20 border-t border-white/5 flex justify-end items-center gap-3">
+                            <button
+                                onClick={() => setIsExportModalOpen(false)}
+                                disabled={isExporting}
+                                className="btn-3d-secondary px-6 py-2.5 rounded-xl text-sm font-medium hover:text-white disabled:opacity-40"
+                            >
+                                Anulează
+                            </button>
+                            <button
+                                onClick={handleExportCSV}
+                                disabled={isExporting || exportStores.length === 0}
+                                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/30 hover:text-emerald-200 transition-all disabled:opacity-40 disabled:pointer-events-none"
+                            >
+                                {isExporting ? (
+                                    <>
+                                        <span className="w-4 h-4 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin"></span>
+                                        Se exportă...
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="material-icons-round text-base">download</span>
+                                        Descarcă CSV
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

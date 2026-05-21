@@ -12,6 +12,10 @@ const ControlRobotPage = () => {
     const [isLoadingCall, setIsLoadingCall] = useState(false);
     const [isLoadingActivate, setIsLoadingActivate] = useState(false);
     const [isRobotStopped, setIsRobotStopped] = useState(false);
+    const [isDraftsStopped, setIsDraftsStopped] = useState(false);
+    const [isComenziStopped, setIsComenziStopped] = useState(false);
+    const [callingStartTime, setCallingStartTime] = useState('08:00');
+    const [callingEndTime, setCallingEndTime] = useState('22:30');
     const [productId, setProductId] = useState('');
     const [isLoadingStopProduct, setIsLoadingStopProduct] = useState(false);
     const [isLoadingStartProduct, setIsLoadingStartProduct] = useState(false);
@@ -144,11 +148,21 @@ const ControlRobotPage = () => {
         const message = isRobotStopped
             ? "Ești sigur că vrei să repornești robotul?"
             : "Ești sigur că vrei să oprești complet robotul?";
+        if (window.confirm(message)) setIsRobotStopped(!isRobotStopped);
+    };
 
-        if (window.confirm(message)) {
-            setIsRobotStopped(!isRobotStopped);
-            // No backend action for now as requested
-        }
+    const handleDraftsStopToggle = () => {
+        const message = isDraftsStopped
+            ? "Ești sigur că vrei să repornești apelurile pentru drafturi?"
+            : "Ești sigur că vrei să oprești apelurile pentru drafturi?";
+        if (window.confirm(message)) setIsDraftsStopped(!isDraftsStopped);
+    };
+
+    const handleComenziStopToggle = () => {
+        const message = isComenziStopped
+            ? "Ești sigur că vrei să repornești apelurile pentru comenzi?"
+            : "Ești sigur că vrei să oprești apelurile pentru comenzi?";
+        if (window.confirm(message)) setIsComenziStopped(!isComenziStopped);
     };
 
     return (
@@ -248,20 +262,111 @@ const ControlRobotPage = () => {
                     </div>
                 </div>
 
-                <div className="bg-surface-light dark:bg-surface-dark-lighter p-8 rounded-2xl border border-gray-200 dark:border-white/5 shadow-lg flex items-center justify-between">
-                    <div>
-                        <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Oprire completa</p>
-                        <p className="text-sm text-gray-400 font-light">
-                            Ascunde sau dezactivează complet funcționalitatea robotului.
-                        </p>
-                    </div>
+                <div className="bg-surface-light dark:bg-surface-dark-lighter p-8 rounded-2xl border border-gray-200 dark:border-white/5 shadow-lg">
+                    <p className="text-xl text-gray-800 dark:text-gray-200 mb-1">Oprire sunat</p>
+                    <p className="text-sm text-gray-500 font-light mb-6">Controlează ce tipuri de apeluri efectuează robotul.</p>
 
-                    <button
-                        onClick={handleFullStopToggle}
-                        className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 ${isRobotStopped ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-700'}`}
-                    >
-                        <div className={`w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 ${isRobotStopped ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        {/* Oprire completă */}
+                        <div className={`flex-1 flex items-center justify-between gap-4 p-5 rounded-2xl border transition-colors duration-300 ${
+                            isRobotStopped
+                                ? 'bg-red-500/10 border-red-500/30'
+                                : 'bg-black/20 border-white/5'
+                        }`}>
+                            <div>
+                                <p className="text-sm font-medium text-gray-200">Oprire completă</p>
+                                <p className="text-xs text-gray-500 font-light mt-0.5">Oprește toate apelurile robotului</p>
+                            </div>
+                            <button
+                                onClick={handleFullStopToggle}
+                                className={`flex-shrink-0 w-14 h-8 rounded-full p-1 transition-colors duration-300 ${
+                                    isRobotStopped ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-700'
+                                }`}
+                            >
+                                <div className={`w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 ${
+                                    isRobotStopped ? 'translate-x-6' : 'translate-x-0'
+                                }`}></div>
+                            </button>
+                        </div>
+
+                        {/* Oprire sunat drafturi */}
+                        <div className={`flex-1 flex items-center justify-between gap-4 p-5 rounded-2xl border transition-colors duration-300 ${
+                            isDraftsStopped
+                                ? 'bg-amber-500/10 border-amber-500/30'
+                                : 'bg-black/20 border-white/5'
+                        }`}>
+                            <div>
+                                <p className="text-sm font-medium text-gray-200">Oprire sunat drafturi</p>
+                                <p className="text-xs text-gray-500 font-light mt-0.5">Oprește apelurile pentru comenzi draft</p>
+                            </div>
+                            <button
+                                onClick={handleDraftsStopToggle}
+                                className={`flex-shrink-0 w-14 h-8 rounded-full p-1 transition-colors duration-300 ${
+                                    isDraftsStopped ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-700'
+                                }`}
+                            >
+                                <div className={`w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 ${
+                                    isDraftsStopped ? 'translate-x-6' : 'translate-x-0'
+                                }`}></div>
+                            </button>
+                        </div>
+
+                        {/* Oprire sunat comenzi */}
+                        <div className={`flex-1 flex items-center justify-between gap-4 p-5 rounded-2xl border transition-colors duration-300 ${
+                            isComenziStopped
+                                ? 'bg-orange-500/10 border-orange-500/30'
+                                : 'bg-black/20 border-white/5'
+                        }`}>
+                            <div>
+                                <p className="text-sm font-medium text-gray-200">Oprire sunat comenzi</p>
+                                <p className="text-xs text-gray-500 font-light mt-0.5">Oprește apelurile pentru comenzi confirmate</p>
+                            </div>
+                            <button
+                                onClick={handleComenziStopToggle}
+                                className={`flex-shrink-0 w-14 h-8 rounded-full p-1 transition-colors duration-300 ${
+                                    isComenziStopped ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-700'
+                                }`}
+                            >
+                                <div className={`w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 ${
+                                    isComenziStopped ? 'translate-x-6' : 'translate-x-0'
+                                }`}></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Interval Sunat */}
+                <div className="bg-surface-light dark:bg-surface-dark-lighter p-8 rounded-2xl border border-gray-200 dark:border-white/5 shadow-lg">
+                    <p className="text-xl text-gray-800 dark:text-gray-200 mb-1">Interval sunat</p>
+                    <p className="text-sm text-gray-500 font-light mb-6">Robotul va efectua apeluri doar în intervalul orar setat.</p>
+
+                    <div className="flex flex-col sm:flex-row gap-4 max-w-lg">
+                        <div className="flex-1 space-y-1.5">
+                            <label className="text-xs text-gray-500 uppercase tracking-widest font-medium">De la</label>
+                            <div className="flex items-center gap-3 bg-[#0a0b14] px-4 py-3 rounded-xl border border-white/10 focus-within:ring-2 focus-within:ring-primary/50 transition-all">
+                                <span className="material-icons-round text-primary/60 text-base">schedule</span>
+                                <input
+                                    type="time"
+                                    value={callingStartTime}
+                                    onChange={e => setCallingStartTime(e.target.value)}
+                                    className="bg-transparent text-gray-200 text-sm border-none focus:ring-0 outline-none flex-1 cursor-pointer"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex items-end pb-3 text-gray-600 text-lg font-light hidden sm:flex">—</div>
+                        <div className="flex-1 space-y-1.5">
+                            <label className="text-xs text-gray-500 uppercase tracking-widest font-medium">Până la</label>
+                            <div className="flex items-center gap-3 bg-[#0a0b14] px-4 py-3 rounded-xl border border-white/10 focus-within:ring-2 focus-within:ring-primary/50 transition-all">
+                                <span className="material-icons-round text-primary/60 text-base">schedule</span>
+                                <input
+                                    type="time"
+                                    value={callingEndTime}
+                                    onChange={e => setCallingEndTime(e.target.value)}
+                                    className="bg-transparent text-gray-200 text-sm border-none focus:ring-0 outline-none flex-1 cursor-pointer"
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="bg-surface-light dark:bg-surface-dark-lighter p-8 rounded-2xl border border-gray-200 dark:border-white/5 shadow-lg">

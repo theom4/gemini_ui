@@ -35,6 +35,8 @@ export default function App() {
             <HashRouter>
                 <div className="flex flex-col h-screen overflow-hidden bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200 font-sans transition-colors duration-300 w-full">
                     <div className="flex flex-1 overflow-hidden">
+                        {/* Fixed-width spacer so main never shifts when sidebar expands */}
+                        <div className="flex-shrink-0 w-[72px]" />
                         <Sidebar />
                         <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
                             <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-cyan-900/10 via-cyan-900/5 to-transparent pointer-events-none z-0"></div>
@@ -246,20 +248,21 @@ function Sidebar() {
         <aside
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className={`flex-shrink-0 border-r border-gray-200 dark:border-gray-800 bg-surface-light dark:bg-[#0d0e19] flex flex-col h-screen overflow-hidden relative z-20 shadow-xl transition-all duration-300 ease-in-out ${collapsed ? 'w-[72px]' : 'w-64'}`}
+            className={`fixed left-0 top-0 h-screen border-r border-gray-200 dark:border-gray-800 bg-surface-light dark:bg-[#0d0e19] flex flex-col overflow-hidden z-20 shadow-xl transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${collapsed ? 'w-[72px]' : 'w-64'}`}
         >
-            {/* Header with logo */}
-            <div className={`p-4 flex items-center py-6 ${collapsed ? 'justify-center' : 'justify-center px-6'}`}>
-                {collapsed ? (
-                    <span className="text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#00d2ff] via-[#00b0ff] to-[#008cff] drop-shadow-[0_0_15px_rgba(0,176,255,0.3)]" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>N</span>
-                ) : (
-                    <h1 className="text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#00d2ff] via-[#00b0ff] to-[#008cff] drop-shadow-[0_0_15px_rgba(0,176,255,0.3)] font-mono whitespace-nowrap overflow-hidden" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                        NANOASSIST
-                    </h1>
-                )}
+            {/* Logo — always rendered, text slides in */}
+            <div className="flex items-center h-20 px-4 shrink-0 overflow-hidden">
+                <span
+                    className="text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#00d2ff] via-[#00b0ff] to-[#008cff] drop-shadow-[0_0_15px_rgba(0,176,255,0.3)] font-mono shrink-0"
+                    style={{ fontFamily: '"Space Grotesk", sans-serif' }}
+                >N</span>
+                <span
+                    className={`text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#00d2ff] via-[#00b0ff] to-[#008cff] font-mono whitespace-nowrap overflow-hidden transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}
+                    style={{ fontFamily: '"Space Grotesk", sans-serif' }}
+                >ANOASSIST</span>
             </div>
 
-            <nav className={`flex-1 space-y-4 mt-2 overflow-y-auto overflow-x-hidden ${collapsed ? 'px-2' : 'px-4'}`}>
+            <nav className="flex-1 space-y-4 mt-2 overflow-y-auto overflow-x-hidden px-2">
                 <div>
                     <ul className="space-y-1">
                         <li><SidebarLink to="/" icon="dashboard" label="Dashboard" collapsed={collapsed} /></li>
@@ -281,47 +284,34 @@ function Sidebar() {
                 </div>
             </nav>
 
-            <div className={`border-t border-gray-200 dark:border-gray-800 ${collapsed ? 'p-2' : 'p-4'}`}>
-                {collapsed ? (
-                    <div className="flex flex-col items-center gap-2">
-                        <div className="relative">
-                            <img
-                                alt="User Profile"
-                                className="w-10 h-10 rounded-full ring-2 ring-cyan-500/50 shadow-lg"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU74HU2GRRRCYR-y4C1o61_xlf-GzgQpiMNTsr3T3-zTKJvGn7N3WilTiZKPnPS_5A_Br7ktYW-DlTNeX9zU5rGJSDSh8g5Z-Qp2Fk_CPVxEYAq4wiZbjIIgViNUU8XHUi67qBn09PAjmrocgGdbNKg9e8rR1vQ6ht3YUPh5sP9DOyuxBRmzpgiJN28BA9jOm-jgx7ldZI1RocbOo5bhIkHaQIEQcSRJ2XovxY079dty-_nwbSz-VMbWbo4Uo3vOJ7V8BnBEo-cT_z"
-                            />
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#161822] rounded-full"></div>
-                        </div>
+            {/* Footer — always full structure, text slides in */}
+            <div className="border-t border-gray-200 dark:border-gray-800 p-2 shrink-0">
+                <div className="flex items-center gap-3 p-2 rounded-xl glass-panel-3d overflow-hidden">
+                    <div className="relative flex-shrink-0">
+                        <img
+                            alt="User Profile"
+                            className="w-9 h-9 rounded-full ring-2 ring-cyan-500/50 shadow-lg"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU74HU2GRRRCYR-y4C1o61_xlf-GzgQpiMNTsr3T3-zTKJvGn7N3WilTiZKPnPS_5A_Br7ktYW-DlTNeX9zU5rGJSDSh8g5Z-Qp2Fk_CPVxEYAq4wiZbjIIgViNUU8XHUi67qBn09PAjmrocgGdbNKg9e8rR1vQ6ht3YUPh5sP9DOyuxBRmzpgiJN28BA9jOm-jgx7ldZI1RocbOo5bhIkHaQIEQcSRJ2XovxY079dty-_nwbSz-VMbWbo4Uo3vOJ7V8BnBEo-cT_z"
+                        />
+                        <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#161822] rounded-full"></div>
                     </div>
-                ) : (
-                    <div className="flex items-center gap-3 p-3 rounded-xl glass-panel-3d transition-all group relative">
-                        <div className="relative flex-shrink-0">
-                            <img
-                                alt="User Profile"
-                                className="w-10 h-10 rounded-full ring-2 ring-cyan-500/50 shadow-lg"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU74HU2GRRRCYR-y4C1o61_xlf-GzgQpiMNTsr3T3-zTKJvGn7N3WilTiZKPnPS_5A_Br7ktYW-DlTNeX9zU5rGJSDSh8g5Z-Qp2Fk_CPVxEYAq4wiZbjIIgViNUU8XHUi67qBn09PAjmrocgGdbNKg9e8rR1vQ6ht3YUPh5sP9DOyuxBRmzpgiJN28BA9jOm-jgx7ldZI1RocbOo5bhIkHaQIEQcSRJ2XovxY079dty-_nwbSz-VMbWbo4Uo3vOJ7V8BnBEo-cT_z"
-                            />
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#161822] rounded-full"></div>
-                        </div>
-                        <div className="flex-1 min-w-0 overflow-hidden">
-                            <p className="text-sm font-normal text-gray-900 dark:text-white truncate">{userEmail || 'Admin User'}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate font-light">Online</p>
-                        </div>
-                        <button
-                            onClick={handleLogout}
-                            disabled={isLoggingOut}
-                            className={`w-9 h-9 ml-auto flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-gray-400 transition-all focus:outline-none active:scale-95 flex-shrink-0 ${isLoggingOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-400'}`}
-                            title="Deconectare"
-                            type="button"
-                        >
-                            {isLoggingOut ? (
-                                <span className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin"></span>
-                            ) : (
-                                <span className="material-icons-round text-lg">logout</span>
-                            )}
-                        </button>
+                    <div className={`flex-1 min-w-0 overflow-hidden transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[120px] opacity-100'}`}>
+                        <p className="text-sm font-normal text-gray-900 dark:text-white truncate">{userEmail || 'Admin'}</p>
+                        <p className="text-xs text-gray-500 truncate font-light">Online</p>
                     </div>
-                )}
+                    <button
+                        onClick={handleLogout}
+                        disabled={isLoggingOut}
+                        className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-gray-400 transition-all focus:outline-none active:scale-95 overflow-hidden ${collapsed ? 'max-w-0 opacity-0 border-0 p-0' : 'max-w-[40px] opacity-100'} ${isLoggingOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-400'}`}
+                        title="Deconectare"
+                        type="button"
+                    >
+                        {isLoggingOut
+                            ? <span className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin"></span>
+                            : <span className="material-icons-round text-lg">logout</span>
+                        }
+                    </button>
+                </div>
             </div>
         </aside>
     );
@@ -333,23 +323,30 @@ function SidebarLink({ to, icon, label, badge, collapsed }: { to: string; icon: 
             to={to}
             title={collapsed ? label : undefined}
             className={({ isActive }) =>
-                isActive
-                    ? `flex items-center rounded-xl bg-gradient-to-r from-cyan-900/40 to-cyan-800/10 border border-cyan-500/20 text-primary font-normal shadow-[0_4px_12px_rgba(0,176,255,0.15)] transition-all transform hover:translate-y-[-2px] ${collapsed ? 'justify-center px-2 py-2' : 'space-x-3 px-3 py-2'}`
-                    : `flex items-center rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-dark-lighter hover:text-gray-900 dark:hover:text-white transition-all transform hover:translate-y-[-1px] group ${collapsed ? 'justify-center px-2 py-2' : 'space-x-3 px-3 py-2'}`
+                `flex items-center px-2 py-2 rounded-xl transition-all duration-150 overflow-hidden ${
+                    isActive
+                        ? 'bg-gradient-to-r from-cyan-900/40 to-cyan-800/10 border border-cyan-500/20 text-primary shadow-[0_4px_12px_rgba(0,176,255,0.15)]'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-surface-dark-lighter hover:text-white border border-transparent'
+                } group`
             }
         >
             {({ isActive }) => (
                 <>
                     {typeof icon === 'string' ? (
-                        <span className="material-icons-round text-xl group-hover:text-primary transition-colors drop-shadow-md flex-shrink-0">{icon}</span>
+                        <span className="material-icons-round text-xl flex-shrink-0 group-hover:text-primary transition-colors">{icon}</span>
                     ) : (
-                        <span className="text-xl group-hover:text-primary transition-colors drop-shadow-md flex items-center justify-center w-[24px] h-[24px] flex-shrink-0">{icon}</span>
+                        <span className="flex items-center justify-center w-[24px] h-[24px] flex-shrink-0 group-hover:text-primary transition-colors">{icon}</span>
                     )}
-                    {!collapsed && (
-                        <span className={`whitespace-nowrap overflow-hidden ${isActive ? "" : "font-light"}`}>{label}</span>
-                    )}
-                    {!collapsed && badge && (
-                        <span className="ml-auto bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-[10px] font-normal px-2 py-0.5 rounded-full shadow-lg font-num">
+                    {/* Label always rendered, slides in with width+opacity */}
+                    <span
+                        className={`ml-3 whitespace-nowrap overflow-hidden transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] text-sm ${
+                            isActive ? '' : 'font-light'
+                        } ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[160px] opacity-100'}`}
+                    >
+                        {label}
+                    </span>
+                    {badge && (
+                        <span className={`ml-auto bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-[10px] font-normal px-2 py-0.5 rounded-full shrink-0 overflow-hidden transition-[max-width,opacity] duration-300 ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[60px] opacity-100'}`}>
                             {badge}
                         </span>
                     )}
