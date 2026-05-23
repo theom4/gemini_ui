@@ -238,7 +238,7 @@ const ControlRobotPage = () => {
                     <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Actiune apelare comanda</p>
                     <p className="text-sm text-yellow-500 font-light flex items-center gap-2 mb-6">
                         <span className="material-icons-round text-base">warning</span>
-                        Atentie, trebuie sa introduci o comanda cu tag-ul 'n-a raspuns', altfel clientul va fi sunat de mai multe ori
+                        Pentru orice comanda/draft fara tag ce trebuie sunata
                     </p>
 
                     <div className="max-w-2xl flex flex-col gap-4">
