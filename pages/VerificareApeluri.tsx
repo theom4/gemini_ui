@@ -258,6 +258,7 @@ export default function VerificareApeluri() {
                             </p>
                         </div>
                     ) : (
+                        <>
                         <div className="space-y-2">
                             {pageRecords.map((rec) => {
                                 const isExpanded = expandedId === rec.id;
@@ -407,6 +408,7 @@ export default function VerificareApeluri() {
                                 </div>
                             </div>
                         )}
+                        </>
                     )}
                 </div>
             )}
