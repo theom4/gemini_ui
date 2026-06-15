@@ -41,7 +41,7 @@ const ControlRobotPage = () => {
 
         setIsLoadingCall(true);
         try {
-            await fetch('https://n8n.voisero.info/webhook/control-robot-vt', {
+            await fetch('https://n8n.whimlets.com/webhook/control-robot-vt', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ const ControlRobotPage = () => {
 
         setIsLoadingActivate(true);
         try {
-            await fetch('https://n8n.voisero.info/webhook/control-robot-vt', {
+            await fetch('https://n8n.whimlets.com/webhook/control-robot-vt', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
