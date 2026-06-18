@@ -36,15 +36,18 @@ export default function App() {
             <HashRouter>
                 <div className="flex flex-col h-screen overflow-hidden bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200 font-sans transition-colors duration-300 w-full">
                     <div className="flex flex-1 overflow-hidden">
-                        {/* Fixed-width spacer so main never shifts when sidebar expands */}
-                        <div className="flex-shrink-0 w-[72px]" />
-                        <Sidebar />
+                        {/* Fixed-width spacer so main never shifts when sidebar expands — hidden on mobile */}
+                        <div className="hidden md:block flex-shrink-0 w-[72px]" />
+                        {/* Sidebar — hidden on mobile */}
+                        <div className="hidden md:block">
+                            <Sidebar />
+                        </div>
                         <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
                             <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-cyan-900/10 via-cyan-900/5 to-transparent pointer-events-none z-0"></div>
 
                             <Header userEmail={session.user.email} />
 
-                            <div className="flex-1 overflow-y-auto p-8 z-10 scroll-smooth">
+                            <div className="flex-1 overflow-y-auto p-4 md:p-8 z-10 scroll-smooth pb-20 md:pb-8">
                                 <Routes>
                                     <Route path="/" element={<Index />} />
                                     <Route path="/call-recordings" element={<CallRecordings />} />
@@ -61,6 +64,8 @@ export default function App() {
                             </div>
                         </main>
                     </div>
+                    {/* Mobile bottom navigation — hidden on desktop */}
+                    <MobileBottomNav />
                 </div>
             </HashRouter>
         </QueryClientProvider>
@@ -198,17 +203,24 @@ function PlaceholderPage() {
 
 function Header({ userEmail }: { userEmail?: string }) {
     return (
-        <header className="h-20 flex items-center justify-between px-8 z-10 border-b border-gray-200 dark:border-gray-800 bg-surface-light/90 dark:bg-background-dark/90 backdrop-blur-md shadow-lg shrink-0">
-            <div className="flex items-center gap-4 w-1/3">
-                <h1 className="text-2xl font-light tracking-tight dark:text-white drop-shadow-sm bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Statistici</h1>
+        <header className="h-14 md:h-20 flex items-center justify-between px-4 md:px-8 z-10 border-b border-gray-200 dark:border-gray-800 bg-surface-light/90 dark:bg-background-dark/90 backdrop-blur-md shadow-lg shrink-0">
+            <div className="flex items-center gap-3">
+                {/* Mobile: show logo; Desktop: show page title */}
+                <span
+                    className="md:hidden text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#00d2ff] via-[#00b0ff] to-[#008cff]"
+                    style={{ fontFamily: '"Space Grotesk", sans-serif' }}
+                >
+                    NANOASSIST
+                </span>
+                <h1 className="hidden md:block text-2xl font-light tracking-tight dark:text-white drop-shadow-sm bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Statistici</h1>
             </div>
-            <div className="flex items-center gap-4 w-1/3 justify-end">
-                <button className="w-12 h-12 btn-3d-secondary rounded-xl flex items-center justify-center relative hover:text-white transition-colors">
-                    <span className="material-icons-round text-xl">notifications</span>
-                    <span className="absolute top-3 right-3.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-surface-dark shadow-[0_0_10px_rgba(239,68,68,0.6)]"></span>
+            <div className="flex items-center gap-2">
+                <button className="w-9 h-9 md:w-12 md:h-12 btn-3d-secondary rounded-xl flex items-center justify-center relative hover:text-white transition-colors">
+                    <span className="material-icons-round text-lg md:text-xl">notifications</span>
+                    <span className="absolute top-2 right-2 md:top-3 md:right-3.5 w-2 h-2 md:w-2.5 md:h-2.5 bg-red-500 rounded-full border-2 border-surface-dark shadow-[0_0_10px_rgba(239,68,68,0.6)]"></span>
                 </button>
-                <button className="w-12 h-12 btn-3d-secondary rounded-xl flex items-center justify-center hover:text-white transition-colors">
-                    <span className="material-icons-round text-xl">settings</span>
+                <button className="w-9 h-9 md:w-12 md:h-12 btn-3d-secondary rounded-xl flex items-center justify-center hover:text-white transition-colors">
+                    <span className="material-icons-round text-lg md:text-xl">settings</span>
                 </button>
             </div>
         </header>
@@ -356,5 +368,162 @@ function SidebarLink({ to, icon, label, badge, collapsed }: { to: string; icon: 
                 </>
             )}
         </NavLink>
+    );
+}
+
+function MobileBottomNav() {
+    const { session, signOut } = useAuth();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        try {
+            await signOut();
+        } catch {
+            setIsLoggingOut(false);
+        }
+    };
+
+    const whatsappIcon = (
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+        </svg>
+    );
+
+    const primaryLinks = [
+        { to: '/', icon: 'dashboard', label: 'Dashboard' },
+        { to: '/statistici-produse', icon: 'bar_chart', label: 'Produse' },
+        { to: '/call-recordings', icon: 'keyboard_voice', label: 'Apeluri' },
+        { to: '/chat', icon: 'smart_toy', label: 'AI Chat' },
+    ];
+
+    const menuLinks = [
+        { to: '/statistici-adrese', icon: 'map', label: 'Statistici adrese' },
+        { to: '/whatsapp', icon: null, label: 'Whatsapp', customIcon: whatsappIcon },
+        { to: '/script-vanzare', icon: 'description', label: 'Script vânzare' },
+        { to: '/control-robot', icon: 'settings_remote', label: 'Control Robot' },
+        { to: '/verificare-apeluri', icon: 'fact_check', label: 'Verificare apeluri' },
+        { to: '/setup', icon: 'add_circle', label: 'Adaugă magazin' },
+    ];
+
+    return (
+        <>
+            {/* Full-screen overlay menu */}
+            {isMenuOpen && (
+                <div className="md:hidden fixed inset-0 z-50 flex flex-col" style={{ background: 'linear-gradient(160deg, rgba(13,14,25,0.98) 0%, rgba(9,10,14,0.99) 100%)', backdropFilter: 'blur(20px)' }}>
+                    {/* Menu header */}
+                    <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
+                        <span
+                            className="text-2xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#00d2ff] via-[#00b0ff] to-[#008cff]"
+                            style={{ fontFamily: '"Space Grotesk", sans-serif' }}
+                        >
+                            NANOASSIST
+                        </span>
+                        <button
+                            onClick={() => setIsMenuOpen(false)}
+                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-gray-400 active:scale-95 transition-transform"
+                        >
+                            <span className="material-icons-round text-xl">close</span>
+                        </button>
+                    </div>
+
+                    {/* User info */}
+                    {session && (
+                        <div className="flex items-center gap-3 px-6 py-4 border-b border-white/5">
+                            <img
+                                alt="User"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU74HU2GRRRCYR-y4C1o61_xlf-GzgQpiMNTsr3T3-zTKJvGn7N3WilTiZKPnPS_5A_Br7ktYW-DlTNeX9zU5rGJSDSh8g5Z-Qp2Fk_CPVxEYAq4wiZbjIIgViNUU8XHUi67qBn09PAjmrocgGdbNKg9e8rR1vQ6ht3YUPh5sP9DOyuxBRmzpgiJN28BA9jOm-jgx7ldZI1RocbOo5bhIkHaQIEQcSRJ2XovxY079dty-_nwbSz-VMbWbo4Uo3vOJ7V8BnBEo-cT_z"
+                                className="w-10 h-10 rounded-full ring-2 ring-cyan-500/40"
+                            />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm text-white font-medium truncate">{session.user.email}</p>
+                                <p className="text-xs text-gray-500">Online</p>
+                            </div>
+                            <button
+                                onClick={handleLogout}
+                                disabled={isLoggingOut}
+                                className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 active:scale-95 transition-transform"
+                            >
+                                {isLoggingOut
+                                    ? <span className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin"></span>
+                                    : <span className="material-icons-round text-lg">logout</span>
+                                }
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Menu links */}
+                    <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+                        {menuLinks.map((link) => (
+                            <NavLink
+                                key={link.to}
+                                to={link.to}
+                                onClick={() => setIsMenuOpen(false)}
+                                className={({ isActive }) =>
+                                    `flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${
+                                        isActive
+                                            ? 'bg-gradient-to-r from-cyan-900/40 to-cyan-800/10 border border-cyan-500/20 text-primary'
+                                            : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'
+                                    }`
+                                }
+                            >
+                                {link.customIcon
+                                    ? <span className="flex items-center justify-center w-5 h-5">{link.customIcon}</span>
+                                    : <span className="material-icons-round text-xl">{link.icon}</span>
+                                }
+                                <span className="text-sm font-light">{link.label}</span>
+                            </NavLink>
+                        ))}
+                    </nav>
+                </div>
+            )}
+
+            {/* Bottom tab bar */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-white/5" style={{ background: 'linear-gradient(180deg, rgba(11,12,20,0.95) 0%, rgba(9,10,14,0.98) 100%)', backdropFilter: 'blur(16px)' }}>
+                <div className="flex items-stretch h-16">
+                    {primaryLinks.map((link) => (
+                        <NavLink
+                            key={link.to}
+                            to={link.to}
+                            end={link.to === '/'}
+                            className={({ isActive }) =>
+                                `flex-1 flex flex-col items-center justify-center gap-0.5 transition-all active:scale-95 ${
+                                    isActive ? 'text-primary' : 'text-gray-500'
+                                }`
+                            }
+                        >
+                            {({ isActive }) => (
+                                <>
+                                    <span
+                                        className={`material-icons-round text-2xl transition-all ${
+                                            isActive ? 'drop-shadow-[0_0_8px_rgba(0,210,255,0.7)]' : ''
+                                        }`}
+                                    >
+                                        {link.icon}
+                                    </span>
+                                    <span className={`text-[10px] font-medium tracking-wide transition-colors ${
+                                        isActive ? 'text-primary' : 'text-gray-600'
+                                    }`}>
+                                        {link.label}
+                                    </span>
+                                    {isActive && (
+                                        <span className="absolute bottom-0 w-8 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" />
+                                    )}
+                                </>
+                            )}
+                        </NavLink>
+                    ))}
+                    {/* More button */}
+                    <button
+                        onClick={() => setIsMenuOpen(true)}
+                        className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all active:scale-95 ${isMenuOpen ? 'text-primary' : 'text-gray-500'}`}
+                    >
+                        <span className="material-icons-round text-2xl">menu</span>
+                        <span className="text-[10px] font-medium tracking-wide text-gray-600">Mai mult</span>
+                    </button>
+                </div>
+            </nav>
+        </>
     );
 }
