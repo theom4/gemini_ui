@@ -42,11 +42,11 @@ const TABS: { id: string; label: string }[] = [
 
 const STATUS_STYLES: Record<string, string> = {
     'ON':  'bg-pink-100 text-pink-700 border border-pink-200',
-    'OFF': 'bg-white/5 text-gray-300 border border-white/5',
-    'nu-raspunde': 'bg-amber-100 text-amber-700 border border-amber-200',
-    'de-revenit': 'bg-blue-100 text-blue-700 border border-blue-200',
-    'confirmat': 'bg-emerald-100 text-emerald-700 border border-emerald-200',
-    'anulat': 'bg-red-100 text-red-700 border border-red-200',
+    'OFF': 'bg-[#13141a]/5 text-gray-300 border border-white/5',
+    'nu-raspunde': 'bg-amber-100 text-amber-400 border border-amber-500/30',
+    'de-revenit': 'bg-blue-100 text-blue-400 border border-blue-500/30',
+    'confirmat': 'bg-emerald-100 text-emerald-400 border border-emerald-500/30',
+    'anulat': 'bg-red-100 text-red-400 border border-red-500/30',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -59,10 +59,10 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const QUICK_ACTIONS = [
-    { id: 'confirmat',   label: 'Confirmă',          style: 'bg-[#F0FDF4] border-emerald-200 text-emerald-700 hover:bg-emerald-100', icon: 'check' },
-    { id: 'nu-raspunde', label: 'Nu răspunde',        style: 'bg-[#FFFBEB] border-amber-200 text-amber-700 hover:bg-amber-100',         icon: 'phone_missed' },
-    { id: 'de-revenit',  label: 'Sună mai târziu',   style: 'bg-[#EFF6FF] border-blue-200 text-blue-700 hover:bg-blue-100',             icon: 'schedule' },
-    { id: 'anulat',      label: 'Anulează',          style: 'bg-[#FEF2F2] border-red-200 text-red-700 hover:bg-red-100',                  icon: 'close' },
+    { id: 'confirmat',   label: 'Confirmă',          style: 'bg-[#F0FDF4] border-emerald-500/30 text-emerald-400 hover:bg-emerald-100', icon: 'check' },
+    { id: 'nu-raspunde', label: 'Nu răspunde',        style: 'bg-[#FFFBEB] border-amber-500/30 text-amber-400 hover:bg-amber-100',         icon: 'phone_missed' },
+    { id: 'de-revenit',  label: 'Sună mai târziu',   style: 'bg-[#EFF6FF] border-blue-500/30 text-blue-400 hover:bg-blue-100',             icon: 'schedule' },
+    { id: 'anulat',      label: 'Anulează',          style: 'bg-[#FEF2F2] border-red-500/30 text-red-400 hover:bg-red-100',                  icon: 'close' },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -672,8 +672,8 @@ const Drafturi = () => {
                 <div 
                     className={`fixed top-6 right-6 z-[100] flex items-start gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-sm transition-all duration-300 animate-fade-in ${
                         shopifyNotif.type === 'success' 
-                            ? 'bg-emerald-50/95 border-emerald-200 text-emerald-800' 
-                            : 'bg-red-50/95 border-red-200 text-red-800'
+                            ? 'bg-emerald-50/95 border-emerald-500/30 text-emerald-800' 
+                            : 'bg-red-500/20/95 border-red-500/30 text-red-800'
                     }`}
                     style={{ minWidth: '300px', maxWidth: shopifyNotif.type === 'error' ? '520px' : '420px' }}
                 >
@@ -699,7 +699,7 @@ const Drafturi = () => {
                 <div className="flex items-center gap-4 flex-1">
                     <h1 className="text-2xl font-semibold text-white flex items-center gap-3">
                         Comenzi de sunat 
-                        <span className="bg-indigo-100 text-indigo-700 text-sm font-bold px-2.5 py-0.5 rounded-full">{orders.length}</span>
+                        <span className="bg-indigo-500/20 text-indigo-400 text-sm font-bold px-2.5 py-0.5 rounded-full">{orders.length}</span>
                     </h1>
                     
                     {/* Brand dropdown */}
@@ -713,7 +713,7 @@ const Drafturi = () => {
                                 <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
                                 <div className="absolute left-0 top-full mt-2 w-full rounded-xl bg-[#13141a] border border-white/5 shadow-xl z-50 overflow-hidden">
                                     {userStores.map(store => (
-                                        <button key={store} onClick={() => { setSelectedBrand(store); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-indigo-50 transition-colors flex items-center gap-2">
+                                        <button key={store} onClick={() => { setSelectedBrand(store); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-indigo-500/20 transition-colors flex items-center gap-2">
                                             <span className={`w-1.5 h-1.5 rounded-full ${selectedBrand === store ? 'bg-indigo-600' : 'bg-transparent border border-white/10'}`} />
                                             {store}
                                         </button>
@@ -724,16 +724,16 @@ const Drafturi = () => {
                     </div>
 
                     {/* View Mode Toggle */}
-                    <div className="flex bg-white/5 p-1 rounded-xl shadow-inner">
+                    <div className="flex bg-[#13141a]/5 p-1 rounded-xl shadow-inner">
                         <button 
                             onClick={() => setViewMode('drafturi')}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${viewMode === 'drafturi' ? 'bg-[#13141a] text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${viewMode === 'drafturi' ? 'bg-[#13141a] text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
                         >
                             Drafturi
                         </button>
                         <button 
                             onClick={() => setViewMode('comenzi')}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${viewMode === 'comenzi' ? 'bg-[#13141a] text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${viewMode === 'comenzi' ? 'bg-[#13141a] text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
                         >
                             Comenzi
                         </button>
@@ -762,18 +762,18 @@ const Drafturi = () => {
                     {/* Status indicator */}
                     <div className="flex items-center gap-3 mr-4">
                         {!isConnecting && clientRef.current ? (
-                            <div className="flex items-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
+                            <div className="flex items-center gap-2 text-xs font-medium text-emerald-400 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-500/30">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Online
                             </div>
                         ) : (
-                            <div className="flex items-center gap-2 text-xs font-medium text-red-700 bg-red-50 px-3 py-1.5 rounded-full border border-red-200">
+                            <div className="flex items-center gap-2 text-xs font-medium text-red-400 bg-red-500/20 px-3 py-1.5 rounded-full border border-red-500/30">
                                 <span className="w-2 h-2 rounded-full bg-red-500"></span> Offline
                             </div>
                         )}
                     </div>
 
                     {/* Dialer toggle */}
-                    <button onClick={() => setDialerOpen(!dialerOpen)} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all h-[42px] shadow-sm ${dialerOpen ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-[#5B4FDB] text-white hover:bg-indigo-700'}`}>
+                    <button onClick={() => setDialerOpen(!dialerOpen)} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all h-[42px] shadow-sm ${dialerOpen ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' : 'bg-[#5B4FDB] text-white hover:bg-indigo-700'}`}>
                         <span className="material-icons-round text-lg">dialpad</span>
                         Dialer
                     </button>
@@ -793,11 +793,11 @@ const Drafturi = () => {
                                 <button
                                     key={tab.id}
                                     onClick={() => { setActiveTab(tab.id); setActiveSearch(''); setSearchInput(''); }}
-                                    className={`flex items-center gap-2 px-4 py-4 text-sm font-semibold whitespace-nowrap transition-all border-b-2 shrink-0 ${activeTab === tab.id ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-white/10'}`}
+                                    className={`flex items-center gap-2 px-4 py-4 text-sm font-semibold whitespace-nowrap transition-all border-b-2 shrink-0 ${activeTab === tab.id ? 'border-indigo-600 text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-white/10'}`}
                                 >
                                     {tab.label}
                                     {count > 0 && (
-                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${activeTab === tab.id ? 'bg-indigo-100 text-indigo-700' : 'bg-white/5 text-gray-500'}`}>
+                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${activeTab === tab.id ? 'bg-indigo-500/20 text-indigo-400' : 'bg-[#13141a]/5 text-gray-500'}`}>
                                             {count}
                                         </span>
                                     )}
@@ -807,7 +807,7 @@ const Drafturi = () => {
                     </div>
 
                     {/* Search */}
-                    <div className="p-3 border-b border-gray-100 bg-[#1a1b23]">
+                    <div className="p-3 border-b border-white/5 bg-[#1a1b23]">
                          <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 material-icons-round text-gray-400" style={{fontSize:'18px'}}>search</span>
                             <input type="text" value={searchInput} onChange={e => setSearchInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && setActiveSearch(searchInput)} placeholder="Caută..." className="w-full pl-9 pr-4 py-2 bg-[#13141a] border border-white/5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-white" />
@@ -824,7 +824,7 @@ const Drafturi = () => {
                             <div className="flex flex-col items-center justify-center h-full text-red-500 py-16 gap-3 text-center px-4">
                                 <span className="material-icons-round text-4xl">error_outline</span>
                                 <span className="text-sm font-medium">{error}</span>
-                                <button onClick={loadOrders} className="text-sm font-bold text-indigo-600 hover:underline">Reîncearcă</button>
+                                <button onClick={loadOrders} className="text-sm font-bold text-indigo-400 hover:underline">Reîncearcă</button>
                             </div>
                         ) : filteredOrders.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-gray-400 py-16 gap-3">
@@ -836,14 +836,14 @@ const Drafturi = () => {
                                 <button
                                     key={order.id}
                                     onClick={() => { setSelectedId(order.id); setNoteText(order.notes || ''); }}
-                                    className={`w-full text-left p-4 rounded-xl border-2 transition-all shadow-sm relative ${selectedId === order.id ? 'border-indigo-400 bg-indigo-50/30' : 'border-transparent bg-[#13141a] hover:border-white/10'}`}
+                                    className={`w-full text-left p-4 rounded-xl border-2 transition-all shadow-sm relative ${selectedId === order.id ? 'border-indigo-400 bg-indigo-500/10' : 'border-transparent bg-[#13141a] hover:border-white/10'}`}
                                 >
                                     <div className="flex justify-between items-start mb-2">
                                         <span className="text-xs font-semibold text-gray-400">#{order.id} <span className="font-normal ml-1 text-gray-400">{fmtDate(order.created_at).split(',')[0]}</span></span>
                                         {(!order.cerere_adresa || order.cerere_adresa.trim() === '' || order.cerere_adresa.trim() === '-') ? (
-                                            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-700 tracking-wide border border-emerald-200" title="Adresă corectă">ADRESĂ OK</span>
+                                            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-400 tracking-wide border border-emerald-500/30" title="Adresă corectă">ADRESĂ OK</span>
                                         ) : (
-                                            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded bg-red-50 text-red-700 tracking-wide border border-red-200" title={`Adresă greșită: ${order.cerere_adresa}`}>ADRESĂ GREȘITĂ</span>
+                                            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded bg-red-500/20 text-red-400 tracking-wide border border-red-500/30" title={`Adresă greșită: ${order.cerere_adresa}`}>ADRESĂ GREȘITĂ</span>
                                         )}
                                     </div>
                                     <div className="flex justify-between items-center mb-1.5">
@@ -851,7 +851,7 @@ const Drafturi = () => {
                                         <span className="text-base font-bold text-white shrink-0">{money(order.value)}</span>
                                     </div>
                                     <p className="text-sm text-gray-500 font-medium mb-1">{formatPhoneNumber(order.phone_number)}</p>
-                                    {order.produse && <p className="text-sm text-indigo-600 font-medium truncate">{produseDisplayText(order.produse)}</p>}
+                                    {order.produse && <p className="text-sm text-indigo-400 font-medium truncate">{produseDisplayText(order.produse)}</p>}
                                 </button>
                             ))
                         )}
@@ -878,7 +878,7 @@ const Drafturi = () => {
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
                                         Sursă: <span className="text-white">Facebook Ads</span>
-                                        <button className="ml-2 w-8 h-8 flex items-center justify-center rounded hover:bg-white/5 text-gray-400 transition-colors">
+                                        <button className="ml-2 w-8 h-8 flex items-center justify-center rounded hover:bg-[#13141a]/5 text-gray-400 transition-colors">
                                             <span className="material-icons-round">close</span>
                                         </button>
                                     </div>
@@ -903,9 +903,9 @@ const Drafturi = () => {
                                 {/* Info Grids */}
                                 <div className="grid grid-cols-5 gap-6">
                                     {/* Client Details */}
-                                    <div className="col-span-3 bg-[#13141a] rounded-2xl shadow-sm border border-gray-100 p-5 relative">
+                                    <div className="col-span-3 bg-[#13141a] rounded-2xl shadow-sm border border-white/5 p-5 relative">
                                         {editingAddressId !== selectedOrder.id && (
-                                            <button onClick={() => { setEditingAddressId(selectedOrder.id); setAddressText(selectedOrder.adresa || ''); setOrasText(selectedOrder.oras || ''); setJudetText(selectedOrder.judet || ''); }} className="absolute top-6 right-6 text-indigo-600 hover:text-indigo-800 text-sm font-semibold flex items-center gap-1">
+                                            <button onClick={() => { setEditingAddressId(selectedOrder.id); setAddressText(selectedOrder.adresa || ''); setOrasText(selectedOrder.oras || ''); setJudetText(selectedOrder.judet || ''); }} className="absolute top-6 right-6 text-indigo-400 hover:text-indigo-800 text-sm font-semibold flex items-center gap-1">
                                                 <span className="material-icons-round text-[16px]">edit</span> Editează
                                             </button>
                                         )}
@@ -966,7 +966,7 @@ const Drafturi = () => {
                                                             </div>
                                                         </div>
                                                         <div className="flex gap-2 justify-end pt-1">
-                                                            <button onClick={() => setEditingAddressId(null)} disabled={savingAddress} className="px-3 py-1.5 text-xs font-medium text-gray-400 hover:bg-white/5 rounded-lg transition-colors disabled:opacity-50">Anulează</button>
+                                                            <button onClick={() => setEditingAddressId(null)} disabled={savingAddress} className="px-3 py-1.5 text-xs font-medium text-gray-400 hover:bg-[#13141a]/5 rounded-lg transition-colors disabled:opacity-50">Anulează</button>
                                                             <button onClick={handleSaveAddress} disabled={savingAddress} className="px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors flex items-center gap-1 disabled:opacity-50">
                                                                 {savingAddress ? 'Se salvează...' : 'Salvează'}
                                                             </button>
@@ -1006,8 +1006,8 @@ const Drafturi = () => {
                                     </div>
 
                                     {/* Order Details */}
-                                    <div className="col-span-2 bg-[#13141a] rounded-2xl shadow-sm border border-gray-100 p-5 relative">
-                                        <button className="absolute top-6 right-6 text-indigo-600 hover:text-indigo-800 text-sm font-semibold flex items-center gap-1">
+                                    <div className="col-span-2 bg-[#13141a] rounded-2xl shadow-sm border border-white/5 p-5 relative">
+                                        <button className="absolute top-6 right-6 text-indigo-400 hover:text-indigo-800 text-sm font-semibold flex items-center gap-1">
                                             <span className="material-icons-round text-[16px]">edit</span> Editează
                                         </button>
                                         <h3 className="text-base font-bold text-white mb-6">Detalii comandă</h3>
@@ -1017,14 +1017,14 @@ const Drafturi = () => {
                                             <DL label="Metodă plată" value="Ramburs" />
                                             <DL label="Metodă livrare" value="Curier rapid" />
                                             
-                                            <div className="pt-4 mt-2 border-t border-gray-100 space-y-3">
+                                            <div className="pt-4 mt-2 border-t border-white/5 space-y-3">
                                                 <DL label="Valoare produse" value={money(selectedOrder.value)} />
                                                 <DL label="Transport" value="0,00 lei" />
-                                                <DL label={<span className="font-bold text-white text-sm">Total comandă</span>} value={<span className="font-bold text-indigo-600 text-base">{money(selectedOrder.value)}</span>} />
+                                                <DL label={<span className="font-bold text-white text-sm">Total comandă</span>} value={<span className="font-bold text-indigo-400 text-base">{money(selectedOrder.value)}</span>} />
                                             </div>
 
                                             {selectedOrder.cerere && (
-                                                <div className="mt-4 pt-4 border-t border-gray-100">
+                                                <div className="mt-4 pt-4 border-t border-white/5">
                                                     <p className="text-[12px] text-gray-500 font-medium mb-1">Notițe client</p>
                                                     <p className="text-sm text-white">{selectedOrder.cerere}</p>
                                                 </div>
@@ -1036,7 +1036,7 @@ const Drafturi = () => {
                                 {/* Products + Actions Row */}
                                 <div className="grid grid-cols-5 gap-6">
                                     {/* Products */}
-                                    <div className="col-span-3 bg-[#13141a] rounded-2xl shadow-sm border border-gray-100 p-5 relative">
+                                    <div className="col-span-3 bg-[#13141a] rounded-2xl shadow-sm border border-white/5 p-5 relative">
                                         {!editingProducts && (
                                             <button 
                                                 onClick={() => {
@@ -1048,7 +1048,7 @@ const Drafturi = () => {
                                                     setEditingProducts(true);
                                                     setEditedProductsList([...items]);
                                                 }}
-                                                className="absolute top-6 right-6 text-indigo-600 hover:text-indigo-800 text-sm font-semibold flex items-center gap-1"
+                                                className="absolute top-6 right-6 text-indigo-400 hover:text-indigo-800 text-sm font-semibold flex items-center gap-1"
                                             >
                                                 <span className="material-icons-round text-[16px]">edit</span> Editează produse
                                             </button>
@@ -1164,7 +1164,7 @@ const Drafturi = () => {
                                                                                         setEditedProductsList(newList);
                                                                                     }
                                                                                 }}
-                                                                                className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#13141a] border border-white/10 text-gray-400 hover:bg-white/5 transition-colors font-bold text-lg"
+                                                                                className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#13141a] border border-white/10 text-gray-400 hover:bg-[#13141a]/5 transition-colors font-bold text-lg"
                                                                             >
                                                                                 −
                                                                             </button>
@@ -1188,7 +1188,7 @@ const Drafturi = () => {
                                                                                     newList[idx] = { ...newList[idx], quantity: qty + 1 };
                                                                                     setEditedProductsList(newList);
                                                                                 }}
-                                                                                className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#13141a] border border-white/10 text-gray-400 hover:bg-white/5 transition-colors font-bold text-lg"
+                                                                                className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#13141a] border border-white/10 text-gray-400 hover:bg-[#13141a]/5 transition-colors font-bold text-lg"
                                                                             >
                                                                                 +
                                                                             </button>
@@ -1199,7 +1199,7 @@ const Drafturi = () => {
                                                                                 setEditedProductsList(prev => prev.filter((_, i) => i !== idx));
                                                                             }}
                                                                             disabled={!canRemove}
-                                                                            className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${canRemove ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' : 'bg-[#1a1b23] text-gray-300 border-gray-100 cursor-not-allowed'}`}
+                                                                            className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${canRemove ? 'bg-red-500/20 text-red-600 border-red-500/30 hover:bg-red-100' : 'bg-[#1a1b23] text-gray-300 border-white/5 cursor-not-allowed'}`}
                                                                         >
                                                                             <span className="material-icons-round text-[20px]">delete</span>
                                                                         </button>
@@ -1207,7 +1207,7 @@ const Drafturi = () => {
                                                                 ) : (
                                                                     <span className="text-base font-semibold text-gray-400 shrink-0 px-2">x{qty}</span>
                                                                 )}
-                                                                <span className="text-base font-bold text-indigo-600 w-24 text-right">
+                                                                <span className="text-base font-bold text-indigo-400 w-24 text-right">
                                                                     {(price * qty).toFixed(2)} lei
                                                                 </span>
                                                             </div>
@@ -1218,15 +1218,15 @@ const Drafturi = () => {
                                         })()}
                                         
                                         {selectedOrder.cerere_upsell && (
-                                            <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4">
-                                                <p className="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-1">Oportunitate Upsell</p>
+                                            <div className="mt-4 bg-amber-50 border border-amber-500/30 rounded-xl p-4">
+                                                <p className="text-[11px] font-bold text-amber-400 uppercase tracking-wider mb-1">Oportunitate Upsell</p>
                                                 <p className="text-sm font-medium text-amber-900">{selectedOrder.cerere_upsell}</p>
                                             </div>
                                         )}
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="col-span-2 bg-[#13141a] rounded-2xl shadow-sm border border-gray-100 p-5">
+                                    <div className="col-span-2 bg-[#13141a] rounded-2xl shadow-sm border border-white/5 p-5">
                                         <h3 className="text-base font-bold text-white mb-5">Acțiuni rapide</h3>
                                         <div className="flex flex-col gap-3">
                                             {QUICK_ACTIONS.map(action => (
@@ -1245,7 +1245,7 @@ const Drafturi = () => {
                                 </div>
                                 
                                 {/* Notes */}
-                                <div className="bg-[#13141a] rounded-2xl shadow-sm border border-gray-100 p-5">
+                                <div className="bg-[#13141a] rounded-2xl shadow-sm border border-white/5 p-5">
                                     <h3 className="text-base font-bold text-white mb-4">Notițe apel</h3>
                                     <textarea
                                         value={noteText}
@@ -1268,15 +1268,15 @@ const Drafturi = () => {
                                 {/* Reserved fixed height status & timer slot (prevents layout shifts) */}
                                 <div className="h-7 flex items-center justify-center mb-2">
                                     {callState === 'active' ? (
-                                        <div className="text-xs font-bold text-emerald-600 font-mono tracking-widest bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200/60 animate-pulse">
+                                        <div className="text-xs font-bold text-emerald-600 font-mono tracking-widest bg-emerald-50 px-3 py-1 rounded-full border border-emerald-500/30/60 animate-pulse">
                                             {formatCallTimer(callDurationSeconds)}
                                         </div>
                                     ) : callState === 'rejected' ? (
-                                        <div className="text-xs font-bold tracking-wider uppercase px-4 py-1 rounded-full bg-red-100 text-red-700">
+                                        <div className="text-xs font-bold tracking-wider uppercase px-4 py-1 rounded-full bg-red-100 text-red-400">
                                             Apel respins
                                         </div>
                                     ) : callState === 'calling' ? (
-                                        <div className="text-xs font-bold tracking-wider uppercase px-4 py-1 rounded-full bg-amber-100 text-amber-700 animate-pulse">
+                                        <div className="text-xs font-bold tracking-wider uppercase px-4 py-1 rounded-full bg-amber-100 text-amber-400 animate-pulse">
                                             Apelează...
                                         </div>
                                     ) : null}
@@ -1307,7 +1307,7 @@ const Drafturi = () => {
                                         { key: '7', sub: 'PQRS' }, { key: '8', sub: 'TUV' }, { key: '9', sub: 'WXYZ' },
                                         { key: '*', sub: '' }, { key: '0', sub: '+' }, { key: '#', sub: '' }
                                     ].map(item => (
-                                        <button key={item.key} onClick={() => handleKeypadPress(item.key)} className="flex flex-col items-center justify-center h-16 w-16 rounded-full bg-white/5 hover:bg-white/10 shadow-none transition-all active:scale-90 mx-auto">
+                                        <button key={item.key} onClick={() => handleKeypadPress(item.key)} className="flex flex-col items-center justify-center h-16 w-16 rounded-full bg-[#13141a]/5 hover:bg-[#13141a]/10 shadow-none transition-all active:scale-90 mx-auto">
                                             <span className="text-2xl font-semibold text-gray-200 leading-none">{item.key}</span>
                                             {item.sub && <span className="text-[9px] text-gray-400 font-bold tracking-widest mt-0.5">{item.sub}</span>}
                                         </button>
@@ -1336,7 +1336,7 @@ const Drafturi = () => {
                                     <button
                                         onClick={toggleMute}
                                         className={`w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-95 shadow-md ${
-                                            isMuted ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-white/5 hover:bg-white/10 text-gray-300'
+                                            isMuted ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-[#13141a]/5 hover:bg-[#13141a]/10 text-gray-300'
                                         }`}
                                         title={isMuted ? 'Activare microfon' : 'Dezactivare microfon (Mute)'}
                                     >
@@ -1352,12 +1352,12 @@ const Drafturi = () => {
             {/* Add Product Modal */}
             {showAddProductModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-                    <div className="bg-[#13141a] rounded-2xl shadow-xl border border-gray-100 w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-[#1a1b23]/50">
+                    <div className="bg-[#13141a] rounded-2xl shadow-xl border border-white/5 w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between p-5 border-b border-white/5 bg-[#1a1b23]/50">
                             <h2 className="text-lg font-bold text-white">Adaugă produs în comandă</h2>
                             <button 
                                 onClick={() => setShowAddProductModal(false)}
-                                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-gray-500 transition-colors"
+                                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#13141a]/10 text-gray-500 transition-colors"
                             >
                                 <span className="material-icons-round text-[20px]">close</span>
                             </button>
@@ -1419,7 +1419,7 @@ const Drafturi = () => {
                                                 const price = parseFloat(variant.price || '0');
                                                 
                                                 return (
-                                                    <div key={variant.id} className="flex items-center gap-4 bg-[#1a1b23] hover:bg-white/5 transition-colors rounded-xl p-3 border border-white/5">
+                                                    <div key={variant.id} className="flex items-center gap-4 bg-[#1a1b23] hover:bg-[#13141a]/5 transition-colors rounded-xl p-3 border border-white/5">
                                                         <div className="w-12 h-12 rounded-lg bg-[#13141a] border border-white/5 overflow-hidden shrink-0 flex items-center justify-center">
                                                             {imgUrl ? (
                                                                 <img src={imgUrl} alt={prod.title} className="w-full h-full object-cover" />
@@ -1455,7 +1455,7 @@ const Drafturi = () => {
                                                                 setShowAddProductModal(false);
                                                                 setProductSearchQuery(''); // reset search
                                                             }}
-                                                            className="shrink-0 bg-[#13141a] border border-white/5 hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-600 text-gray-400 text-sm font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all"
+                                                            className="shrink-0 bg-[#13141a] border border-white/5 hover:border-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-400 text-gray-400 text-sm font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all"
                                                         >
                                                             <span className="material-icons-round text-[16px]">add</span> Adaugă
                                                         </button>
