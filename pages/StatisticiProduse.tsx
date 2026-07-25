@@ -137,30 +137,40 @@ export default function StatisticiProduse() {
                                         stroke="currentColor"
                                         strokeWidth="3.5"
                                     />
-                                    {/* Prea scump (42%) */}
+                                    {/* Lipsa incredere (40%) */}
                                     <path
                                         className="text-amber-500"
-                                        strokeDasharray="42, 100"
+                                        strokeDasharray="40, 100"
                                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                                         fill="none"
                                         stroke="currentColor"
                                         strokeWidth="3.5"
                                     />
-                                    {/* Nu raspunde (28%) - starts at 42 */}
+                                    {/* Lipsa bani (30%) - starts at 40 */}
                                     <path
                                         className="text-primary"
-                                        strokeDasharray="28, 100"
-                                        strokeDashoffset="-42"
+                                        strokeDasharray="30, 100"
+                                        strokeDashoffset="-40"
                                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                                         fill="none"
                                         stroke="currentColor"
                                         strokeWidth="3.5"
                                     />
-                                    {/* Altele (30%) - starts at 70 */}
+                                    {/* Lipsa informatii (20%) - starts at 70 */}
                                     <path
                                         className="text-indigo-500"
-                                        strokeDasharray="30, 100"
+                                        strokeDasharray="20, 100"
                                         strokeDashoffset="-70"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="3.5"
+                                    />
+                                    {/* Nespecificat (10%) - starts at 90 */}
+                                    <path
+                                        className="text-emerald-500"
+                                        strokeDasharray="10, 100"
+                                        strokeDashoffset="-90"
                                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                                         fill="none"
                                         stroke="currentColor"
@@ -168,23 +178,27 @@ export default function StatisticiProduse() {
                                     />
                                 </svg>
                                 <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                    <span className="text-white text-[13px] font-bold">42%</span>
+                                    <span className="text-white text-[13px] font-bold">40%</span>
                                 </div>
                             </div>
                             
                             {/* Legend */}
-                            <div className="flex-1 flex flex-col gap-1.5 justify-center">
-                                <div className="flex items-center gap-2 text-[13px]">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
-                                    <span className="text-gray-300 truncate">Prea scump</span>
+                            <div className="flex-1 flex flex-col gap-1 justify-center">
+                                <div className="flex items-center gap-2 text-[11px]">
+                                    <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                                    <span className="text-gray-300 truncate">Lipsă încredere</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-[13px]">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-primary shrink-0"></span>
-                                    <span className="text-gray-400 truncate">Nu răspunde</span>
+                                <div className="flex items-center gap-2 text-[11px]">
+                                    <span className="w-2 h-2 rounded-full bg-primary shrink-0"></span>
+                                    <span className="text-gray-400 truncate">Lipsă bani</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-[13px]">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0"></span>
-                                    <span className="text-gray-500 truncate">Altele</span>
+                                <div className="flex items-center gap-2 text-[11px]">
+                                    <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></span>
+                                    <span className="text-gray-500 truncate">Lipsă informații</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-[11px]">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                                    <span className="text-gray-500 truncate">Nespecificat</span>
                                 </div>
                             </div>
                         </div>
