@@ -13,6 +13,7 @@ export default function ProcessedOrders() {
     const [previewCell, setPreviewCell] = useState<{ col: string; val: string; rowId: any } | null>(null);
     const [editVal, setEditVal] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const handleSaveCell = async () => {
         if (!previewCell || !previewCell.rowId) return;
@@ -57,6 +58,15 @@ export default function ProcessedOrders() {
 
     const columns = orders.length > 0 ? Object.keys(orders[0]) : [];
 
+    const filteredOrders = orders.filter(row => {
+        if (!searchQuery) return true;
+        return columns.some(col => {
+            const val = row[col];
+            if (val === null || val === undefined) return false;
+            return String(val).toLowerCase().includes(searchQuery.toLowerCase());
+        });
+    });
+
     return (
         <div className="space-y-6 relative">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
@@ -89,6 +99,20 @@ export default function ProcessedOrders() {
                 </div>
             </div>
 
+            {/* Search Bar */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="relative w-full sm:w-80">
+                    <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
+                    <input 
+                        type="text" 
+                        placeholder="Caută în toate coloanele..." 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-[#13141a] border border-white/10 text-white text-sm rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder-gray-500 shadow-inner"
+                    />
+                </div>
+            </div>
+
             <div className="card-depth p-1 rounded-2xl overflow-hidden min-h-[400px] border border-white/5 relative">
                 {loading && (
                     <div className="flex items-center justify-center h-48 text-gray-600 text-sm gap-2">
@@ -106,10 +130,10 @@ export default function ProcessedOrders() {
                                 </tr>
                             </thead>
                             <tbody className="text-sm divide-y divide-gray-800/50">
-                                {orders.length === 0 && (
-                                    <tr><td colSpan={columns.length || 1} className="py-12 text-center text-gray-600 text-sm">Nicio comandă găsită.</td></tr>
+                                {filteredOrders.length === 0 && (
+                                    <tr><td colSpan={columns.length || 1} className="py-12 text-center text-gray-600 text-sm">Niciun rezultat găsit.</td></tr>
                                 )}
-                                {orders.map((row, i) => (
+                                {filteredOrders.map((row, i) => (
                                     <tr key={i} className="group hover:bg-white/5 transition-colors">
                                         {columns.map(col => {
                                             const val = row[col];
