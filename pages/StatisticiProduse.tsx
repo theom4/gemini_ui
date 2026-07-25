@@ -89,6 +89,58 @@ export default function StatisticiProduse() {
                 </div>
             </div>
 
+            {/* Mock Mini-Dashboard */}
+            {products.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+                    <div className="bg-[#13141a] border border-white/5 p-5 rounded-2xl shadow-lg relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-primary/20 transition-all"></div>
+                        <div className="flex items-center gap-3 mb-2 text-gray-400">
+                            <span className="material-icons-round text-primary bg-primary/10 p-2 rounded-xl text-[20px]">trending_up</span>
+                            <span className="text-sm font-medium uppercase tracking-wider">Rată Upsell (Mock)</span>
+                        </div>
+                        <div className="text-3xl font-light text-white mb-1">24.5%</div>
+                        <div className="text-xs text-emerald-400 flex items-center gap-1">
+                            <span className="material-icons-round text-[14px]">arrow_upward</span>
+                            +2.3% față de luna trecută
+                        </div>
+                        <div className="mt-4 text-xs text-gray-500 font-mono truncate border-t border-white/5 pt-3">
+                            Produs: {products[0].denumire || products[0].id || 'N/A'}
+                        </div>
+                    </div>
+
+                    <div className="bg-[#13141a] border border-white/5 p-5 rounded-2xl shadow-lg relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-amber-500/20 transition-all"></div>
+                        <div className="flex items-center gap-3 mb-2 text-gray-400">
+                            <span className="material-icons-round text-amber-500 bg-amber-500/10 p-2 rounded-xl text-[20px]">record_voice_over</span>
+                            <span className="text-sm font-medium uppercase tracking-wider">Obiecție Principală</span>
+                        </div>
+                        <div className="text-xl font-medium text-white mb-2 leading-tight">„Mi se pare cam scump”</div>
+                        <div className="text-xs text-gray-400">
+                            Apare în <span className="text-amber-400 font-bold">42%</span> din refuzuri
+                        </div>
+                        <div className="mt-3 text-xs text-gray-500 font-mono truncate border-t border-white/5 pt-3">
+                            Pe baza ultimelor 100 apeluri (Mock)
+                        </div>
+                    </div>
+
+                    <div className="bg-[#13141a] border border-white/5 p-5 rounded-2xl shadow-lg relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-emerald-500/20 transition-all"></div>
+                        <div className="flex items-center gap-3 mb-2 text-gray-400">
+                            <span className="material-icons-round text-emerald-500 bg-emerald-500/10 p-2 rounded-xl text-[20px]">check_circle</span>
+                            <span className="text-sm font-medium uppercase tracking-wider">Conversie Finală</span>
+                        </div>
+                        <div className="text-3xl font-light text-white mb-1">68.2%</div>
+                        <div className="text-xs text-emerald-400 flex items-center gap-1">
+                            <span className="material-icons-round text-[14px]">arrow_upward</span>
+                            Stabilitate excelentă
+                        </div>
+                        <div className="mt-4 text-xs text-gray-500 font-mono truncate border-t border-white/5 pt-3">
+                            Scor general de performanță (Mock)
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="card-depth p-1 rounded-2xl overflow-hidden min-h-[400px] border border-white/5 relative">
                 {loading && (
                     <div className="flex items-center justify-center h-48 text-gray-600 text-sm gap-2">
