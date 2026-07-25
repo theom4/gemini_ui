@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 
 const dummyData = [
     {
@@ -93,6 +94,10 @@ interface ProductItem {
     pret_3_bucati?: string;
     pret_4_bucati?: string;
     pret_5_bucati?: string;
+    prompt1?: string;
+    prompt2?: string;
+    draft_prompt1?: string;
+    draft_prompt2?: string;
     status?: string;
     sku?: string;
 }
@@ -122,18 +127,21 @@ export default function StatisticiProduse() {
         }
     }, [userStores, selectedBrand]);
 
-    // Fire webhook & populate table from response
+    // Fetch from Supabase
     useEffect(() => {
         if (!selectedBrand) return;
         setLoading(true);
-        fetch('https://n8n.voisero.info/webhook/products-list-vt', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ brand: selectedBrand }),
-        })
-            .then(r => r.json())
-            .then((data: ProductItem[]) => { if (Array.isArray(data)) setProducts(data); })
-            .catch(() => { })
+        supabase
+            .from('products')
+            .select('*')
+            .ilike('vendor', selectedBrand)
+            .then(({ data, error }) => {
+                if (error) {
+                    console.error('Error fetching products:', error);
+                } else if (data) {
+                    setProducts(data as ProductItem[]);
+                }
+            })
             .finally(() => setLoading(false));
     }, [selectedBrand]);
 
@@ -196,13 +204,10 @@ export default function StatisticiProduse() {
                             <thead>
                                 <tr className="text-xs text-gray-500 uppercase tracking-widest border-b border-gray-800/50 bg-surface-dark-lighter/30">
                                     <th className="py-4 px-6 font-medium">Produs</th>
-                                    <th className="py-4 px-6 font-medium">Pret 1 buc</th>
-                                    <th className="py-4 px-6 font-medium">Pret 2 buc</th>
-                                    <th className="py-4 px-6 font-medium">Pret 3 buc</th>
-                                    <th className="py-4 px-6 font-medium">Pret 4 buc</th>
-                                    <th className="py-4 px-6 font-medium">Pret 5 buc</th>
-                                    <th className="py-4 px-6 font-medium">Trend Upsell</th>
-                                    <th className="py-4 px-6 font-medium">Trend Drafturi</th>
+                                    <th className="py-4 px-6 font-medium">Prompt 1</th>
+                                    <th className="py-4 px-6 font-medium">Prompt 2</th>
+                                    <th className="py-4 px-6 font-medium">Draft Prompt 1</th>
+                                    <th className="py-4 px-6 font-medium">Draft Prompt 2</th>
                                     <th className="py-4 px-6 font-medium overflow-visible">
                                         <div className="relative inline-flex items-center gap-1 group/tip cursor-default">
                                             <span>Sanatate</span>
@@ -236,31 +241,11 @@ export default function StatisticiProduse() {
                                             <td className="py-4 px-6 text-gray-200 font-medium max-w-[200px]">
                                                 <span className="leading-snug">{row.denumire}</span>
                                             </td>
-                                            {[row.pret_1_bucata, row.pret_2_bucati, row.pret_3_bucati, row.pret_4_bucati, row.pret_5_bucati].map((p, pi) => (
-                                                <td key={pi} className="py-4 px-6 font-num whitespace-nowrap">
-                                                    {p ? (
-                                                        <span className="px-2 py-0.5 rounded-lg text-base border font-semibold bg-emerald-800/20 text-emerald-400 border-emerald-700/30">{p} lei</span>
-                                                    ) : <span className="text-gray-700">—</span>}
+                                            {[row.prompt1, row.prompt2, row.draft_prompt1, row.draft_prompt2].map((p, pi) => (
+                                                <td key={pi} className="py-4 px-6 text-gray-400 max-w-xs truncate" title={p || ''}>
+                                                    {p ? (p.length > 40 ? p.substring(0, 40) + '...' : p) : '-'}
                                                 </td>
                                             ))}
-                                            <td className="py-4 px-6">
-                                                <SparkBar
-                                                    history={[0, 0, 0, 0, 0, 0, 0]}
-                                                    pct={0}
-                                                    color="bg-cyan-500"
-                                                    trackColor="bg-cyan-500/20"
-                                                    labelColor="text-cyan-400"
-                                                />
-                                            </td>
-                                            <td className="py-4 px-6">
-                                                <SparkBar
-                                                    history={[0, 0, 0, 0, 0, 0, 0]}
-                                                    pct={0}
-                                                    color="bg-blue-500"
-                                                    trackColor="bg-blue-500/20"
-                                                    labelColor="text-blue-400"
-                                                />
-                                            </td>
                                             <td className="py-4 px-6"><HealthBar value={sv} /></td>
                                             <td className="py-4 px-6">
                                                 <div className="flex items-center gap-2">
