@@ -10,7 +10,29 @@ export default function StatisticiProduse() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [previewCell, setPreviewCell] = useState<{ col: string; val: string } | null>(null);
+    const [previewCell, setPreviewCell] = useState<{ col: string; val: string; rowId: any } | null>(null);
+    const [editVal, setEditVal] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSaveCell = async () => {
+        if (!previewCell || !previewCell.rowId) return;
+        setIsSaving(true);
+        const { error } = await supabase
+            .from('products')
+            .update({ [previewCell.col]: editVal })
+            .eq('id', previewCell.rowId);
+            
+        if (!error) {
+            setProducts(prev => prev.map(p => 
+                p.id === previewCell.rowId ? { ...p, [previewCell.col]: editVal } : p
+            ));
+            setPreviewCell(null);
+        } else {
+            console.error('Error updating cell:', error);
+            alert('A apărut o eroare la salvare.');
+        }
+        setIsSaving(false);
+    };
 
     useEffect(() => {
         if (userStores.length > 0 && !selectedBrand) {
@@ -99,7 +121,10 @@ export default function StatisticiProduse() {
                                             return (
                                                 <td 
                                                     key={col} 
-                                                    onClick={() => setPreviewCell({ col, val: strVal })}
+                                                    onClick={() => {
+                                                        setPreviewCell({ col, val: strVal, rowId: row.id });
+                                                        setEditVal(strVal === '-' ? '' : strVal);
+                                                    }}
                                                     className="py-4 px-6 text-gray-300 whitespace-nowrap font-mono text-[13px] cursor-pointer hover:bg-white/10 transition-colors" 
                                                     title={strVal}
                                                 >
@@ -118,16 +143,30 @@ export default function StatisticiProduse() {
             {/* Cell Preview Modal */}
             {previewCell && (
                 <>
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setPreviewCell(null)}>
-                        <div className="glass-panel-3d rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col border border-white/10 shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-                            <div className="flex items-center justify-between p-4 border-b border-white/5 bg-white/5">
-                                <h3 className="text-lg font-medium text-white">Previzualizare: {previewCell.col}</h3>
-                                <button onClick={() => setPreviewCell(null)} className="text-gray-400 hover:text-white transition-colors">
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => !isSaving && setPreviewCell(null)}>
+                        <div className="glass-panel-3d rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col border border-white/10 shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-center justify-between p-4 border-b border-white/5 bg-white/5 shrink-0">
+                                <h3 className="text-lg font-medium text-white">Editează: {previewCell.col}</h3>
+                                <button onClick={() => setPreviewCell(null)} disabled={isSaving} className="text-gray-400 hover:text-white transition-colors disabled:opacity-50">
                                     <span className="material-icons-round">close</span>
                                 </button>
                             </div>
-                            <div className="p-6 overflow-y-auto">
-                                <p className="text-gray-300 font-mono text-sm whitespace-pre-wrap leading-relaxed">{previewCell.val}</p>
+                            <div className="p-6 overflow-y-auto flex-1 flex flex-col min-h-[300px]">
+                                <textarea
+                                    value={editVal}
+                                    onChange={(e) => setEditVal(e.target.value)}
+                                    className="w-full flex-1 bg-[#1a1b23] border border-white/10 rounded-xl p-4 text-sm text-gray-200 font-mono resize-none focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                                    placeholder="Introduceți valoarea..."
+                                />
+                            </div>
+                            <div className="p-4 border-t border-white/5 bg-white/5 shrink-0 flex justify-end gap-3">
+                                <button onClick={() => setPreviewCell(null)} disabled={isSaving} className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50">
+                                    Anulează
+                                </button>
+                                <button onClick={handleSaveCell} disabled={isSaving} className="btn-3d-primary px-6 py-2.5 rounded-xl text-sm font-medium shadow-lg disabled:opacity-50 flex items-center gap-2">
+                                    {isSaving ? <span className="material-icons-round animate-spin text-sm">autorenew</span> : <span className="material-icons-round text-sm">save</span>}
+                                    {isSaving ? 'Se salvează...' : 'Salvează'}
+                                </button>
                             </div>
                         </div>
                     </div>
