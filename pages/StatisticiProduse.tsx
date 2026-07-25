@@ -110,16 +110,73 @@ export default function StatisticiProduse() {
 
                     <div className="bg-[#13141a] border border-white/5 p-5 rounded-2xl shadow-lg relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-amber-500/20 transition-all"></div>
-                        <div className="flex items-center gap-3 mb-2 text-gray-400">
+                        <div className="flex items-center gap-3 mb-4 text-gray-400">
                             <span className="material-icons-round text-amber-500 bg-amber-500/10 p-2 rounded-xl text-[20px]">record_voice_over</span>
-                            <span className="text-sm font-medium uppercase tracking-wider">Obiecție Principală</span>
+                            <span className="text-sm font-medium uppercase tracking-wider">Obiecții (Mock)</span>
                         </div>
-                        <div className="text-xl font-medium text-white mb-2 leading-tight">„Mi se pare cam scump”</div>
-                        <div className="text-xs text-gray-400">
-                            Apare în <span className="text-amber-400 font-bold">42%</span> din refuzuri
-                        </div>
-                        <div className="mt-3 text-xs text-gray-500 font-mono truncate border-t border-white/5 pt-3">
-                            Pe baza ultimelor 100 apeluri (Mock)
+                        
+                        <div className="flex items-center gap-4">
+                            {/* Circle Diagram (Donut) */}
+                            <div className="relative w-20 h-20 shrink-0">
+                                <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
+                                    {/* Background Circle */}
+                                    <path
+                                        className="text-white/5"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="3.5"
+                                    />
+                                    {/* Prea scump (42%) */}
+                                    <path
+                                        className="text-amber-500"
+                                        strokeDasharray="42, 100"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="3.5"
+                                    />
+                                    {/* Nu raspunde (28%) - starts at 42 */}
+                                    <path
+                                        className="text-primary"
+                                        strokeDasharray="28, 100"
+                                        strokeDashoffset="-42"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="3.5"
+                                    />
+                                    {/* Altele (30%) - starts at 70 */}
+                                    <path
+                                        className="text-indigo-500"
+                                        strokeDasharray="30, 100"
+                                        strokeDashoffset="-70"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="3.5"
+                                    />
+                                </svg>
+                                <div className="absolute inset-0 flex items-center justify-center flex-col">
+                                    <span className="text-white text-[13px] font-bold">42%</span>
+                                </div>
+                            </div>
+                            
+                            {/* Legend */}
+                            <div className="flex-1 flex flex-col gap-1.5 justify-center">
+                                <div className="flex items-center gap-2 text-[13px]">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
+                                    <span className="text-gray-300 truncate">Prea scump</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-[13px]">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-primary shrink-0"></span>
+                                    <span className="text-gray-400 truncate">Nu răspunde</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-[13px]">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0"></span>
+                                    <span className="text-gray-500 truncate">Altele</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -127,7 +184,7 @@ export default function StatisticiProduse() {
                         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-emerald-500/20 transition-all"></div>
                         <div className="flex items-center gap-3 mb-2 text-gray-400">
                             <span className="material-icons-round text-emerald-500 bg-emerald-500/10 p-2 rounded-xl text-[20px]">check_circle</span>
-                            <span className="text-sm font-medium uppercase tracking-wider">Conversie Finală</span>
+                            <span className="text-sm font-medium uppercase tracking-wider">Rată Confirmare (Mock)</span>
                         </div>
                         <div className="text-3xl font-light text-white mb-1">68.2%</div>
                         <div className="text-xs text-emerald-400 flex items-center gap-1">
@@ -135,7 +192,7 @@ export default function StatisticiProduse() {
                             Stabilitate excelentă
                         </div>
                         <div className="mt-4 text-xs text-gray-500 font-mono truncate border-t border-white/5 pt-3">
-                            Scor general de performanță (Mock)
+                            Din total comenzi generate
                         </div>
                     </div>
                 </div>
