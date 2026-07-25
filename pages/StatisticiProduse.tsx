@@ -10,6 +10,7 @@ export default function StatisticiProduse() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [previewCell, setPreviewCell] = useState<{ col: string; val: string } | null>(null);
 
     useEffect(() => {
         if (userStores.length > 0 && !selectedBrand) {
@@ -96,7 +97,12 @@ export default function StatisticiProduse() {
                                             const strVal = val === null || val === undefined ? '-' : String(val);
                                             const truncated = strVal.length > 50 ? strVal.substring(0, 50) + '...' : strVal;
                                             return (
-                                                <td key={col} className="py-4 px-6 text-gray-300 whitespace-nowrap font-mono text-[13px]" title={strVal}>
+                                                <td 
+                                                    key={col} 
+                                                    onClick={() => setPreviewCell({ col, val: strVal })}
+                                                    className="py-4 px-6 text-gray-300 whitespace-nowrap font-mono text-[13px] cursor-pointer hover:bg-white/10 transition-colors" 
+                                                    title={strVal}
+                                                >
                                                     {truncated}
                                                 </td>
                                             );
@@ -108,6 +114,25 @@ export default function StatisticiProduse() {
                     </div>
                 )}
             </div>
+
+            {/* Cell Preview Modal */}
+            {previewCell && (
+                <>
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setPreviewCell(null)}>
+                        <div className="glass-panel-3d rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col border border-white/10 shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-center justify-between p-4 border-b border-white/5 bg-white/5">
+                                <h3 className="text-lg font-medium text-white">Previzualizare: {previewCell.col}</h3>
+                                <button onClick={() => setPreviewCell(null)} className="text-gray-400 hover:text-white transition-colors">
+                                    <span className="material-icons-round">close</span>
+                                </button>
+                            </div>
+                            <div className="p-6 overflow-y-auto">
+                                <p className="text-gray-300 font-mono text-sm whitespace-pre-wrap leading-relaxed">{previewCell.val}</p>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }
