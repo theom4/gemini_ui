@@ -286,7 +286,7 @@ function Sidebar() {
                         <li><SidebarLink to="/statistici-adrese" icon="map" label="Statistici adrese" collapsed={collapsed} /></li>
                         <li><SidebarLink to="/processed-orders" icon="shopping_cart" label="Comenzi procesate" collapsed={collapsed} /></li>
                         <li><SidebarLink to="/customers" icon="people" label="Clienți" collapsed={collapsed} /></li>
-                        <li><SidebarLink to="/drafturi" icon="edit_document" label="Drafturi" collapsed={collapsed} /></li>
+                        <li><SidebarLink to="/drafturi" icon="edit" label="Draft" collapsed={collapsed} /></li>
                         <li><SidebarLink to="/script-vanzare" icon="description" label="Script vanzare" collapsed={collapsed} /></li>
                         <li><SidebarLink to="/setup" icon="add_circle" label="Adaugă magazin" collapsed={collapsed} /></li>
                     </ul>
@@ -403,7 +403,7 @@ function MobileBottomNav() {
 
     const menuLinks = [
         { to: '/statistici-adrese', icon: 'map', label: 'Statistici adrese' },
-        { to: '/drafturi', icon: 'edit_document', label: 'Drafturi' },
+        { to: '/drafturi', icon: 'edit', label: 'Draft' },
         { to: '/whatsapp', icon: null, label: 'Whatsapp', customIcon: whatsappIcon },
         { to: '/script-vanzare', icon: 'description', label: 'Script vânzare' },
         { to: '/control-robot', icon: 'settings_remote', label: 'Control Robot' },
