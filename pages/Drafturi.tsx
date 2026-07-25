@@ -704,7 +704,7 @@ const Drafturi = () => {
                     
                     {/* Brand dropdown */}
                     <div className="relative ml-4">
-                        <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="bg-[#13141a] border border-white/5 px-4 py-2 rounded-xl text-sm min-w-[140px] flex justify-between items-center h-[40px] text-gray-300 hover:bg-[#1a1b23] transition-all shadow-sm">
+                        <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="btn-3d-secondary px-5 py-2.5 rounded-xl text-sm min-w-[160px] flex justify-between items-center h-[42px] hover:text-white transition-all shadow-sm">
                             <span className="font-medium">{selectedBrand || 'Selectează'}</span>
                             <span className={`material-icons-round text-base text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
                         </button>
@@ -727,32 +727,32 @@ const Drafturi = () => {
                     <div className="flex bg-[#13141a]/5 p-1 rounded-xl shadow-inner">
                         <button 
                             onClick={() => setViewMode('drafturi')}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${viewMode === 'drafturi' ? 'bg-[#13141a] text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${viewMode === 'drafturi' ? 'btn-3d-secondary shadow-sm text-white' : 'text-gray-500 hover:text-gray-300'}`}
                         >
                             Drafturi
                         </button>
                         <button 
                             onClick={() => setViewMode('comenzi')}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${viewMode === 'comenzi' ? 'bg-[#13141a] text-indigo-400 shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${viewMode === 'comenzi' ? 'btn-3d-secondary shadow-sm text-white' : 'text-gray-500 hover:text-gray-300'}`}
                         >
                             Comenzi
                         </button>
                     </div>
                     
                     {/* Operators mock */}
-                    <button className="bg-[#13141a] border border-white/5 px-4 py-2 rounded-xl text-sm flex items-center gap-2 h-[40px] text-gray-300 hover:bg-[#1a1b23] shadow-sm hidden sm:flex">
+                    <button className="btn-3d-secondary px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 h-[42px] hover:text-white shadow-sm hidden sm:flex">
                         <span>Toți operatorii</span>
                         <span className="material-icons-round text-base text-gray-400">arrow_drop_down</span>
                     </button>
                     
                     {/* Priority mock */}
-                    <button className="bg-[#13141a] border border-white/5 px-4 py-2 rounded-xl text-sm flex items-center gap-2 h-[40px] text-gray-300 hover:bg-[#1a1b23] shadow-sm hidden md:flex">
+                    <button className="btn-3d-secondary px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 h-[42px] hover:text-white shadow-sm hidden md:flex">
                         <span>Sortează: Prioritate</span>
                         <span className="material-icons-round text-base text-gray-400">arrow_drop_down</span>
                     </button>
                     
                     {/* Filters mock */}
-                    <button className="bg-[#13141a] border border-white/5 px-4 py-2 rounded-xl text-sm flex items-center gap-2 h-[40px] text-gray-300 hover:bg-[#1a1b23] shadow-sm hidden md:flex">
+                    <button className="btn-3d-secondary px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 h-[42px] hover:text-white shadow-sm hidden md:flex">
                         <span className="material-icons-round text-base text-indigo-500">filter_list</span>
                         Filtre
                     </button>
@@ -773,7 +773,7 @@ const Drafturi = () => {
                     </div>
 
                     {/* Dialer toggle */}
-                    <button onClick={() => setDialerOpen(!dialerOpen)} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all h-[42px] shadow-sm ${dialerOpen ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' : 'bg-[#5B4FDB] text-white hover:bg-indigo-700'}`}>
+                    <button onClick={() => setDialerOpen(!dialerOpen)} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all h-[42px] shadow-sm ${dialerOpen ? 'btn-3d-secondary' : 'btn-3d-primary'}`}>
                         <span className="material-icons-round text-lg">dialpad</span>
                         Dialer
                     </button>
@@ -886,15 +886,15 @@ const Drafturi = () => {
 
                                 {/* Main Action buttons */}
                                 <div className="flex gap-4">
-                                    <button onClick={() => callClient(selectedOrder.phone_number)} className="flex-1 flex items-center justify-center gap-2 bg-[#22C55E] hover:bg-[#16A34A] text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_14px_rgba(34,197,94,0.39)] text-[15px]">
+                                    <button onClick={() => callClient(selectedOrder.phone_number)} className="flex-1 flex items-center justify-center gap-2 btn-3d-primary py-3.5 rounded-xl transition-all shadow-[0_4px_14px_rgba(34,197,94,0.39)] text-[15px]">
                                         <span className="material-icons-round text-xl">call</span>
                                         Suna client
                                     </button>
-                                    <button className="flex-1 flex items-center justify-center gap-2 bg-[#13141a] hover:bg-[#1a1b23] border border-white/5 text-gray-300 font-semibold py-3.5 rounded-xl transition-all shadow-sm text-[15px]">
+                                    <button className="flex-1 flex items-center justify-center gap-2 btn-3d-secondary py-3.5 rounded-xl transition-all shadow-sm text-[15px]">
                                         <span className="material-icons-round text-[#25D366]">chat</span>
                                         WhatsApp
                                     </button>
-                                    <button className="flex-1 flex items-center justify-center gap-2 bg-[#13141a] hover:bg-[#1a1b23] border border-white/5 text-gray-300 font-semibold py-3.5 rounded-xl transition-all shadow-sm text-[15px]">
+                                    <button className="flex-1 flex items-center justify-center gap-2 btn-3d-secondary py-3.5 rounded-xl transition-all shadow-sm text-[15px]">
                                         <span className="material-icons-round">history</span>
                                         Istoric apeluri
                                     </button>
