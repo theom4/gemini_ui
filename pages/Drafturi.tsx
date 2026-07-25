@@ -657,7 +657,7 @@ const Drafturi = () => {
 
     // ── Render
     return (
-        <div className="flex flex-col h-full overflow-hidden bg-[#F9FAFB] text-white rounded-tl-3xl shadow-[-10px_0_30px_rgba(0,0,0,0.05)] border-l border-t border-white/5 absolute inset-0 pt-6 px-6">
+        <div className="flex flex-col h-full overflow-hidden bg-[#0b0c10] text-white rounded-tl-3xl shadow-[-10px_0_30px_rgba(0,0,0,0.05)] border-l border-t border-white/5 absolute inset-0 pt-6 px-6">
             <audio ref={audioRef} style={{ display: 'none' }} />
 
             {/* Toast */}
@@ -815,7 +815,7 @@ const Drafturi = () => {
                     </div>
 
                     {/* List */}
-                    <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-[#F9FAFB]">
+                    <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-[#13141a]">
                         {loading ? (
                             Array.from({ length: 5 }).map((_, i) => (
                                 <div key={i} className="h-24 bg-[#13141a] rounded-xl border border-white/5 animate-pulse" />
