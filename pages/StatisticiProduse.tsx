@@ -134,7 +134,6 @@ export default function StatisticiProduse() {
         supabase
             .from('products')
             .select('*')
-            .ilike('vendor', selectedBrand)
             .then(({ data, error }) => {
                 if (error) {
                     console.error('Error fetching products:', error);

@@ -6,9 +6,12 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function test() {
-  const { data, error } = await supabase.from('products').select('*').limit(1);
+  const { data, error } = await supabase.from('products').select('*').limit(10);
   if (error) console.error(error);
-  else console.log(JSON.stringify(data[0], null, 2));
+  else {
+    console.log('Columns:', Object.keys(data[0] || {}));
+    console.log('Sample row:', data[0]);
+  }
 }
 
 test();
