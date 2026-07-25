@@ -101,7 +101,7 @@ export default function StatisticiProduse() {
 
             {/* Mock Mini-Dashboard */}
             {products.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-2">
                     <div className="bg-[#13141a] border border-white/5 p-5 rounded-2xl shadow-lg relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-primary/20 transition-all"></div>
                         <div className="flex items-center gap-3 mb-2 text-gray-400">
@@ -217,6 +217,22 @@ export default function StatisticiProduse() {
                         </div>
                         <div className="mt-4 text-xs text-gray-500 font-mono truncate border-t border-white/5 pt-3">
                             Din total comenzi generate
+                        </div>
+                    </div>
+
+                    <div className="bg-[#13141a] border border-white/5 p-5 rounded-2xl shadow-lg relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-cyan-500/20 transition-all"></div>
+                        <div className="flex items-center gap-3 mb-2 text-gray-400">
+                            <span className="material-icons-round text-cyan-500 bg-cyan-500/10 p-2 rounded-xl text-[20px]">assignment_turned_in</span>
+                            <span className="text-sm font-medium uppercase tracking-wider">Recuperare Draft (Mock)</span>
+                        </div>
+                        <div className="text-3xl font-light text-white mb-1">15.4%</div>
+                        <div className="text-xs text-cyan-400 flex items-center gap-1">
+                            <span className="material-icons-round text-[14px]">arrow_upward</span>
+                            +1.2% creștere
+                        </div>
+                        <div className="mt-4 text-xs text-gray-500 font-mono truncate border-t border-white/5 pt-3">
+                            Din coșuri abandonate
                         </div>
                     </div>
                 </div>
