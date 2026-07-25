@@ -62,9 +62,6 @@ export default function StatisticiProduse() {
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                 <div className="xl:min-w-[200px]">
                     <h2 className="text-3xl font-light dark:text-white mb-2 tracking-tight">Date Produse</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 font-light">
-                        Toate coloanele din tabelul products (Supabase)
-                    </p>
                 </div>
 
                 <div className="flex flex-wrap gap-3 items-center justify-end">
