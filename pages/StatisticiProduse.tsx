@@ -56,7 +56,7 @@ export default function StatisticiProduse() {
             .finally(() => setLoading(false));
     }, [selectedBrand]);
 
-    const columns = products.length > 0 ? Object.keys(products[0]) : [];
+    const columns = products.length > 0 ? Object.keys(products[0]).filter(col => col !== 'user_id' && col !== 'created_at') : [];
 
     const filteredProducts = products.filter(row => {
         if (!searchQuery) return true;

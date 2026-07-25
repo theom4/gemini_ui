@@ -56,7 +56,7 @@ export default function ProcessedOrders() {
             .finally(() => setLoading(false));
     }, [selectedBrand]);
 
-    const columns = orders.length > 0 ? Object.keys(orders[0]) : [];
+    const columns = orders.length > 0 ? Object.keys(orders[0]).filter(col => col !== 'user_id' && col !== 'created_at') : [];
 
     const filteredOrders = orders.filter(row => {
         if (!searchQuery) return true;
