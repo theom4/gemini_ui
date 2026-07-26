@@ -102,10 +102,10 @@ const Index = () => {
                     <h2 className="text-2xl md:text-3xl font-light dark:text-white tracking-tight">Bine ai revenit, {latestMetrics?.nume_admin || profile?.full_name || 'Utilizator'}!</h2>
                 </div>
                 <div className="flex flex-wrap gap-2 relative z-50">
-                    <div className="flex items-center gap-1 bg-[#13141a] p-1 rounded-xl border border-white/5 shadow-inner flex-1 min-w-0">
-                        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="flex-1 min-w-0 pl-2 pr-1 py-2 bg-transparent text-gray-200 text-xs md:text-sm border-none focus:ring-0 cursor-pointer font-num outline-none" />
+                    <div className="flex items-center gap-1 bg-[#13141a] p-1 rounded-xl border border-white/5 shadow-inner w-full md:w-fit max-w-[320px]">
+                        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full min-w-0 pl-2 pr-1 py-2 bg-transparent text-gray-200 text-xs md:text-sm border-none focus:ring-0 cursor-pointer font-num outline-none" />
                         <span className="text-gray-600 flex-shrink-0">-</span>
-                        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="flex-1 min-w-0 pl-1 pr-2 py-2 bg-transparent text-gray-200 text-xs md:text-sm border-none focus:ring-0 cursor-pointer font-num outline-none" />
+                        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full min-w-0 pl-1 pr-2 py-2 bg-transparent text-gray-200 text-xs md:text-sm border-none focus:ring-0 cursor-pointer font-num outline-none" />
                     </div>
 
                     <div className="relative">
@@ -140,7 +140,7 @@ const Index = () => {
                         {/* Initial ROAS */}
                         <div className="flex flex-col items-center gap-3 h-full justify-end w-1/2">
                             <span className="text-sm md:text-base font-medium text-white">{(latestMetrics as any)?.roas_initial || '3.5'}x</span>
-                            <div className="w-10 md:w-12 h-32 md:h-40 bg-[#13141a] rounded-full overflow-hidden border border-white/5 relative flex flex-col justify-end">
+                            <div className="w-10 md:w-12 h-40 md:h-52 bg-[#13141a] rounded-full overflow-hidden border border-white/5 relative flex flex-col justify-end">
                                 <div className="w-full bg-blue-500 rounded-full" style={{ height: '40%' }}></div>
                             </div>
                             <p className="text-[10px] md:text-sm text-gray-400 font-light text-center">Inițial</p>
@@ -148,7 +148,7 @@ const Index = () => {
                         {/* Robot ROAS */}
                         <div className="flex flex-col items-center gap-3 h-full justify-end w-1/2">
                             <span className="text-sm md:text-base font-medium text-emerald-400">{(latestMetrics as any)?.roas_robot || '6.8'}x</span>
-                            <div className="w-10 md:w-12 h-32 md:h-40 bg-[#13141a] rounded-full overflow-hidden border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)] relative flex flex-col justify-end">
+                            <div className="w-10 md:w-12 h-40 md:h-52 bg-[#13141a] rounded-full overflow-hidden border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)] relative flex flex-col justify-end">
                                 <div className="w-full bg-emerald-500 rounded-full" style={{ height: '80%' }}></div>
                             </div>
                             <p className="text-[10px] md:text-sm text-emerald-400 font-light text-center">Robot</p>
