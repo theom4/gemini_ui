@@ -247,14 +247,14 @@ const Index = () => {
                 <div className="md:col-span-1 card-depth p-4 md:p-6 rounded-2xl flex flex-col">
                     <h3 className="text-lg md:text-xl font-light dark:text-white mb-4">Conversie Drafturi</h3>
                     <div className="flex-1 flex items-center justify-center">
-                        <div className="relative w-40 h-40 md:w-48 md:h-48 flex items-center justify-center">
-                            <div style={{ filter: 'drop-shadow(0 0 10px #10b981) drop-shadow(0 0 22px rgba(16,185,129,0.45))' }} className="absolute inset-0">
+                        <div className="relative w-48 h-48 md:w-56 md:h-56 flex items-center justify-center">
+                            <div style={{ filter: 'drop-shadow(0 0 6px rgba(16,185,129,0.8)) drop-shadow(0 0 14px rgba(16,185,129,0.3))' }} className="absolute inset-0">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart><Pie data={draftData} innerRadius={56} outerRadius={70} dataKey="value" stroke="none" startAngle={90} endAngle={-270}>{draftData.map((_, index) => <Cell key={`cell-${index}`} fill={draftColors[index]} />)}</Pie></PieChart>
+                                    <PieChart><Pie data={draftData} innerRadius={76} outerRadius={94} dataKey="value" stroke="none" startAngle={90} endAngle={-270}>{draftData.map((_, index) => <Cell key={`cell-${index}`} fill={draftColors[index]} />)}</Pie></PieChart>
                                 </ResponsiveContainer>
                             </div>
                             <div className="absolute inset-0 flex items-center justify-center flex-col z-20">
-                                <span className="text-2xl md:text-3xl font-light dark:text-white font-num" style={{ textShadow: '0 0 16px rgba(16,185,129,0.7)' }}>{displayValue(draftConversionRate.toFixed(2))}%</span>
+                                <span className="text-2xl md:text-3xl font-light dark:text-white font-num" style={{ textShadow: '0 0 10px rgba(16,185,129,0.5)' }}>{displayValue(draftConversionRate.toFixed(2))}%</span>
                             </div>
                         </div>
                     </div>
@@ -262,14 +262,14 @@ const Index = () => {
                 <div className="md:col-span-1 card-depth p-4 md:p-6 rounded-2xl flex flex-col">
                     <h3 className="text-lg md:text-xl font-light dark:text-white mb-4">Conversie Upsell</h3>
                     <div className="flex-1 flex items-center justify-center">
-                        <div className="relative w-40 h-40 md:w-48 md:h-48 flex items-center justify-center">
-                            <div style={{ filter: 'drop-shadow(0 0 10px #00d2ff) drop-shadow(0 0 22px rgba(0,210,255,0.45))' }} className="absolute inset-0">
+                        <div className="relative w-48 h-48 md:w-56 md:h-56 flex items-center justify-center">
+                            <div style={{ filter: 'drop-shadow(0 0 6px rgba(0,210,255,0.8)) drop-shadow(0 0 14px rgba(0,210,255,0.3))' }} className="absolute inset-0">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart><Pie data={conversionData} innerRadius={56} outerRadius={70} dataKey="value" stroke="none" startAngle={90} endAngle={-270}>{conversionData.map((_, index) => <Cell key={`cell-${index}`} fill={conversionColors[index]} />)}</Pie></PieChart>
+                                    <PieChart><Pie data={conversionData} innerRadius={76} outerRadius={94} dataKey="value" stroke="none" startAngle={90} endAngle={-270}>{conversionData.map((_, index) => <Cell key={`cell-${index}`} fill={conversionColors[index]} />)}</Pie></PieChart>
                                 </ResponsiveContainer>
                             </div>
                             <div className="absolute inset-0 flex items-center justify-center flex-col z-20">
-                                <span className="text-2xl md:text-3xl font-light dark:text-white font-num" style={{ textShadow: '0 0 16px rgba(0,210,255,0.7)' }}>{displayValue(conversionRate.toFixed(2))}%</span>
+                                <span className="text-2xl md:text-3xl font-light dark:text-white font-num" style={{ textShadow: '0 0 10px rgba(0,210,255,0.5)' }}>{displayValue(conversionRate.toFixed(2))}%</span>
                             </div>
                         </div>
                     </div>
