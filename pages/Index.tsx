@@ -133,9 +133,9 @@ const Index = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 mb-6 md:mb-8">
                 {/* ROAS bars (NEW) */}
-                <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                <div className="md:col-span-2 widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform">
                     <div className="relative z-10 h-full flex items-end justify-around pt-2">
                         {/* Initial ROAS */}
                         <div className="flex flex-col items-center gap-3 h-full justify-end w-1/2">
@@ -157,7 +157,7 @@ const Index = () => {
                 </div>
 
                 {/* 3 small stat cards */}
-                <div className="col-span-1 md:col-span-1 grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
+                <div className="col-span-1 md:col-span-3 grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
                     <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform flex flex-col justify-center">
                         <div className="relative z-10 flex items-center justify-between">
                             <div>
@@ -184,7 +184,7 @@ const Index = () => {
                         </div>
                     </div>
                 </div>
-                <div className="col-span-1 md:col-span-1 grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
+                <div className="col-span-1 md:col-span-3 grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
                     <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform flex flex-col justify-center">
                         <div className="relative z-10 flex items-center justify-between">
                             <div>
@@ -215,7 +215,7 @@ const Index = () => {
                     </div>
                 </div>
                 {/* Sales cards */}
-                <div className="col-span-1 md:col-span-1 grid grid-cols-2 md:grid-cols-1 gap-3">
+                <div className="col-span-1 md:col-span-4 grid grid-cols-2 md:grid-cols-1 gap-3">
                     <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl bg-gradient-to-b from-[#090a0e] from-10% via-[#001f3f] to-[#006bb3] text-white group hover:-translate-y-1 transition-transform relative overflow-hidden flex flex-col">
                         <div className="relative z-10 flex-shrink-0">
                             <div className="icon-cart-v3 mb-2" style={{ width: '36px', height: '36px', borderRadius: '10px' }}><span className="material-icons-round icon-symbol-laser-blue" style={{ fontSize: '20px' }}>payments</span></div>
