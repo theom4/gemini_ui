@@ -5,7 +5,7 @@ import { useAuth } from './contexts/AuthContext';
 import Index from "./pages/Index";
 import CallRecordings from "./pages/CallRecordings";
 import WhatsappPage from "./pages/WhatsappPage";
-import ChatPage from "./pages/ChatPage";
+
 import ControlRobotPage from "./pages/ControlRobotPage";
 import StatisticiProduse from "./pages/StatisticiProduse";
 
@@ -58,7 +58,7 @@ export default function App() {
                                     <Route path="/" element={<Index />} />
                                     <Route path="/call-recordings" element={<CallRecordings />} />
                                     <Route path="/whatsapp" element={<WhatsappPage />} />
-                                    <Route path="/chat" element={<ChatPage />} />
+
                                     <Route path="/control-robot" element={<ControlRobotPage />} />
                                     <Route path="/statistici-produse" element={<StatisticiProduse />} />
 
@@ -300,7 +300,7 @@ function Sidebar() {
                 </div>
                 <div>
                     <ul className="space-y-1">
-                        <li><SidebarLink to="/chat" icon="smart_toy" label="Chat AI" collapsed={collapsed} /></li>
+
                         <li><SidebarLink to="/whatsapp" icon={whatsappIcon} label="Whatsapp" collapsed={collapsed} /></li>
                         <li><SidebarLink to="/call-recordings" icon="keyboard_voice" label="Înregistrări Apeluri" collapsed={collapsed} /></li>
                         <li><SidebarLink to="/control-robot" icon="settings_remote" label="Control Robot" collapsed={collapsed} /></li>
@@ -405,7 +405,7 @@ function MobileBottomNav() {
         { to: '/', icon: 'dashboard', label: 'Dashboard' },
         { to: '/statistici-produse', icon: 'bar_chart', label: 'Produse' },
         { to: '/call-recordings', icon: 'keyboard_voice', label: 'Apeluri' },
-        { to: '/chat', icon: 'smart_toy', label: 'AI Chat' },
+
     ];
 
     const menuLinks = [
