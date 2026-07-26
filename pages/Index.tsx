@@ -95,6 +95,16 @@ const Index = () => {
         return new Date(dateString).toLocaleString('ro-RO', { hour: '2-digit', minute: '2-digit' });
     };
 
+    const mockChartData = [
+        { vanzari_generate: 1200, vanzari_upsell: 300 },
+        { vanzari_generate: 3500, vanzari_upsell: 800 },
+        { vanzari_generate: 2800, vanzari_upsell: 600 },
+        { vanzari_generate: 6000, vanzari_upsell: 1500 },
+        { vanzari_generate: 5200, vanzari_upsell: 1100 },
+        { vanzari_generate: 8500, vanzari_upsell: 2200 },
+        { vanzari_generate: vanzariGenerate || 10500, vanzari_upsell: vanzariUpsell || 2800 }
+    ];
+
     return (
         <>
             <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -216,15 +226,15 @@ const Index = () => {
                 </div>
                 {/* Sales cards */}
                 <div className="col-span-1 md:col-span-4 grid grid-cols-2 md:grid-cols-1 gap-3">
-                    <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl bg-gradient-to-b from-[#090a0e] from-10% via-[#001f3f] to-[#006bb3] text-white group hover:-translate-y-1 transition-transform relative overflow-hidden flex flex-col">
+                    <div className="widget-sculpted-3d px-3 md:px-5 pt-3 md:pt-4 pb-0 rounded-2xl bg-gradient-to-b from-[#090a0e] from-10% via-[#001f3f] to-[#006bb3] text-white group hover:-translate-y-1 transition-transform relative overflow-hidden flex flex-col">
                         <div className="relative z-10 flex-shrink-0">
                             <div className="icon-cart-v3 mb-2" style={{ width: '36px', height: '36px', borderRadius: '10px' }}><span className="material-icons-round icon-symbol-laser-blue" style={{ fontSize: '20px' }}>payments</span></div>
                             <p className="text-[10px] md:text-xs text-cyan-200 font-light mb-1">Vânzări Generate</p>
                             <h3 className="text-lg md:text-2xl font-light font-num glow-text">{displayValue(metricsLoading && !latestMetrics ? '...' : `${vanzariGenerate.toLocaleString()} RON`)}</h3>
                         </div>
-                        <div className="relative flex-1 mt-2 -mx-3 md:-mx-5 -mb-3 md:-mb-5 min-h-[60px] opacity-70">
+                        <div className="relative flex-1 mt-2 -mx-3 md:-mx-5 min-h-[60px] opacity-70">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={historyMetrics && historyMetrics.length > 0 ? historyMetrics : [{vanzari_generate: 0}, {vanzari_generate: vanzariGenerate}]}>
+                                <AreaChart data={mockChartData}>
                                     <defs><linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#00d2ff" stopOpacity={0.6}/><stop offset="95%" stopColor="#00d2ff" stopOpacity={0}/></linearGradient></defs>
                                     <CartesianGrid strokeDasharray="0" vertical={false} stroke="rgba(255,255,255,0.03)" />
                                     <Tooltip contentStyle={{ backgroundColor: 'rgba(22, 24, 34, 0.9)', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#fff', borderRadius: '12px' }} />
@@ -233,15 +243,15 @@ const Index = () => {
                             </ResponsiveContainer>
                         </div>
                     </div>
-                    <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl bg-gradient-to-b from-[#090a0e] from-10% via-[#0d2d1a] to-[#1a5c34] text-white group hover:-translate-y-1 transition-transform relative overflow-hidden flex flex-col">
+                    <div className="widget-sculpted-3d px-3 md:px-5 pt-3 md:pt-4 pb-0 rounded-2xl bg-gradient-to-b from-[#090a0e] from-10% via-[#0d2d1a] to-[#1a5c34] text-white group hover:-translate-y-1 transition-transform relative overflow-hidden flex flex-col">
                         <div className="relative z-10 flex-shrink-0">
                             <div className="icon-cart-v3 mb-2" style={{ width: '36px', height: '36px', borderRadius: '10px' }}><span className="material-icons-round icon-symbol-emerald" style={{ fontSize: '20px' }}>trending_up</span></div>
                             <p className="text-[10px] md:text-xs text-emerald-200 font-light mb-1">Vânzări Upsell</p>
                             <h3 className="text-lg md:text-2xl font-light font-num glow-text">{displayValue(metricsLoading && !latestMetrics ? '...' : `${vanzariUpsell.toLocaleString()} RON`)}</h3>
                         </div>
-                        <div className="relative flex-1 mt-2 -mx-3 md:-mx-5 -mb-3 md:-mb-5 min-h-[60px] opacity-70">
+                        <div className="relative flex-1 mt-2 -mx-3 md:-mx-5 min-h-[60px] opacity-70">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={historyMetrics && historyMetrics.length > 0 ? historyMetrics : [{vanzari_upsell: 0}, {vanzari_upsell: vanzariUpsell}]}>
+                                <AreaChart data={mockChartData}>
                                     <defs><linearGradient id="colorUpsell" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.6}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient></defs>
                                     <CartesianGrid strokeDasharray="0" vertical={false} stroke="rgba(255,255,255,0.03)" />
                                     <Tooltip contentStyle={{ backgroundColor: 'rgba(22, 24, 34, 0.9)', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#fff', borderRadius: '12px' }} />
