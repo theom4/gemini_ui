@@ -16,6 +16,8 @@ import OnboardingPage from "./pages/OnboardingPage";
 import VerificareApeluri from "./pages/VerificareApeluri";
 import Drafturi from "./pages/Drafturi";
 import ProcessedOrders from "./pages/ProcessedOrders";
+import { TelnyxProvider } from './contexts/TelnyxContext';
+import IncomingCallBanner from './components/IncomingCallBanner';
 
 export default function App() {
     const { session, loading: authLoading } = useAuth();
@@ -35,9 +37,11 @@ export default function App() {
 
     return (
         <QueryClientProvider client={queryClient}>
-            <HashRouter>
-                <div className="flex flex-col h-screen overflow-hidden bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200 font-sans transition-colors duration-300 w-full">
-                    <div className="flex flex-1 overflow-hidden">
+            <TelnyxProvider>
+                <HashRouter>
+                    <div className="flex flex-col h-screen overflow-hidden bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200 font-sans transition-colors duration-300 w-full">
+                        <IncomingCallBanner />
+                        <div className="flex flex-1 overflow-hidden">
                         {/* Fixed-width spacer so main never shifts when sidebar expands — hidden on mobile */}
                         <div className="hidden md:block flex-shrink-0 w-[72px]" />
                         {/* Sidebar — hidden on mobile */}
@@ -72,6 +76,7 @@ export default function App() {
                     <MobileBottomNav />
                 </div>
             </HashRouter>
+            </TelnyxProvider>
         </QueryClientProvider>
     );
 }

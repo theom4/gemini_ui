@@ -173,107 +173,6 @@ const Drafturi = () => {
     const ringbackOscRef = useRef<any>(null);
     const audioCtxRef = useRef<any>(null);
 
-    const playRingback = () => {
-        console.log('[Ringback] playRingback called');
-        try {
-            if (!audioCtxRef.current) {
-                audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-                console.log('[Ringback] Created new AudioContext');
-            }
-            const ctx = audioCtxRef.current;
-            if (ctx.state === 'suspended') {
-                ctx.resume();
-                console.log('[Ringback] Resumed suspended AudioContext');
-            }
-            stopRingback();
-
-            // Play a beep immediately, then repeat every 3 seconds
-            const playBeep = () => {
-                try {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.value = 425;
-                    gain.gain.value = 0.4;
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start();
-                    // Stop after 1 second
-                    setTimeout(() => {
-                        try { osc.stop(); osc.disconnect(); gain.disconnect(); } catch(e) {}
-                    }, 1000);
-                    console.log('[Ringback] Beep played');
-                } catch(e) {
-                    console.error('[Ringback] Beep error:', e);
-                }
-            };
-
-            playBeep(); // First beep immediately
-            const intervalId = setInterval(playBeep, 3000); // Then every 3s
-            ringbackOscRef.current = { intervalId };
-            console.log('[Ringback] Interval started');
-        } catch(e) {
-            console.error('[Ringback] playRingback error:', e);
-        }
-    };
-
-    const stopRingback = () => {
-        if (ringbackOscRef.current) {
-            try {
-                if (ringbackOscRef.current.intervalId) {
-                    clearInterval(ringbackOscRef.current.intervalId);
-                }
-                // Legacy cleanup
-                if (ringbackOscRef.current.osc) {
-                    ringbackOscRef.current.osc.stop();
-                    ringbackOscRef.current.osc.disconnect();
-                }
-                if (ringbackOscRef.current.gain) {
-                    ringbackOscRef.current.gain.disconnect();
-                }
-            } catch (e) {}
-            ringbackOscRef.current = null;
-            console.log('[Ringback] Stopped');
-        }
-    };
-
-    const playRejectedBeeps = () => {
-        console.log('[Ringback] playRejectedBeeps called');
-        try {
-            if (!audioCtxRef.current) {
-                audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-            }
-            const ctx = audioCtxRef.current;
-            if (ctx.state === 'suspended') {
-                ctx.resume();
-            }
-            
-            const now = ctx.currentTime;
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            
-            osc.type = 'sine';
-            osc.frequency.value = 425;
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            
-            // 3 fast beeps (busy signal: 200ms sound, 150ms silence)
-            gain.gain.setValueAtTime(0.4, now);
-            gain.gain.setValueAtTime(0, now + 0.2);
-            
-            gain.gain.setValueAtTime(0.4, now + 0.35);
-            gain.gain.setValueAtTime(0, now + 0.55);
-            
-            gain.gain.setValueAtTime(0.4, now + 0.7);
-            gain.gain.setValueAtTime(0, now + 0.9);
-            
-            osc.start(now);
-            osc.stop(now + 1.0);
-        } catch(e) {
-            console.error('[RejectedBeeps] error:', e);
-        }
-    };
-
     const [isConnecting, setIsConnecting] = useState(false);
     const [callState, setCallState] = useState<'idle' | 'calling' | 'active' | 'rejected'>('idle');
     const [callDurationSeconds, setCallDurationSeconds] = useState(0);
@@ -304,33 +203,6 @@ const Drafturi = () => {
         return `${mm}:${ss}`;
     };
 
-    const toggleMute = () => {
-        if (!callRef.current) return;
-        const newMuted = !isMuted;
-        try {
-            if (newMuted) {
-                if (typeof callRef.current.muteAudio === 'function') callRef.current.muteAudio();
-                if (callRef.current.localStream) {
-                    callRef.current.localStream.getAudioTracks().forEach((t: any) => t.enabled = false);
-                }
-            } else {
-                if (typeof callRef.current.unmuteAudio === 'function') callRef.current.unmuteAudio();
-                if (callRef.current.localStream) {
-                    callRef.current.localStream.getAudioTracks().forEach((t: any) => t.enabled = true);
-                }
-            }
-            setIsMuted(newMuted);
-        } catch (e) {
-            console.error('[Mute] Error toggling mute:', e);
-        }
-    };
-
-    const updateCallState = (newState: 'idle' | 'calling' | 'active' | 'rejected') => {
-        if (newState !== 'active') setIsMuted(false);
-        setCallState(newState);
-        callStateRef.current = newState;
-    };
-
     // ── Toast helper
     const showToast = (msg: string) => {
         setToast(msg);
@@ -347,54 +219,6 @@ const Drafturi = () => {
     useEffect(() => {
         if (userStores.length > 0 && !selectedBrand) setSelectedBrand(userStores[0]);
     }, [userStores]);
-
-    // ── Init Telnyx
-    useEffect(() => {
-        const username = import.meta.env?.VITE_TELNYX_SIP_USERNAME ?? 'vitadomus';
-        const password = import.meta.env?.VITE_TELNYX_SIP_PASSWORD ?? 'vitadomus';
-        if (!username || !password) return;
-        setIsConnecting(true);
-        import('@telnyx/webrtc').then(({ TelnyxRTC }) => {
-            const client = new TelnyxRTC({ login: username, password: password });
-            client.on('telnyx.ready', () => setIsConnecting(false));
-            client.on('telnyx.error', () => setIsConnecting(false));
-            client.on('telnyx.notification', (notification: any) => {
-                const call = notification.call;
-                if (notification.type === 'callUpdate') {
-                    if (call.state === 'ringing') {
-                        updateCallState('calling');
-                        playRingback();
-                    }
-                    else if (call.state === 'active') {
-                        updateCallState('active');
-                        stopRingback();
-                        if (audioRef.current && call.remoteStream) {
-                            audioRef.current.srcObject = call.remoteStream;
-                            audioRef.current.play().catch(() => {});
-                        }
-                    } else if (call.state === 'destroy' || call.state === 'hangup' || call.state === 'purge') {
-                        stopRingback();
-                        if (audioRef.current) audioRef.current.srcObject = null;
-                        callRef.current = null;
-                        
-                        // If call ended while in calling state and user didn't hang up manually -> Client rejected!
-                        if (callStateRef.current === 'calling' && !userHungUpRef.current) {
-                            updateCallState('rejected');
-                            playRejectedBeeps();
-                            setTimeout(() => {
-                                updateCallState('idle');
-                            }, 3000);
-                        } else {
-                            updateCallState('idle');
-                        }
-                    }
-                }
-            });
-            client.connect();
-            clientRef.current = client;
-        }).catch(() => setIsConnecting(false));
-        return () => { if (clientRef.current) { clientRef.current.disconnect(); clientRef.current = null; } };
-    }, []);
 
     // ── Load orders
     const loadOrders = useCallback(async () => {
@@ -622,31 +446,13 @@ const Drafturi = () => {
     const handleCallAction = async () => {
         if (!phoneNumber) return;
         if (callState === 'idle' || callState === 'rejected') {
-            if (!clientRef.current) { alert('Conexiunea la serverul de telefonie nu a reușit. Contactați administratorul.'); return; }
+            if (!isReady) { alert('Conexiunea la serverul de telefonie nu a reușit. Contactați administratorul.'); return; }
             try { await navigator.mediaDevices.getUserMedia({ audio: true }); } catch { alert('Este nevoie de acces la microfon pentru a suna!'); return; }
-            
-            // Bypass Autoplay Policy by initializing AudioContext on user click
-            if (!audioCtxRef.current) {
-                audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-            }
-            if (audioCtxRef.current.state === 'suspended') {
-                audioCtxRef.current.resume();
-            }
-
-            userHungUpRef.current = false;
             const callerId = import.meta.env?.VITE_TELNYX_CALLER_ID ?? '+40751064714';
             const cleanDestination = phoneNumber.replace(/\s/g, '');
-            try {
-                callRef.current = clientRef.current.newCall({ destinationNumber: cleanDestination, callerNumber: callerId, audio: true, video: false });
-                updateCallState('calling');
-                playRingback(); // Start ringback immediately on dial
-            }
-            catch (err) { console.error('Call failed', err); alert('A apărut o eroare la inițierea apelului.'); }
+            makeCall(cleanDestination, callerId);
         } else {
-            userHungUpRef.current = true;
-            if (callRef.current) callRef.current.hangup();
-            updateCallState('idle');
-            stopRingback();
+            hangup();
         }
     };
 
@@ -658,8 +464,6 @@ const Drafturi = () => {
     // ── Render
     return (
         <div className="flex flex-col h-full overflow-hidden bg-[#0b0c10] text-white rounded-tl-3xl shadow-[-10px_0_30px_rgba(0,0,0,0.05)] border-l border-t border-white/5 absolute inset-0 pt-6 px-6">
-            <audio ref={audioRef} style={{ display: 'none' }} />
-
             {/* Toast */}
             {toast && (
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm px-5 py-3 rounded-xl shadow-2xl animate-fade-in">
@@ -761,7 +565,7 @@ const Drafturi = () => {
                 <div className="flex flex-wrap gap-4 items-center justify-end">
                     {/* Status indicator */}
                     <div className="flex items-center gap-3 mr-4">
-                        {!isConnecting && clientRef.current ? (
+                        {isReady ? (
                             <div className="flex items-center gap-2 text-xs font-medium text-emerald-400 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-500/30">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Online
                             </div>
