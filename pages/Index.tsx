@@ -169,11 +169,11 @@ const Index = () => {
                     </div>
                     <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform flex flex-col justify-center bg-gradient-to-br from-[#13141a] to-[#1a1c23]">
                         <div className="relative z-10 flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-3">
-                                <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=100&h=100&fit=crop" alt="Crema" className="w-10 h-10 md:w-12 md:h-12 rounded-xl object-cover shadow-[0_0_10px_rgba(255,255,255,0.1)] border border-white/10" />
+                            <div className="flex items-center gap-3 md:gap-4">
+                                <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=100&h=100&fit=crop" alt="Crema" className="w-12 h-12 md:w-14 md:h-14 rounded-xl object-cover shadow-[0_0_10px_rgba(255,255,255,0.1)] border border-white/10" />
                                 <div>
                                     <p className="text-[10px] md:text-xs text-purple-300 font-light mb-0.5">Upsell Winner</p>
-                                    <h3 className="text-sm md:text-base font-medium text-white truncate max-w-[70px] md:max-w-[90px]" title="Cremă Hidratantă">Cremă Hidra...</h3>
+                                    <h3 className="text-sm md:text-base font-medium text-white truncate max-w-[120px] md:max-w-[180px]">Cremă Hidratantă</h3>
                                 </div>
                             </div>
                             <div className="flex flex-col items-end">
