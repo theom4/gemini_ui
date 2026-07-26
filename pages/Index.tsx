@@ -133,7 +133,7 @@ const Index = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4 mb-6 md:mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
                 {/* ROAS bars (NEW) */}
                 <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform">
                     <div className="relative z-10 h-full flex items-end justify-around pt-2">
@@ -164,18 +164,34 @@ const Index = () => {
                         <h3 className="text-xl md:text-3xl font-light dark:text-white tracking-tight font-num glow-text">{displayValue(totalComenzi.toLocaleString())}</h3>
                     </div>
                 </div>
-                <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform">
-                    <div className="relative z-10">
-                        <div className="icon-cart-v3 mb-2 md:mb-4" style={{ width: '36px', height: '36px', borderRadius: '10px' }}><span className="material-icons-round icon-symbol-blue" style={{ fontSize: '20px' }}>check_circle</span></div>
-                        <p className="text-[10px] md:text-xs text-gray-400 font-light mb-1">Coșuri Recuperate</p>
-                        <h3 className="text-xl md:text-3xl font-light dark:text-white tracking-tight font-num glow-text">{displayValue(cosuriRecuperate.toLocaleString())}</h3>
+                <div className="col-span-1 md:col-span-1 grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
+                    <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform flex flex-col justify-center">
+                        <div className="relative z-10 flex items-center justify-between">
+                            <div>
+                                <div className="icon-cart-v3 mb-2 md:mb-4" style={{ width: '36px', height: '36px', borderRadius: '10px' }}><span className="material-icons-round icon-symbol-blue" style={{ fontSize: '20px' }}>check_circle</span></div>
+                                <p className="text-[10px] md:text-xs text-gray-400 font-light mb-1">Coșuri Recuperate</p>
+                                <h3 className="text-xl md:text-3xl font-light dark:text-white tracking-tight font-num glow-text">{displayValue(cosuriRecuperate.toLocaleString())}</h3>
+                            </div>
+                            <div className="flex flex-col items-end">
+                                <span className="text-sm md:text-base text-blue-400 font-medium font-num bg-blue-500/10 px-2 py-1 rounded-lg border border-blue-500/20">
+                                    +12.4%
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform">
-                    <div className="relative z-10">
-                        <div className="icon-cart-v3 mb-2 md:mb-4" style={{ width: '36px', height: '36px', borderRadius: '10px' }}><span className="material-icons-round icon-symbol-emerald" style={{ fontSize: '20px' }}>verified</span></div>
-                        <p className="text-[10px] md:text-xs text-gray-400 font-light mb-1">Comenzi Confirmate</p>
-                        <h3 className="text-xl md:text-3xl font-light dark:text-white tracking-tight font-num glow-text">{displayValue(comenziConfirmate.toLocaleString())}</h3>
+                    <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform flex flex-col justify-center">
+                        <div className="relative z-10 flex items-center justify-between">
+                            <div>
+                                <div className="icon-cart-v3 mb-2 md:mb-4" style={{ width: '36px', height: '36px', borderRadius: '10px' }}><span className="material-icons-round icon-symbol-emerald" style={{ fontSize: '20px' }}>verified</span></div>
+                                <p className="text-[10px] md:text-xs text-gray-400 font-light mb-1">Comenzi Confirmate</p>
+                                <h3 className="text-xl md:text-3xl font-light dark:text-white tracking-tight font-num glow-text">{displayValue(comenziConfirmate.toLocaleString())}</h3>
+                            </div>
+                            <div className="flex flex-col items-end">
+                                <span className="text-sm md:text-base text-emerald-400 font-medium font-num bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/20">
+                                    +8.2%
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {/* Sales cards */}
