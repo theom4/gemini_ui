@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTelnyx } from '../contexts/TelnyxContext';
 import { supabase } from '../lib/supabaseClient';
 import { syncOrderStatusWithShopify, syncOrderAddressWithShopify, syncOrderNoteWithShopify, updateShopifyLineItemQuantity, getProductImages, getAllProducts, updateShopifyLineItemsBulk } from '../services/shopify';
 
@@ -126,6 +127,7 @@ const formatPhoneNumber = (phone: string | null | undefined): string => {
 const Drafturi = () => {
     const { profile } = useAuth();
     const userStores: string[] = profile?.stores || [];
+    const { isReady, callState: telnyxCallState, makeCall, hangup, toggleMute, isMuted: telnyxMuted } = useTelnyx();
 
     // ── Filters
     const [viewMode, setViewMode] = useState<'drafturi' | 'comenzi'>('drafturi');
@@ -174,11 +176,12 @@ const Drafturi = () => {
     const audioCtxRef = useRef<any>(null);
 
     const [isConnecting, setIsConnecting] = useState(false);
-    const [callState, setCallState] = useState<'idle' | 'calling' | 'active' | 'rejected'>('idle');
     const [callDurationSeconds, setCallDurationSeconds] = useState(0);
-    const [isMuted, setIsMuted] = useState(false);
     const callStateRef = useRef<'idle' | 'calling' | 'active' | 'rejected'>('idle');
     const userHungUpRef = useRef(false);
+    // callState & isMuted come from TelnyxContext (global)
+    const callState = telnyxCallState as 'idle' | 'calling' | 'active' | 'rejected';
+    const isMuted = telnyxMuted;
 
     useEffect(() => {
         let interval: any = null;
