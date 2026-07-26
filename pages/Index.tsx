@@ -169,7 +169,7 @@ const Index = () => {
                 </div>
 
                 {/* 3 small stat cards */}
-                <div className="col-span-1 md:col-span-3 grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
+                <div className="col-span-1 md:col-span-4 grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
                     <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform flex flex-col justify-center">
                         <div className="relative z-10 flex items-center justify-between">
                             <div>
@@ -181,23 +181,23 @@ const Index = () => {
                     </div>
                     <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform flex flex-col justify-center bg-gradient-to-br from-[#13141a] to-[#1a1c23]">
                         <div className="relative z-10 flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-3 md:gap-4">
-                                <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=100&h=100&fit=crop" alt="Crema" className="w-12 h-12 md:w-14 md:h-14 rounded-xl object-cover shadow-[0_0_10px_rgba(255,255,255,0.1)] border border-white/10" />
+                            <div className="flex items-center gap-3 md:gap-5">
+                                <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=120&h=120&fit=crop" alt="Crema" className="w-14 h-14 md:w-20 md:h-20 rounded-xl object-cover shadow-[0_0_15px_rgba(255,255,255,0.15)] border border-white/10" />
                                 <div>
-                                    <p className="text-[10px] md:text-xs text-purple-300 font-light mb-0.5">Upsell Winner</p>
-                                    <h3 className="text-sm md:text-base font-medium text-white truncate max-w-[120px] md:max-w-[180px]">Cremă Hidratantă</h3>
+                                    <p className="text-[11px] md:text-sm text-purple-300 font-light mb-1">Upsell Winner</p>
+                                    <h3 className="text-base md:text-lg font-medium text-white truncate max-w-[140px] md:max-w-[200px]">Cremă Hidratantă</h3>
                                 </div>
                             </div>
                             <div className="flex flex-col items-end">
-                                <span className="text-xs md:text-sm text-purple-400 font-medium font-num bg-purple-500/10 px-2 py-1 rounded-lg border border-purple-500/20 shadow-[0_0_8px_rgba(168,85,247,0.2)]">
+                                <span className="text-sm md:text-base text-purple-400 font-medium font-num bg-purple-500/10 px-3 py-1.5 rounded-lg border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.25)]">
                                     23%
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="col-span-1 md:col-span-3 grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
-                    <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform flex flex-col justify-center">
+                <div className="col-span-1 md:col-span-2 grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
+                    <div className="widget-sculpted-3d p-3 md:p-4 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform flex flex-col justify-center">
                         <div className="relative z-10 flex items-center justify-between">
                             <div>
                                 <div className="icon-cart-v3 mb-2 md:mb-4" style={{ width: '36px', height: '36px', borderRadius: '10px' }}><span className="material-icons-round icon-symbol-blue" style={{ fontSize: '20px' }}>check_circle</span></div>
@@ -211,7 +211,7 @@ const Index = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform flex flex-col justify-center">
+                    <div className="widget-sculpted-3d p-3 md:p-4 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform flex flex-col justify-center">
                         <div className="relative z-10 flex items-center justify-between">
                             <div>
                                 <div className="icon-cart-v3 mb-2 md:mb-4" style={{ width: '36px', height: '36px', borderRadius: '10px' }}><span className="material-icons-round icon-symbol-emerald" style={{ fontSize: '20px' }}>verified</span></div>
