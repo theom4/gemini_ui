@@ -152,16 +152,16 @@ const Index = () => {
                         {/* Initial ROAS */}
                         <div className="flex flex-col items-center gap-3 h-full justify-end w-1/2">
                             <span className="text-sm md:text-base font-medium text-white">{(latestMetrics as any)?.roas_initial || '3.5'}x</span>
-                            <div className="w-10 md:w-12 h-40 md:h-52 bg-[#13141a] rounded-full overflow-hidden border border-white/5 relative flex flex-col justify-end">
-                                <div className="w-full bg-blue-500 rounded-full" style={{ height: '40%' }}></div>
+                            <div className="w-10 md:w-12 h-48 md:h-64 bg-[#13141a] rounded-full overflow-hidden border border-white/5 relative flex flex-col justify-end">
+                                <div className="w-full bg-blue-500 rounded-full" style={{ height: '35%' }}></div>
                             </div>
                             <p className="text-[10px] md:text-sm text-gray-400 font-light text-center">Inițial</p>
                         </div>
                         {/* Robot ROAS */}
                         <div className="flex flex-col items-center gap-3 h-full justify-end w-1/2">
                             <span className="text-sm md:text-base font-medium text-emerald-400">{(latestMetrics as any)?.roas_robot || '6.8'}x</span>
-                            <div className="w-10 md:w-12 h-40 md:h-52 bg-[#13141a] rounded-full overflow-hidden border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)] relative flex flex-col justify-end">
-                                <div className="w-full bg-emerald-500 rounded-full" style={{ height: '80%' }}></div>
+                            <div className="w-10 md:w-12 h-48 md:h-64 bg-[#13141a] rounded-full overflow-hidden border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)] relative flex flex-col justify-end">
+                                <div className="w-full bg-emerald-500 rounded-full" style={{ height: '90%' }}></div>
                             </div>
                             <p className="text-[10px] md:text-sm text-emerald-400 font-light text-center">Robot</p>
                         </div>
