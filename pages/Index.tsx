@@ -157,11 +157,31 @@ const Index = () => {
                 </div>
 
                 {/* 3 small stat cards */}
-                <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform">
-                    <div className="relative z-10">
-                        <div className="icon-cart-v3 mb-2 md:mb-4" style={{ width: '36px', height: '36px', borderRadius: '10px' }}><span className="material-icons-round icon-cart-v3-symbol" style={{ fontSize: '20px' }}>shopping_cart</span></div>
-                        <p className="text-[10px] md:text-xs text-gray-400 font-light mb-1">Comenzi Totale</p>
-                        <h3 className="text-xl md:text-3xl font-light dark:text-white tracking-tight font-num glow-text">{displayValue(totalComenzi.toLocaleString())}</h3>
+                <div className="col-span-1 md:col-span-1 grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
+                    <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform flex flex-col justify-center">
+                        <div className="relative z-10 flex items-center justify-between">
+                            <div>
+                                <div className="icon-cart-v3 mb-2 md:mb-4" style={{ width: '36px', height: '36px', borderRadius: '10px' }}><span className="material-icons-round icon-cart-v3-symbol" style={{ fontSize: '20px' }}>shopping_cart</span></div>
+                                <p className="text-[10px] md:text-xs text-gray-400 font-light mb-1">Comenzi Totale</p>
+                                <h3 className="text-xl md:text-3xl font-light dark:text-white tracking-tight font-num glow-text">{displayValue(totalComenzi.toLocaleString())}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="widget-sculpted-3d p-3 md:p-5 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform flex flex-col justify-center bg-gradient-to-br from-[#13141a] to-[#1a1c23]">
+                        <div className="relative z-10 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-3">
+                                <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=100&h=100&fit=crop" alt="Crema" className="w-10 h-10 md:w-12 md:h-12 rounded-xl object-cover shadow-[0_0_10px_rgba(255,255,255,0.1)] border border-white/10" />
+                                <div>
+                                    <p className="text-[10px] md:text-xs text-purple-300 font-light mb-0.5">Upsell Winner</p>
+                                    <h3 className="text-sm md:text-base font-medium text-white truncate max-w-[70px] md:max-w-[90px]" title="Cremă Hidratantă">Cremă Hidra...</h3>
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-end">
+                                <span className="text-xs md:text-sm text-purple-400 font-medium font-num bg-purple-500/10 px-2 py-1 rounded-lg border border-purple-500/20 shadow-[0_0_8px_rgba(168,85,247,0.2)]">
+                                    23%
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div className="col-span-1 md:col-span-1 grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
