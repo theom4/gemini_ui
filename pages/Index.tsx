@@ -95,14 +95,16 @@ const Index = () => {
         return new Date(dateString).toLocaleString('ro-RO', { hour: '2-digit', minute: '2-digit' });
     };
 
+    const vg = vanzariGenerate || 10500;
+    const vu = vanzariUpsell || 2800;
     const mockChartData = [
-        { vanzari_generate: 1200, vanzari_upsell: 300 },
-        { vanzari_generate: 3500, vanzari_upsell: 800 },
-        { vanzari_generate: 2800, vanzari_upsell: 600 },
-        { vanzari_generate: 6000, vanzari_upsell: 1500 },
-        { vanzari_generate: 5200, vanzari_upsell: 1100 },
-        { vanzari_generate: 8500, vanzari_upsell: 2200 },
-        { vanzari_generate: vanzariGenerate || 10500, vanzari_upsell: vanzariUpsell || 2800 }
+        { vanzari_generate: vg * 0.4, vanzari_upsell: vu * 0.3 },
+        { vanzari_generate: vg * 0.6, vanzari_upsell: vu * 0.5 },
+        { vanzari_generate: vg * 0.5, vanzari_upsell: vu * 0.4 },
+        { vanzari_generate: vg * 0.8, vanzari_upsell: vu * 0.7 },
+        { vanzari_generate: vg * 0.7, vanzari_upsell: vu * 0.6 },
+        { vanzari_generate: vg * 0.9, vanzari_upsell: vu * 0.8 },
+        { vanzari_generate: vg, vanzari_upsell: vu }
     ];
 
     return (
