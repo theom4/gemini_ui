@@ -102,10 +102,10 @@ const Index = () => {
                     <h2 className="text-2xl md:text-3xl font-light dark:text-white tracking-tight">Bine ai revenit, {latestMetrics?.nume_admin || profile?.full_name || 'Utilizator'}!</h2>
                 </div>
                 <div className="flex flex-wrap items-center md:justify-end gap-2 relative z-50">
-                    <div className="flex items-center gap-1 bg-[#13141a] p-1 rounded-xl border border-white/5 shadow-inner w-full md:w-fit max-w-[320px]">
-                        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full min-w-0 pl-2 pr-1 py-2 bg-transparent text-gray-200 text-xs md:text-sm border-none focus:ring-0 cursor-pointer font-num outline-none" />
-                        <span className="text-gray-600 flex-shrink-0">-</span>
-                        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full min-w-0 pl-1 pr-2 py-2 bg-transparent text-gray-200 text-xs md:text-sm border-none focus:ring-0 cursor-pointer font-num outline-none" />
+                    <div className="btn-3d-secondary flex items-center gap-1 px-3 md:px-4 py-1.5 rounded-xl text-sm w-full md:w-fit max-w-[320px] h-[42px]">
+                        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full min-w-0 pl-2 pr-1 py-1 bg-transparent text-gray-200 text-xs md:text-sm border-none focus:ring-0 cursor-pointer font-num outline-none" />
+                        <span className="text-gray-400 flex-shrink-0">-</span>
+                        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full min-w-0 pl-1 pr-2 py-1 bg-transparent text-gray-200 text-xs md:text-sm border-none focus:ring-0 cursor-pointer font-num outline-none" />
                     </div>
 
                     <div className="relative">
