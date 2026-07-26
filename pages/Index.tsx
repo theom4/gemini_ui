@@ -97,11 +97,11 @@ const Index = () => {
 
     return (
         <>
-            <div className="mb-6 flex flex-col gap-3">
+            <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-2xl md:text-3xl font-light dark:text-white tracking-tight">Bine ai revenit, {latestMetrics?.nume_admin || profile?.full_name || 'Utilizator'}!</h2>
                 </div>
-                <div className="flex flex-wrap gap-2 relative z-50">
+                <div className="flex flex-wrap items-center md:justify-end gap-2 relative z-50">
                     <div className="flex items-center gap-1 bg-[#13141a] p-1 rounded-xl border border-white/5 shadow-inner w-full md:w-fit max-w-[320px]">
                         <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full min-w-0 pl-2 pr-1 py-2 bg-transparent text-gray-200 text-xs md:text-sm border-none focus:ring-0 cursor-pointer font-num outline-none" />
                         <span className="text-gray-600 flex-shrink-0">-</span>
