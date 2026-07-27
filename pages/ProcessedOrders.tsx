@@ -185,6 +185,7 @@ export default function ProcessedOrders() {
                                 {paginatedOrders.map((row, i) => (
                                     <tr key={i} className="group hover:bg-white/5 transition-colors">
                                         {columns.map(col => {
+                                            const val = row[col];
                                             let strVal = val === null || val === undefined ? '-' : String(val);
                                             
                                             if (col === 'phone' || col === 'phone_number') {
