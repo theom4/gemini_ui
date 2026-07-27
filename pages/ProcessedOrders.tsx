@@ -44,6 +44,7 @@ export default function ProcessedOrders() {
     useEffect(() => {
         if (!profile?.id || !selectedBrand) return;
         
+        console.log('[ProcessedOrders] Fetching with user_id:', profile.id, 'store:', selectedBrand);
         setLoading(true);
         supabase
             .from('orders')
@@ -51,6 +52,7 @@ export default function ProcessedOrders() {
             .eq('user_id', profile.id)
             .eq('store', selectedBrand)
             .then(({ data, error }) => {
+                console.log('[ProcessedOrders] Result:', { data, error, count: data?.length });
                 if (error) {
                     console.error('Error fetching orders:', error);
                 } else if (data) {
