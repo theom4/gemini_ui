@@ -42,17 +42,17 @@ export default function ProcessedOrders() {
     }, [userStores, selectedBrand]);
 
     useEffect(() => {
-        if (!profile?.id || !selectedBrand) return;
+        if (!selectedBrand) return;
         
-        console.log('[ProcessedOrders] Fetching with user_id:', profile.id, 'store:', selectedBrand);
+        console.log('[ProcessedOrders] Fetching with store_name:', selectedBrand);
         setLoading(true);
         supabase
             .from('orders')
             .select('*')
-            .eq('user_id', profile.id)
-            .eq('store', selectedBrand)
+            .ilike('store_name', selectedBrand)
+            .order('created_at', { ascending: false })
             .then(({ data, error }) => {
-                console.log('[ProcessedOrders] Result:', { data, error, count: data?.length });
+                console.log('[ProcessedOrders] Result:', { count: data?.length, error });
                 if (error) {
                     console.error('Error fetching orders:', error);
                 } else if (data) {
@@ -60,9 +60,9 @@ export default function ProcessedOrders() {
                 }
             })
             .finally(() => setLoading(false));
-    }, [selectedBrand, profile?.id]);
+    }, [selectedBrand]);
 
-    const columns = orders.length > 0 ? Object.keys(orders[0]).filter(col => col !== 'user_id' && col !== 'store' && col !== 'id' && col !== 'created_at') : [];
+    const columns = orders.length > 0 ? Object.keys(orders[0]).filter(col => col !== 'user_id' && col !== 'store_name' && col !== 'id' && col !== 'created_at') : [];
 
     const filteredOrders = orders.filter(row => {
         if (!searchQuery) return true;
