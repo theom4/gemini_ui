@@ -18,7 +18,7 @@ export default function ProcessedOrders() {
     const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
     const [viewOrder, setViewOrder] = useState<any>(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 50;
+    const itemsPerPage = 30;
 
     const handleSaveCell = async () => {
         if (!previewCell || !previewCell.rowId) return;
@@ -231,24 +231,41 @@ export default function ProcessedOrders() {
 
             {/* Pagination Controls */}
             {!loading && totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 bg-[#13141a] border border-white/5 rounded-2xl shadow-sm">
-                    <div className="text-sm text-gray-400">
-                        Afișare <span className="font-medium text-white">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="font-medium text-white">{Math.min(currentPage * itemsPerPage, filteredOrders.length)}</span> din <span className="font-medium text-white">{filteredOrders.length}</span> comenzi
-                    </div>
-                    <div className="flex gap-2">
+                <div className="flex items-center justify-end gap-4 px-2 py-2">
+                    <span className="text-sm text-gray-400">
+                        Total: <span className="font-semibold text-white">{filteredOrders.length}</span> comenzi
+                    </span>
+                    <span className="text-sm text-gray-400">
+                        Pagina <span className="font-semibold text-white">{currentPage}</span> din <span className="font-semibold text-white">{totalPages}</span>
+                    </span>
+                    <div className="flex gap-1">
+                        <button 
+                            onClick={() => setCurrentPage(1)}
+                            disabled={currentPage === 1}
+                            className="w-8 h-8 rounded-lg inline-flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed bg-white/5 hover:bg-white/10 text-white"
+                        >
+                            <span className="material-icons-round text-[18px]">first_page</span>
+                        </button>
                         <button 
                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
-                            className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-white/5 hover:bg-white/10 text-white"
+                            className="w-8 h-8 rounded-lg inline-flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed bg-white/5 hover:bg-white/10 text-white"
                         >
-                            Înapoi
+                            <span className="material-icons-round text-[18px]">chevron_left</span>
                         </button>
                         <button 
                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
-                            className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-white/5 hover:bg-white/10 text-white"
+                            className="w-8 h-8 rounded-lg inline-flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed bg-white/5 hover:bg-white/10 text-white"
                         >
-                            Înainte
+                            <span className="material-icons-round text-[18px]">chevron_right</span>
+                        </button>
+                        <button 
+                            onClick={() => setCurrentPage(totalPages)}
+                            disabled={currentPage === totalPages}
+                            className="w-8 h-8 rounded-lg inline-flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed bg-white/5 hover:bg-white/10 text-white"
+                        >
+                            <span className="material-icons-round text-[18px]">last_page</span>
                         </button>
                     </div>
                 </div>
