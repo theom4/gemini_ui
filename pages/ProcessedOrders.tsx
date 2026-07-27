@@ -64,7 +64,7 @@ export default function ProcessedOrders() {
             .finally(() => setLoading(false));
     }, [selectedBrand]);
 
-    const columns = orders.length > 0 ? Object.keys(orders[0]).filter(col => col !== 'user_id' && col !== 'store_name' && col !== 'id' && col !== 'created_at' && col !== 'cerere' && col !== 'cerere_adresa' && col !== 'cerere_upsell' && col !== 'istoric' && col !== 'product_id' && col !== 'tags') : [];
+    const columns = orders.length > 0 ? Object.keys(orders[0]).filter(col => col !== 'user_id' && col !== 'store_name' && col !== 'id' && col !== 'created_at' && col !== 'cerere' && col !== 'cerere_adresa' && col !== 'cerere_upsell' && col !== 'istoric' && col !== 'product_id' && col !== 'tags' && col !== 'client_personal_id' && col !== 'email') : [];
 
     const filteredOrders = orders.filter(row => {
         if (selectedType !== 'Toate' && row.type !== selectedType.toLowerCase()) return false;
