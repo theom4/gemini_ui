@@ -102,20 +102,16 @@ export default function ProcessedOrders() {
                             </>
                         )}
                     </div>
-                </div>
-            </div>
-
-            {/* Search Bar */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className="relative w-full sm:w-80">
-                    <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
-                    <input 
-                        type="text" 
-                        placeholder="Caută în toate coloanele..." 
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-[#13141a] border border-white/10 text-white text-sm rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder-gray-500 shadow-inner"
-                    />
+                    <div className="relative w-full sm:w-80">
+                        <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
+                        <input 
+                            type="text" 
+                            placeholder="Caută în toate coloanele..." 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full bg-[#13141a] border border-white/10 text-white text-sm rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder-gray-500 shadow-inner h-[42px]"
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -129,13 +125,13 @@ export default function ProcessedOrders() {
                     <div className="overflow-x-auto overflow-y-visible max-w-full">
                         <table className="w-max text-left border-collapse">
                             <thead>
-                                <tr className="text-xs text-gray-500 uppercase tracking-widest border-b border-gray-800/50 bg-surface-dark-lighter/30">
+                                <tr className="text-sm text-gray-500 uppercase tracking-widest border-b border-gray-800/50 bg-surface-dark-lighter/30">
                                     {columns.map(col => (
                                         <th key={col} className="py-4 px-6 font-medium whitespace-nowrap">{col}</th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="text-sm divide-y divide-gray-800/50">
+                            <tbody className="text-base divide-y divide-gray-800/50">
                                 {filteredOrders.length === 0 && (
                                     <tr><td colSpan={columns.length || 1} className="py-12 text-center text-gray-600 text-sm">Niciun rezultat găsit.</td></tr>
                                 )}
@@ -152,7 +148,7 @@ export default function ProcessedOrders() {
                                                         setPreviewCell({ col, val: strVal, rowId: row.id });
                                                         setEditVal(strVal === '-' ? '' : strVal);
                                                     }}
-                                                    className="py-4 px-6 text-gray-300 whitespace-nowrap font-mono text-[13px] cursor-pointer hover:bg-white/10 transition-colors" 
+                                                    className="py-4 px-6 text-gray-300 whitespace-nowrap font-mono text-[15px] cursor-pointer hover:bg-white/10 transition-colors" 
                                                     title={strVal}
                                                 >
                                                     {truncated}
