@@ -85,6 +85,17 @@ export default function ProcessedOrders() {
                 </div>
 
                 <div className="flex flex-wrap gap-3 items-center justify-end">
+                    <div className="relative w-full sm:w-80">
+                        <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
+                        <input 
+                            type="text" 
+                            placeholder="Caută în toate coloanele..." 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full bg-[#13141a] border border-white/10 text-white text-sm rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder-gray-500 shadow-inner h-[42px]"
+                        />
+                    </div>
+
                     <div className="relative">
                         <button onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             className="btn-3d-secondary px-5 py-2.5 rounded-xl text-sm min-w-[160px] flex justify-between items-center h-[42px] hover:text-white transition-all">
@@ -105,16 +116,6 @@ export default function ProcessedOrders() {
                                 </div>
                             </>
                         )}
-                    </div>
-                    <div className="relative w-full sm:w-80">
-                        <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
-                        <input 
-                            type="text" 
-                            placeholder="Caută în toate coloanele..." 
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-[#13141a] border border-white/10 text-white text-sm rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder-gray-500 shadow-inner h-[42px]"
-                        />
                     </div>
                     
                     <div className="relative">
