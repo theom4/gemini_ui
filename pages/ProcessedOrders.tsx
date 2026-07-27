@@ -14,6 +14,8 @@ export default function ProcessedOrders() {
     const [editVal, setEditVal] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedType, setSelectedType] = useState('Toate');
+    const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
 
     const handleSaveCell = async () => {
         if (!previewCell || !previewCell.rowId) return;
@@ -62,9 +64,10 @@ export default function ProcessedOrders() {
             .finally(() => setLoading(false));
     }, [selectedBrand]);
 
-    const columns = orders.length > 0 ? Object.keys(orders[0]).filter(col => col !== 'user_id' && col !== 'store_name' && col !== 'id' && col !== 'created_at' && col !== 'cerere' && col !== 'cerere_adresa' && col !== 'cerere_upsell' && col !== 'istoric') : [];
+    const columns = orders.length > 0 ? Object.keys(orders[0]).filter(col => col !== 'user_id' && col !== 'store_name' && col !== 'id' && col !== 'created_at' && col !== 'cerere' && col !== 'cerere_adresa' && col !== 'cerere_upsell' && col !== 'istoric' && col !== 'product_id' && col !== 'tags') : [];
 
     const filteredOrders = orders.filter(row => {
+        if (selectedType !== 'Toate' && row.type !== selectedType.toLowerCase()) return false;
         if (!searchQuery) return true;
         return columns.some(col => {
             const val = row[col];
@@ -111,6 +114,28 @@ export default function ProcessedOrders() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full bg-[#13141a] border border-white/10 text-white text-sm rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder-gray-500 shadow-inner h-[42px]"
                         />
+                    </div>
+                    
+                    <div className="relative">
+                        <button onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
+                            className="btn-3d-secondary px-5 py-2.5 rounded-xl text-sm min-w-[120px] flex justify-between items-center h-[42px] hover:text-white transition-all">
+                            <span className="capitalize">{selectedType}</span>
+                            <span className={`material-icons-round transition-transform ${isTypeDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                        </button>
+                        {isTypeDropdownOpen && (
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setIsTypeDropdownOpen(false)} />
+                                <div className="absolute right-0 top-full mt-2 w-full rounded-xl bg-[#13141a] border border-white/5 shadow-xl z-50 overflow-hidden backdrop-blur-md">
+                                    {['Toate', 'draft', 'comanda'].map(typeOption => (
+                                        <button key={typeOption} onClick={() => { setSelectedType(typeOption); setIsTypeDropdownOpen(false); }}
+                                            className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2 capitalize">
+                                            <span className={`w-1.5 h-1.5 rounded-full ${selectedType === typeOption ? 'bg-primary shadow-[0_0_8px_rgba(0,210,255,0.4)]' : 'bg-transparent border border-gray-600'}`} />
+                                            {typeOption}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
