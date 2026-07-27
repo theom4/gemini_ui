@@ -17,6 +17,8 @@ export default function ProcessedOrders() {
     const [selectedType, setSelectedType] = useState('Toate');
     const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
     const [viewOrder, setViewOrder] = useState<any>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 50;
 
     const handleSaveCell = async () => {
         if (!previewCell || !previewCell.rowId) return;
@@ -65,7 +67,7 @@ export default function ProcessedOrders() {
             .finally(() => setLoading(false));
     }, [selectedBrand]);
 
-    const columns = orders.length > 0 ? Object.keys(orders[0]).filter(col => col !== 'user_id' && col !== 'store_name' && col !== 'id' && col !== 'created_at' && col !== 'cerere' && col !== 'cerere_adresa' && col !== 'cerere_upsell' && col !== 'istoric' && col !== 'product_id' && col !== 'tags' && col !== 'client_personal_id' && col !== 'email' && col !== 'produse' && col !== 'adresa' && col !== 'order_id' && col !== 'notes' && col !== 'oras' && col !== 'judet' && col !== 'prooduse') : [];
+    const columns = orders.length > 0 ? Object.keys(orders[0]).filter(col => col !== 'user_id' && col !== 'store_name' && col !== 'id' && col !== 'created_at' && col !== 'cerere' && col !== 'cerere_adresa' && col !== 'cerere_upsell' && col !== 'istoric' && col !== 'product_id' && col !== 'tags' && col !== 'client_personal_id' && col !== 'email' && col !== 'produse' && col !== 'adresa' && col !== 'order_id' && col !== 'notes' && col !== 'oras' && col !== 'judet' && col !== 'prooduse' && col !== 'health' && col !== 'link') : [];
 
     const filteredOrders = orders.filter(row => {
         if (selectedType !== 'Toate' && row.type !== selectedType.toLowerCase()) return false;
@@ -76,6 +78,14 @@ export default function ProcessedOrders() {
             return String(val).toLowerCase().includes(searchQuery.toLowerCase());
         });
     });
+
+    // Reset page on search or type change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, selectedType, selectedBrand]);
+
+    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+    const paginatedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     return (
         <div className="space-y-6 relative">
@@ -160,10 +170,10 @@ export default function ProcessedOrders() {
                                 </tr>
                             </thead>
                             <tbody className="text-base divide-y divide-gray-800/50">
-                                {filteredOrders.length === 0 && (
+                                {paginatedOrders.length === 0 && (
                                     <tr><td colSpan={columns.length || 1} className="py-12 text-center text-gray-600 text-sm">Niciun rezultat găsit.</td></tr>
                                 )}
-                                {filteredOrders.map((row, i) => (
+                                {paginatedOrders.map((row, i) => (
                                     <tr key={i} className="group hover:bg-white/5 transition-colors">
                                         {columns.map(col => {
                                             const val = row[col];
@@ -199,6 +209,31 @@ export default function ProcessedOrders() {
                     </div>
                 )}
             </div>
+
+            {/* Pagination Controls */}
+            {!loading && totalPages > 1 && (
+                <div className="flex items-center justify-between px-4 py-3 bg-[#13141a] border border-white/5 rounded-2xl shadow-sm">
+                    <div className="text-sm text-gray-400">
+                        Afișare <span className="font-medium text-white">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="font-medium text-white">{Math.min(currentPage * itemsPerPage, filteredOrders.length)}</span> din <span className="font-medium text-white">{filteredOrders.length}</span> comenzi
+                    </div>
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                            className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-white/5 hover:bg-white/10 text-white"
+                        >
+                            Înapoi
+                        </button>
+                        <button 
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                            className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-white/5 hover:bg-white/10 text-white"
+                        >
+                            Înainte
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Cell Preview Modal */}
             {previewCell && (
