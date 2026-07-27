@@ -67,6 +67,15 @@ export default function ProcessedOrders() {
             .finally(() => setLoading(false));
     }, [selectedBrand]);
 
+    const COLUMN_LABELS: Record<string, string> = {
+        phone: 'Telefon',
+        phone_number: 'Telefon',
+        value: 'Total',
+        type: 'Tip',
+        name: 'Client',
+        sunat_count: 'Apeluri date'
+    };
+
     const columns = orders.length > 0 ? Object.keys(orders[0]).filter(col => col !== 'user_id' && col !== 'store_name' && col !== 'id' && col !== 'created_at' && col !== 'cerere' && col !== 'cerere_adresa' && col !== 'cerere_upsell' && col !== 'istoric' && col !== 'product_id' && col !== 'tags' && col !== 'client_personal_id' && col !== 'email' && col !== 'produse' && col !== 'adresa' && col !== 'order_id' && col !== 'notes' && col !== 'oras' && col !== 'judet' && col !== 'prooduse' && col !== 'health' && col !== 'link') : [];
 
     const filteredOrders = orders.filter(row => {
@@ -164,7 +173,7 @@ export default function ProcessedOrders() {
                             <thead>
                                 <tr className="text-sm text-gray-500 uppercase tracking-widest border-b border-gray-800/50 bg-surface-dark-lighter/30">
                                     {columns.map(col => (
-                                        <th key={col} className="py-4 px-6 font-medium whitespace-nowrap">{col}</th>
+                                        <th key={col} className="py-4 px-6 font-semibold whitespace-nowrap text-[13px]">{COLUMN_LABELS[col] || col}</th>
                                     ))}
                                     <th className="py-4 px-6 font-medium whitespace-nowrap text-right">Acțiuni</th>
                                 </tr>
@@ -176,8 +185,17 @@ export default function ProcessedOrders() {
                                 {paginatedOrders.map((row, i) => (
                                     <tr key={i} className="group hover:bg-white/5 transition-colors">
                                         {columns.map(col => {
-                                            const val = row[col];
-                                            const strVal = val === null || val === undefined ? '-' : String(val);
+                                            let strVal = val === null || val === undefined ? '-' : String(val);
+                                            
+                                            if (col === 'phone' || col === 'phone_number') {
+                                                const cleaned = strVal.replace(/\s+/g, '');
+                                                if (cleaned.startsWith('+40') && cleaned.length === 12) {
+                                                    strVal = `+40 ${cleaned.slice(3, 6)} ${cleaned.slice(6, 9)} ${cleaned.slice(9)}`;
+                                                } else if (cleaned.startsWith('07') && cleaned.length === 10) {
+                                                    strVal = `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
+                                                }
+                                            }
+                                            
                                             const truncated = strVal.length > 50 ? strVal.substring(0, 50) + '...' : strVal;
                                             return (
                                                 <td 
@@ -186,7 +204,7 @@ export default function ProcessedOrders() {
                                                         setPreviewCell({ col, val: strVal, rowId: row.id });
                                                         setEditVal(strVal === '-' ? '' : strVal);
                                                     }}
-                                                    className="py-4 px-6 text-gray-300 whitespace-nowrap font-mono text-[15px] cursor-pointer hover:bg-white/10 transition-colors" 
+                                                    className="py-4 px-6 text-white whitespace-nowrap font-semibold text-base cursor-pointer hover:bg-white/10 transition-colors" 
                                                     title={strVal}
                                                 >
                                                     {truncated}
