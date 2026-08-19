@@ -42,14 +42,13 @@ export default function StatisticiProduse() {
     }, [userStores, selectedBrand]);
 
     useEffect(() => {
-        if (!profile?.id || !selectedBrand) return;
+        if (!selectedBrand) return;
         
         setLoading(true);
         supabase
             .from('products')
             .select('*')
-            .eq('user_id', profile.id)
-            .eq('store', selectedBrand)
+            .ilike('store', selectedBrand)
             .then(({ data, error }) => {
                 if (error) {
                     console.error('Error fetching products:', error);
