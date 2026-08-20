@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import StoreSelector from '../components/StoreSelector';
 
 const ControlRobotPage = () => {
-    const { profile } = useAuth();
+    const { profile, session } = useAuth();
     const userStores = profile?.stores || [];
     const [selectedBrand, setSelectedBrand] = useState<string>('');
     const [orderNumber, setOrderNumber] = useState('');
@@ -65,9 +65,7 @@ const ControlRobotPage = () => {
         try {
             await fetch(`https://n8n.voisero.info/webhook/control-robot-${selectedBrand.toLowerCase().replace(/\s+/g, '')}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
                 body: JSON.stringify({
                     shop: selectedBrand,
                     order_number: orderNumber,
@@ -102,9 +100,7 @@ const ControlRobotPage = () => {
         try {
             await fetch(`https://n8n.voisero.info/webhook/control-robot-${selectedBrand.toLowerCase().replace(/\s+/g, '')}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
                 body: JSON.stringify({
                     shop: selectedBrand,
                     phone_number: phoneNumber,
@@ -131,9 +127,7 @@ const ControlRobotPage = () => {
         try {
             await fetch('https://n8n.voisero.info/webhook/product-control-vt', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
                 body: JSON.stringify({
                     shop: selectedBrand,
                     product_id: productId,
@@ -160,9 +154,7 @@ const ControlRobotPage = () => {
         try {
             await fetch('https://n8n.voisero.info/webhook/product-control-vt', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
                 body: JSON.stringify({
                     shop: selectedBrand,
                     product_id: productId,
@@ -188,7 +180,7 @@ const ControlRobotPage = () => {
         try {
             await fetch('https://n8n.voisero.info/webhook/ai-bot-call-control', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
                 body: JSON.stringify({
                     shop: selectedBrand,
                     action: 'stop_all',
@@ -212,7 +204,7 @@ const ControlRobotPage = () => {
         try {
             await fetch('https://n8n.voisero.info/webhook/ai-bot-call-control', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
                 body: JSON.stringify({
                     shop: selectedBrand,
                     action: 'stop_drafts',
@@ -236,7 +228,7 @@ const ControlRobotPage = () => {
         try {
             await fetch('https://n8n.voisero.info/webhook/ai-bot-call-control', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
                 body: JSON.stringify({
                     shop: selectedBrand,
                     action: 'stop_comenzi',
