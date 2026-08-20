@@ -144,9 +144,12 @@ export const TelnyxProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     useEffect(() => {
-        const username = import.meta.env?.VITE_TELNYX_SIP_USERNAME ?? 'vitadomus';
-        const password = import.meta.env?.VITE_TELNYX_SIP_PASSWORD ?? 'vitadomus';
-        if (!username || !password) return;
+        const username = import.meta.env.VITE_TELNYX_SIP_USERNAME;
+        const password = import.meta.env.VITE_TELNYX_SIP_PASSWORD;
+        if (!username || !password) {
+            console.warn("Credențiale SIP Telnyx lipsă — apelurile sunt dezactivate");
+            return;
+        }
 
         import('@telnyx/webrtc').then(({ TelnyxRTC }) => {
             const client = new TelnyxRTC({ login: username, password: password });
