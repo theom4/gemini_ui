@@ -54,7 +54,6 @@ async function fetchRecordingsByDateRange(
     let query = supabase
       .from('call_recordings')
       .select('id,user_id,created_at,duration_seconds,recording_url,phone_number,direction,store_name,client_personal_id,recording_transcript,status,type', { count: 'exact' })
-      .eq('user_id', cleanUserId)
       .eq('store_name', cleanStoreName);
 
     if (searchQuery && searchQuery.trim() !== '') {

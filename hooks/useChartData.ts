@@ -37,14 +37,12 @@ async function fetchChartData(userId: string, storeName: string, period: ChartPe
   const { data: recordings, error: recError } = await supabase
     .from('call_recordings')
     .select('created_at')
-    .eq('user_id', userId)
     .eq('store_name', storeName)
     .gte('created_at', startIso);
 
   const { data: metrics, error: metError } = await supabase
     .from('call_metrics')
     .select('created_at, comenzi_confirmate, cosuri_abandonate, vanzari_generate')
-    .eq('user_id', userId)
     .eq('store_name', storeName)
     .gte('created_at', startIso);
 
