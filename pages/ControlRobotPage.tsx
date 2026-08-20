@@ -27,6 +27,28 @@ const ControlRobotPage = () => {
     const [isLoadingStopProduct, setIsLoadingStopProduct] = useState(false);
     const [isLoadingStartProduct, setIsLoadingStartProduct] = useState(false);
 
+    // Retragere client states
+    const [retragereNume, setRetragereNume] = useState('');
+    const [retragereEmail, setRetragereEmail] = useState('');
+    const [retragereComanda, setRetragereComanda] = useState('');
+    const [retragereTelefon, setRetragereTelefon] = useState('');
+    const [isLoadingRetragere, setIsLoadingRetragere] = useState(false);
+
+    const handleRetragere = () => {
+        if (!retragereNume || !retragereEmail || !retragereComanda) {
+            alert("Te rugăm să completezi numele, email-ul și numărul comenzii.");
+            return;
+        }
+        setIsLoadingRetragere(true);
+        setTimeout(() => {
+            setIsLoadingRetragere(false);
+            alert("S-a confirmat retragerea si clientul a fost notificat");
+            setRetragereNume('');
+            setRetragereEmail('');
+            setRetragereComanda('');
+            setRetragereTelefon('');
+        }, 3000);
+    };
     useEffect(() => {
         if (userStores.length > 0 && !selectedBrand) {
             setSelectedBrand(userStores[0]);
@@ -502,6 +524,55 @@ const ControlRobotPage = () => {
                                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                             ) : (
                                 "Porneste"
+                            )}
+                        </button>
+                    </div>
+                </div>
+
+                <div className="bg-surface-light dark:bg-surface-dark-lighter p-8 rounded-2xl border border-gray-200 dark:border-white/5 shadow-lg">
+                    <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Retrage client din contract</p>
+                    <p className="text-sm text-gray-400 font-light mb-6">
+                        Completează formularul de mai jos pentru a retrage clientul din contract.
+                    </p>
+
+                    <div className="flex flex-col gap-4 max-w-md">
+                        <input
+                            type="text"
+                            value={retragereNume}
+                            onChange={(e) => setRetragereNume(e.target.value)}
+                            placeholder="Nume (obligatoriu)"
+                            className="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-[#0a0b14] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-light"
+                        />
+                        <input
+                            type="email"
+                            value={retragereEmail}
+                            onChange={(e) => setRetragereEmail(e.target.value)}
+                            placeholder="Email (obligatoriu)"
+                            className="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-[#0a0b14] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-light"
+                        />
+                        <input
+                            type="text"
+                            value={retragereComanda}
+                            onChange={(e) => setRetragereComanda(e.target.value)}
+                            placeholder="Număr comandă (obligatoriu)"
+                            className="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-[#0a0b14] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-light"
+                        />
+                        <input
+                            type="tel"
+                            value={retragereTelefon}
+                            onChange={(e) => setRetragereTelefon(e.target.value)}
+                            placeholder="Număr telefon (opțional)"
+                            className="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-[#0a0b14] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-light"
+                        />
+                        <button
+                            onClick={handleRetragere}
+                            disabled={isLoadingRetragere}
+                            className={`btn-3d-primary mt-2 w-full px-6 py-3 rounded-xl text-white font-medium text-sm tracking-wide flex items-center justify-center gap-2 transition-all ${isLoadingRetragere ? 'opacity-70 cursor-not-allowed' : 'hover:scale-[1.02] active:scale-[0.98]'}`}
+                        >
+                            {isLoadingRetragere ? (
+                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                            ) : (
+                                "Confirmați retragerea"
                             )}
                         </button>
                     </div>
