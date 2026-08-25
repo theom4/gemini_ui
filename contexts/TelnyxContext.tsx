@@ -180,8 +180,21 @@ export const TelnyxProvider = ({ children }: { children: React.ReactNode }) => {
                         setIncomingCall(null);
                         
                         if (audioRef.current && call.remoteStream) {
+                            console.log('[Telnyx] 🔊 Attaching remote stream to audio element', {
+                                tracks: call.remoteStream.getTracks().map((t: any) => ({ kind: t.kind, enabled: t.enabled, readyState: t.readyState })),
+                            });
                             audioRef.current.srcObject = call.remoteStream;
-                            audioRef.current.play().catch(console.error);
+                            audioRef.current.volume = 1.0;
+                            audioRef.current.play().then(() => {
+                                console.log('[Telnyx] ✅ Audio playback started successfully');
+                            }).catch((e: any) => {
+                                console.error('[Telnyx] ❌ Audio playback failed:', e);
+                            });
+                        } else {
+                            console.warn('[Telnyx] ⚠️ Missing audioRef or remoteStream', { 
+                                hasAudioRef: !!audioRef.current, 
+                                hasRemoteStream: !!call.remoteStream 
+                            });
                         }
                     } 
                     else if (call.state === 'destroy' || call.state === 'hangup' || call.state === 'purge') {
