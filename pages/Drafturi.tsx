@@ -451,7 +451,7 @@ const Drafturi = () => {
         if (callState === 'idle' || callState === 'rejected') {
             if (!isReady) { alert('Conexiunea la serverul de telefonie nu a reușit. Contactați administratorul.'); return; }
             try { await navigator.mediaDevices.getUserMedia({ audio: true }); } catch { alert('Este nevoie de acces la microfon pentru a suna!'); return; }
-            const callerId = import.meta.env?.VITE_TELNYX_CALLER_ID ?? '+40751064714';
+            const callerId = import.meta.env.VITE_TELNYX_CALLER_ID || undefined;
             const cleanDestination = phoneNumber.replace(/\s/g, '');
             makeCall(cleanDestination, callerId);
         } else {

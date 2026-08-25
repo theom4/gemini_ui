@@ -223,12 +223,18 @@ export const TelnyxProvider = ({ children }: { children: React.ReactNode }) => {
 
     const makeCall = (destination: string, callerId?: string) => {
         if (!clientRef.current) return;
-        const call = clientRef.current.newCall({
+        
+        const callOptions: any = {
             destinationNumber: destination,
-            callerNumber: callerId || 'Unknown',
             audio: true,
             video: false,
-        });
+        };
+        
+        if (callerId) {
+            callOptions.callerNumber = callerId;
+        }
+
+        const call = clientRef.current.newCall(callOptions);
         setActiveCall(call);
         setCallState('calling');
     };
