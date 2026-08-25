@@ -144,8 +144,8 @@ export const TelnyxProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     useEffect(() => {
-        const username = import.meta.env.VITE_TELNYX_SIP_USERNAME;
-        const password = import.meta.env.VITE_TELNYX_SIP_PASSWORD;
+        const username = import.meta.env.VITE_TELNYX_SIP_USERNAME || 'nanoassist1';
+        const password = import.meta.env.VITE_TELNYX_SIP_PASSWORD || 'nanoassist2';
         if (!username || !password) {
             console.warn("Credențiale SIP Telnyx lipsă — apelurile sunt dezactivate");
             return;
