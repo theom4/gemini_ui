@@ -159,6 +159,7 @@ export const TelnyxProvider = ({ children }: { children: React.ReactNode }) => {
             
             client.on('telnyx.notification', (notification: any) => {
                 const call = notification.call;
+                console.log('[Telnyx] 📡 Notification:', notification.type, 'Call state:', call?.state, 'Direction:', call?.direction, 'Cause:', call?.cause, 'CauseCode:', call?.causeCode, 'SIP Code:', call?.sipCode);
                 if (notification.type === 'callUpdate') {
                     
                     if (call.state === 'ringing') {
