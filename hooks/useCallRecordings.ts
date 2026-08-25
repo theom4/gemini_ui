@@ -25,7 +25,8 @@ async function fetchRecordingsByDateRange(
   page: number,
   pageSize: number,
   searchQuery: string = '',
-  statusFilter: string = 'all'
+  statusFilter: string = 'all',
+  typeFilter: string = 'all'
 ): Promise<{ data: CallRecording[], count: number }> {
   const cleanUserId = userId?.trim();
   const cleanStoreName = storeName?.trim();
@@ -42,7 +43,8 @@ async function fetchRecordingsByDateRange(
     page,
     pageSize,
     search: searchQuery || 'none',
-    status: statusFilter
+    status: statusFilter,
+    type: typeFilter
   });
 
   const startTimestamp = `${startDate}T00:00:00`;
@@ -68,6 +70,11 @@ async function fetchRecordingsByDateRange(
     } else {
       query = query.gte('created_at', startTimestamp)
         .lte('created_at', endTimestamp);
+    }
+
+    if (typeFilter && typeFilter !== 'all') {
+      const dbType = typeFilter === 'draft' ? 'draft' : 'comanda';
+      query = query.eq('type', dbType);
     }
 
     if (statusFilter && statusFilter !== 'all') {
@@ -106,15 +113,16 @@ export const useCallRecordingsOptimized = (
   page: number = 1,
   pageSize: number = 10,
   searchQuery: string = '',
-  statusFilter: string = 'all'
+  statusFilter: string = 'all',
+  typeFilter: string = 'all'
 ) => {
   const queryClient = useQueryClient();
   const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const query = useQuery({
-    queryKey: ['call-recordings', 'range', userId, storeName, startDate, endDate, page, pageSize, searchQuery, statusFilter],
-    queryFn: () => fetchRecordingsByDateRange(userId, storeName, startDate, endDate, page, pageSize, searchQuery, statusFilter),
+    queryKey: ['call-recordings', 'range', userId, storeName, startDate, endDate, page, pageSize, searchQuery, statusFilter, typeFilter],
+    queryFn: () => fetchRecordingsByDateRange(userId, storeName, startDate, endDate, page, pageSize, searchQuery, statusFilter, typeFilter),
     enabled: !!userId && !!storeName && (!!searchQuery || (!!startDate && !!endDate)),
     staleTime: 60_000,
     placeholderData: keepPreviousData,

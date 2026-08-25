@@ -31,6 +31,9 @@ export default function CallRecordings() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
     const statusDropdownRef = useRef<HTMLDivElement>(null);
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+    const typeDropdownRef = useRef<HTMLDivElement>(null);
     const [page, setPage] = useState(1);
     const pageSize = 10;
     const [selectedRecording, setSelectedRecording] = useState<CallRecording | null>(null);
@@ -177,7 +180,7 @@ export default function CallRecordings() {
     // Reset pagination on filter change
     useEffect(() => {
         setPage(1);
-    }, [selectedBrand, startDate, endDate, activeSearch, statusFilter]);
+    }, [selectedBrand, startDate, endDate, activeSearch, statusFilter, typeFilter]);
 
     // Close modal on Escape key
     useEffect(() => {
@@ -193,6 +196,9 @@ export default function CallRecordings() {
             if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
                 setIsStatusDropdownOpen(false);
             }
+            if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target as Node)) {
+                setIsTypeDropdownOpen(false);
+            }
         }
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -206,7 +212,8 @@ export default function CallRecordings() {
         page,
         pageSize,
         activeSearch,
-        statusFilter
+        statusFilter,
+        typeFilter
     );
 
     // Sync URL with selectedRecording state
@@ -411,7 +418,48 @@ export default function CallRecordings() {
                                 <th className="py-4 px-6 font-medium">Telefon</th>
                                 <th className="py-4 px-6 font-medium">Durată</th>
                                 <th className="py-4 px-6 font-medium">Înregistrare</th>
-                                <th className="py-4 px-6 font-medium">TIP</th>
+                                <th className="py-4 px-6 font-medium">
+                                    <div className="flex items-center gap-2">
+                                        <span>TIP</span>
+                                        <div className="relative" ref={typeDropdownRef}>
+                                            <button
+                                                onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
+                                                className="w-6 h-6 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center transition-colors"
+                                                title="Filtrează după tip"
+                                            >
+                                                <span className="material-icons-round text-sm">filter_list</span>
+                                            </button>
+                                            {isTypeDropdownOpen && (
+                                                <>
+                                                    <div className="fixed inset-0 z-40" onClick={() => setIsTypeDropdownOpen(false)}></div>
+                                                    <div className="absolute left-0 top-full mt-2 w-48 rounded-xl bg-[#13141a] border border-white/5 shadow-xl z-50 overflow-hidden backdrop-blur-md">
+                                                        <button
+                                                            onClick={() => { setTypeFilter('all'); setIsTypeDropdownOpen(false); }}
+                                                            className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                                                        >
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${typeFilter === 'all' ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.4)]' : 'bg-transparent border border-gray-600'}`}></span>
+                                                            Toate
+                                                        </button>
+                                                        <button
+                                                            onClick={() => { setTypeFilter('draft'); setIsTypeDropdownOpen(false); }}
+                                                            className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                                                        >
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${typeFilter === 'draft' ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.4)]' : 'bg-transparent border border-gray-600'}`}></span>
+                                                            Draft
+                                                        </button>
+                                                        <button
+                                                            onClick={() => { setTypeFilter('comanda'); setIsTypeDropdownOpen(false); }}
+                                                            className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                                                        >
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${typeFilter === 'comanda' ? 'bg-primary shadow-[0_0_8px_rgba(168,85,247,0.4)]' : 'bg-transparent border border-gray-600'}`}></span>
+                                                            Comanda
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </th>
                                 <th className="py-4 px-6 text-right font-medium">Acțiune</th>
                             </tr>
                         </thead>
