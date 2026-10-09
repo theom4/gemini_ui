@@ -29,6 +29,16 @@ export default function ProcessedOrders() {
     const [isCallingRobot, setIsCallingRobot] = useState(false);
     const [callFeedback, setCallFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+    // ── Call History State (Persisted in localStorage) ────────────────
+    const [callHistory, setCallHistory] = useState<any[]>(() => {
+        try {
+            return JSON.parse(localStorage.getItem('kordano_robot_calls_history') || '[]');
+        } catch {
+            return [];
+        }
+    });
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
     const handleCallRobot = async () => {
         const rawPhone = foundOrder?.phone_number || foundOrder?.phone || searchPhone;
         if (!rawPhone) {
@@ -64,6 +74,26 @@ export default function ProcessedOrders() {
 
             if (response.ok) {
                 setCallFeedback({ type: 'success', message: 'Comanda de apelare a fost trimisă cu succes către robot!' });
+                
+                // Salvează în istoricul local
+                const newCallItem = {
+                    name: foundOrder?.name || foundOrder?.client_name || 'Client',
+                    phone: cleanPhone,
+                    orderId: foundOrder?.order_id || foundOrder?.id || foundOrder?.order_number || '',
+                    total: foundOrder?.value || foundOrder?.total || '',
+                    time: new Date().toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
+                    date: new Date().toLocaleDateString('ro-RO')
+                };
+
+                setCallHistory(prev => {
+                    const updated = [newCallItem, ...prev].slice(0, 50);
+                    try {
+                        localStorage.setItem('kordano_robot_calls_history', JSON.stringify(updated));
+                    } catch (e) {
+                        console.error('Eroare salvare istoric apeluri:', e);
+                    }
+                    return updated;
+                });
             } else {
                 setCallFeedback({ type: 'error', message: `Eroare server robot (${response.status}).` });
             }
@@ -239,6 +269,77 @@ export default function ProcessedOrders() {
                 </div>
 
                 <div className="flex flex-wrap gap-3 items-center justify-end">
+                    {/* Mini popup cu istoric comenzi trimise să sune */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+                            className="btn-3d-secondary px-3.5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 h-[42px] hover:text-white transition-all shadow-sm"
+                            title="Istoric comenzi trimise la robot"
+                        >
+                            <span className="material-icons-round text-base text-gray-400">history</span>
+                            <span className="hidden sm:inline">Istoric</span>
+                            {callHistory.length > 0 && (
+                                <span className="bg-primary/20 text-primary border border-primary/30 text-[11px] font-bold px-1.5 py-0.2 rounded-full min-w-[20px] text-center">
+                                    {callHistory.length}
+                                </span>
+                            )}
+                        </button>
+
+                        {isHistoryOpen && (
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setIsHistoryOpen(false)} />
+                                <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl bg-[#13141a] border border-white/10 shadow-2xl z-50 overflow-hidden backdrop-blur-md p-4 space-y-3 animate-fade-in">
+                                    <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                                        <div className="flex items-center gap-2">
+                                            <span className="material-icons-round text-primary text-base">history</span>
+                                            <h4 className="text-sm font-semibold text-white">Comenzi trimise la robot</h4>
+                                        </div>
+                                        {callHistory.length > 0 && (
+                                            <button
+                                                onClick={() => {
+                                                    setCallHistory([]);
+                                                    localStorage.removeItem('kordano_robot_calls_history');
+                                                }}
+                                                className="text-[11px] text-gray-400 hover:text-red-400 transition-colors"
+                                            >
+                                                Șterge
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {callHistory.length === 0 ? (
+                                        <div className="py-6 text-center text-xs text-gray-500">
+                                            Nicio comandă trimisă la robot încă.
+                                        </div>
+                                    ) : (
+                                        <div className="max-h-64 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                                            {callHistory.map((item, idx) => (
+                                                <div key={idx} className="bg-white/[0.03] border border-white/5 rounded-xl p-2.5 text-xs space-y-1 hover:bg-white/[0.05] transition-colors">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="font-semibold text-white truncate max-w-[180px]">
+                                                            {item.name || 'Client'}
+                                                        </span>
+                                                        <span className="text-[10px] text-gray-400">{item.time}</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between text-[11px]">
+                                                        <span className="font-mono text-gray-300">{item.phone}</span>
+                                                        <span className="text-emerald-400 font-medium">
+                                                            {item.total ? `${item.total} lei` : ''}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1 text-[10px] text-emerald-400 pt-0.5">
+                                                        <span className="material-icons-round text-[13px]">check_circle</span>
+                                                        <span>Trimis la robot</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </div>
+
                     <button
                         onClick={() => {
                             setIsSearchModalOpen(true);
