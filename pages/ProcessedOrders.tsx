@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import { useTelnyx } from '../contexts/TelnyxContext';
 
 export default function ProcessedOrders() {
     const { profile, session } = useAuth();
@@ -21,54 +20,58 @@ export default function ProcessedOrders() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 30;
 
-    // ── Search Order Webhook & Call Modal State ───────────────────────
-    const { isReady, callState, makeCall, hangup, isMuted, toggleMute } = useTelnyx();
+    // ── Search Order Webhook & Robot Call Modal State ─────────────────
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
     const [searchPhone, setSearchPhone] = useState('');
     const [isSearchingOrder, setIsSearchingOrder] = useState(false);
     const [searchFeedback, setSearchFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [foundOrder, setFoundOrder] = useState<any>(null);
-    const [callDurationSeconds, setCallDurationSeconds] = useState(0);
+    const [isCallingRobot, setIsCallingRobot] = useState(false);
+    const [callFeedback, setCallFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-    useEffect(() => {
-        let interval: any;
-        if (callState === 'active') {
-            interval = setInterval(() => setCallDurationSeconds(prev => prev + 1), 1000);
-        } else {
-            setCallDurationSeconds(0);
+    const handleCallRobot = async () => {
+        const rawPhone = foundOrder?.phone_number || foundOrder?.phone || searchPhone;
+        if (!rawPhone) {
+            alert('Numărul de telefon lipsește.');
+            return;
         }
-        return () => clearInterval(interval);
-    }, [callState]);
 
-    const formatCallTimer = (sec: number) => {
-        const m = Math.floor(sec / 60);
-        const s = sec % 60;
-        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    };
+        setIsCallingRobot(true);
+        setCallFeedback(null);
 
-    const handleCallCustomer = async (targetPhone?: string) => {
-        const rawPhone = targetPhone || foundOrder?.phone_number || foundOrder?.phone || searchPhone;
-        if (!rawPhone) return;
+        try {
+            const cleanPhone = rawPhone.trim().replace(/\s+/g, '');
+            const webhookUrl = 'https://n8n.voisero.info/webhook/control-robot-kordanostore';
 
-        if (callState === 'idle' || callState === 'rejected') {
-            if (!isReady) {
-                alert('Conexiunea la telefonie Telnyx nu este gata. Vă rugăm să așteptați câteva secunde.');
-                return;
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token || ''}`
+                },
+                body: JSON.stringify({
+                    shop: selectedBrand || 'Kordanostore',
+                    store: selectedBrand || 'Kordanostore',
+                    phone_number: cleanPhone,
+                    phone: cleanPhone,
+                    order_number: foundOrder?.order_id || foundOrder?.id || foundOrder?.order_number || '',
+                    order_id: foundOrder?.order_id || foundOrder?.id || '',
+                    tip_comanda: foundOrder?.type || 'comanda',
+                    type: foundOrder?.type || 'comanda',
+                    action: 'call'
+                })
+            });
+
+            if (response.ok) {
+                setCallFeedback({ type: 'success', message: 'Comanda de apelare a fost trimisă cu succes către robot!' });
+            } else {
+                setCallFeedback({ type: 'error', message: `Eroare server robot (${response.status}).` });
             }
-            try {
-                await navigator.mediaDevices.getUserMedia({ audio: true });
-            } catch {
-                alert('Este nevoie de acces la microfon pentru a suna!');
-                return;
-            }
-            const callerId = import.meta.env.VITE_TELNYX_CALLER_ID || '+40775393060';
-            let clean = rawPhone.replace(/\s+/g, '');
-            if (clean.startsWith('07') && clean.length === 10) {
-                clean = '+40' + clean.substring(1);
-            }
-            makeCall(clean, callerId);
-        } else {
-            hangup();
+        } catch (error: any) {
+            console.error('Eroare webhook control-robot:', error);
+            setCallFeedback({ type: 'error', message: 'Eroare la conectarea cu robotul n8n.' });
+        } finally {
+            setIsCallingRobot(false);
         }
     };
 
@@ -597,27 +600,6 @@ export default function ProcessedOrders() {
                             </form>
                         ) : (
                             <div className="space-y-4">
-                                {/* Stare Apel Telnyx (dacă este activ / se apelează) */}
-                                {(callState === 'calling' || callState === 'active' || callState === 'rejected') && (
-                                    <div className="flex items-center justify-center py-1">
-                                        {callState === 'active' ? (
-                                            <div className="text-xs font-bold text-emerald-400 font-mono tracking-widest bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full animate-pulse flex items-center gap-2">
-                                                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                                                Apel în desfășurare: {formatCallTimer(callDurationSeconds)}
-                                            </div>
-                                        ) : callState === 'rejected' ? (
-                                            <div className="text-xs font-bold uppercase px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400">
-                                                Apel respins
-                                            </div>
-                                        ) : (
-                                            <div className="text-xs font-bold uppercase px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 animate-pulse flex items-center gap-2">
-                                                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                                                Se apelează...
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
                                 {/* Card Detalii Comandă */}
                                 <div className="bg-[#1a1b23] border border-white/10 rounded-2xl p-4 space-y-3">
                                     <div className="flex items-center justify-between pb-2 border-b border-white/5">
@@ -665,41 +647,40 @@ export default function ProcessedOrders() {
                                     )}
                                 </div>
 
-                                {/* Buton Sună Acum / Închide apelul */}
-                                <div className="flex items-center gap-3 pt-1">
+                                {/* Feedback Apel Robot */}
+                                {callFeedback && (
+                                    <div className={`p-3 rounded-xl text-xs flex items-center gap-2 border ${
+                                        callFeedback.type === 'success' 
+                                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                                            : 'bg-red-500/10 border-red-500/30 text-red-400'
+                                    }`}>
+                                        <span className="material-icons-round text-base">
+                                            {callFeedback.type === 'success' ? 'check_circle' : 'error'}
+                                        </span>
+                                        <span>{callFeedback.message}</span>
+                                    </div>
+                                )}
+
+                                {/* Buton Sună Acum (Webhook Robot) */}
+                                <div className="pt-1">
                                     <button
                                         type="button"
-                                        onClick={() => handleCallCustomer(foundOrder.phone_number || foundOrder.phone || searchPhone)}
-                                        className={`h-12 px-6 rounded-xl flex items-center justify-center gap-2 font-bold transition-all active:scale-95 flex-1 shadow-lg ${
-                                            (callState === 'idle' || callState === 'rejected')
-                                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
-                                                : 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/20'
-                                        }`}
+                                        onClick={handleCallRobot}
+                                        disabled={isCallingRobot}
+                                        className="btn-3d-primary w-full h-12 rounded-xl flex items-center justify-center gap-2 font-bold transition-all active:scale-95 shadow-lg text-white disabled:opacity-50"
                                     >
-                                        <span className="material-icons-round text-xl">
-                                            {(callState === 'idle' || callState === 'rejected') ? 'call' : 'call_end'}
-                                        </span>
-                                        <span>
-                                            {(callState === 'idle' || callState === 'rejected') ? 'Sună acum' : 'Închide apelul'}
-                                        </span>
+                                        {isCallingRobot ? (
+                                            <>
+                                                <span className="material-icons-round animate-spin text-xl">autorenew</span>
+                                                <span>Se inițiază apelul...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="material-icons-round text-xl">call</span>
+                                                <span>Sună acum</span>
+                                            </>
+                                        )}
                                     </button>
-
-                                    {callState === 'active' && (
-                                        <button
-                                            type="button"
-                                            onClick={toggleMute}
-                                            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all border ${
-                                                isMuted
-                                                    ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
-                                                    : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
-                                            }`}
-                                            title={isMuted ? 'Activează microfon' : 'Oprește microfon'}
-                                        >
-                                            <span className="material-icons-round text-lg">
-                                                {isMuted ? 'mic_off' : 'mic'}
-                                            </span>
-                                        </button>
-                                    )}
                                 </div>
 
                                 {/* Buton Caută alt număr / Închide */}
@@ -709,6 +690,7 @@ export default function ProcessedOrders() {
                                         onClick={() => {
                                             setFoundOrder(null);
                                             setSearchFeedback(null);
+                                            setCallFeedback(null);
                                         }}
                                         className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
                                     >
@@ -718,10 +700,10 @@ export default function ProcessedOrders() {
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            if (callState === 'calling' || callState === 'active') hangup();
                                             setIsSearchModalOpen(false);
                                             setFoundOrder(null);
                                             setSearchFeedback(null);
+                                            setCallFeedback(null);
                                         }}
                                         className="text-gray-400 hover:text-white transition-colors"
                                     >
