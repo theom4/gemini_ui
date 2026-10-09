@@ -515,7 +515,7 @@ export default function ProcessedOrders() {
                                     <span className="material-icons-round text-xl">phone_in_talk</span>
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-white leading-tight">Sună acum / Caută comandă</h3>
+                                    <h3 className="text-lg font-semibold text-white leading-tight">Caută comandă</h3>
                                     <p className="text-xs text-gray-400 mt-0.5">Introdu numărul de telefon al clientului</p>
                                 </div>
                             </div>
