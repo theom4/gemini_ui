@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { useTelnyx } from '../contexts/TelnyxContext';
 
 export default function ProcessedOrders() {
     const { profile } = useAuth();
@@ -19,6 +20,74 @@ export default function ProcessedOrders() {
     const [viewOrder, setViewOrder] = useState<any>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 30;
+
+    // ── Telnyx Call & Dialer Modal State ─────────────────────────────
+    const { isReady, callState, makeCall, hangup, isMuted, toggleMute } = useTelnyx();
+    const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+    const [dialNumber, setDialNumber] = useState('');
+    const [callDurationSeconds, setCallDurationSeconds] = useState(0);
+
+    useEffect(() => {
+        let interval: any;
+        if (callState === 'active') {
+            interval = setInterval(() => setCallDurationSeconds(prev => prev + 1), 1000);
+        } else {
+            setCallDurationSeconds(0);
+        }
+        return () => clearInterval(interval);
+    }, [callState]);
+
+    const formatDialerNumber = (val: string) => {
+        const clean = val.replace(/[^\d+]/g, '');
+        if (clean.startsWith('+40')) {
+            let res = clean.slice(0, 6);
+            if (clean.length > 6) res += ' ' + clean.slice(6, 9);
+            if (clean.length > 9) res += ' ' + clean.slice(9, 12);
+            if (clean.length > 12) res += ' ' + clean.slice(12);
+            return res;
+        }
+        if (clean.startsWith('0')) {
+            let res = clean.slice(0, 4);
+            if (clean.length > 4) res += ' ' + clean.slice(4, 7);
+            if (clean.length > 7) res += ' ' + clean.slice(7, 10);
+            if (clean.length > 10) res += ' ' + clean.slice(10);
+            return res;
+        }
+        return clean;
+    };
+
+    const handleKeypadPress = (key: string) => setDialNumber(prev => formatDialerNumber(prev + key));
+    const handleDeleteDigit = () => setDialNumber(prev => formatDialerNumber(prev.trimEnd().slice(0, -1)));
+
+    const handleCallAction = async () => {
+        if (!dialNumber) return;
+        if (callState === 'idle' || callState === 'rejected') {
+            if (!isReady) {
+                alert('Conexiunea la serverul de telefonie Telnyx nu este activă. Contactați administratorul.');
+                return;
+            }
+            try {
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch {
+                alert('Este nevoie de acces la microfon pentru a suna!');
+                return;
+            }
+            const callerId = import.meta.env.VITE_TELNYX_CALLER_ID || '+40775393060';
+            let clean = dialNumber.replace(/\s/g, '');
+            if (clean.startsWith('07') && clean.length === 10) {
+                clean = '+40' + clean.substring(1);
+            }
+            makeCall(clean, callerId);
+        } else {
+            hangup();
+        }
+    };
+
+    const formatCallTimer = (sec: number) => {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
 
     const handleSaveCell = async () => {
         if (!previewCell || !previewCell.rowId) return;
@@ -104,6 +173,15 @@ export default function ProcessedOrders() {
                 </div>
 
                 <div className="flex flex-wrap gap-3 items-center justify-end">
+                    <button
+                        onClick={() => setIsCallModalOpen(true)}
+                        className="btn-3d-primary px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 h-[42px] hover:text-white transition-all shadow-sm"
+                        title="Sună un număr de telefon"
+                    >
+                        <span className="material-icons-round text-base">call</span>
+                        Sună acum
+                    </button>
+
                     <div className="relative w-full sm:w-80">
                         <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
                         <input 
@@ -355,6 +433,126 @@ export default function ProcessedOrders() {
                             >
                                 Închide
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Sună Acum / Dialer */}
+            {isCallModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+                    <div className="bg-[#13141a] border border-white/10 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col p-6 animate-scale-up">
+                        {/* Header */}
+                        <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-4">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                                    <span className="material-icons-round text-lg">call</span>
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-semibold text-white leading-tight">Sună acum</h3>
+                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                        <span className={`w-1.5 h-1.5 rounded-full ${isReady ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]' : 'bg-red-500'}`} />
+                                        <span className="text-[11px] text-gray-400">{isReady ? 'Telefonie gata' : 'Telefonie deconectată'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    if (callState === 'calling' || callState === 'active') hangup();
+                                    setIsCallModalOpen(false);
+                                }}
+                                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center transition-colors"
+                            >
+                                <span className="material-icons-round text-lg">close</span>
+                            </button>
+                        </div>
+
+                        {/* Status badge slot */}
+                        <div className="h-7 flex items-center justify-center mb-3">
+                            {callState === 'active' ? (
+                                <div className="text-xs font-bold text-emerald-400 font-mono tracking-widest bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full animate-pulse">
+                                    {formatCallTimer(callDurationSeconds)}
+                                </div>
+                            ) : callState === 'rejected' ? (
+                                <div className="text-xs font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400">
+                                    Apel respins
+                                </div>
+                            ) : callState === 'calling' ? (
+                                <div className="text-xs font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 animate-pulse">
+                                    Apelează...
+                                </div>
+                            ) : null}
+                        </div>
+
+                        {/* Phone Display Input */}
+                        <div className="w-full mb-5 min-h-[52px] flex items-center justify-center relative bg-[#1a1b23] border border-white/5 rounded-2xl px-3 py-1.5">
+                            <input
+                                type="text"
+                                value={dialNumber}
+                                onChange={e => setDialNumber(formatDialerNumber(e.target.value))}
+                                className="w-full bg-transparent border-none outline-none text-center text-2xl font-bold text-white tracking-wide placeholder-gray-600"
+                                placeholder="07xx xxx xxx"
+                                autoFocus
+                            />
+                            {dialNumber && (
+                                <button onClick={handleDeleteDigit} className="absolute right-3 text-gray-400 hover:text-white transition-colors">
+                                    <span className="material-icons-round text-xl">backspace</span>
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Keypad */}
+                        <div className={`grid grid-cols-3 gap-3 w-full mb-6 transition-opacity ${callState !== 'idle' && callState !== 'rejected' ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
+                            {[
+                                { key: '1', sub: '' }, { key: '2', sub: 'ABC' }, { key: '3', sub: 'DEF' },
+                                { key: '4', sub: 'GHI' }, { key: '5', sub: 'JKL' }, { key: '6', sub: 'MNO' },
+                                { key: '7', sub: 'PQRS' }, { key: '8', sub: 'TUV' }, { key: '9', sub: 'WXYZ' },
+                                { key: '*', sub: '' }, { key: '0', sub: '+' }, { key: '#', sub: '' }
+                            ].map(item => (
+                                <button
+                                    key={item.key}
+                                    type="button"
+                                    onClick={() => handleKeypadPress(item.key)}
+                                    className="flex flex-col items-center justify-center h-14 rounded-2xl bg-white/[0.03] hover:bg-white/[0.08] active:scale-95 border border-white/5 transition-all mx-auto w-full"
+                                >
+                                    <span className="text-xl font-bold text-gray-200 leading-none">{item.key}</span>
+                                    {item.sub && <span className="text-[8px] text-gray-500 font-bold tracking-widest mt-0.5">{item.sub}</span>}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="flex items-center justify-center gap-4">
+                            <button
+                                onClick={handleCallAction}
+                                disabled={!dialNumber && (callState === 'idle' || callState === 'rejected')}
+                                className={`h-14 px-8 rounded-2xl flex items-center justify-center gap-2.5 font-bold transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed shadow-lg flex-1 ${
+                                    (callState === 'idle' || callState === 'rejected')
+                                        ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
+                                        : 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/20'
+                                }`}
+                            >
+                                <span className="material-icons-round text-2xl">
+                                    {(callState === 'idle' || callState === 'rejected') ? 'call' : 'call_end'}
+                                </span>
+                                <span>{(callState === 'idle' || callState === 'rejected') ? 'Apelează' : 'Închide'}</span>
+                            </button>
+
+                            {callState === 'active' && (
+                                <button
+                                    onClick={toggleMute}
+                                    className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 border ${
+                                        isMuted
+                                            ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
+                                            : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+                                    }`}
+                                    title={isMuted ? 'Activează microfonul' : 'Oprește microfonul'}
+                                >
+                                    <span className="material-icons-round text-xl">
+                                        {isMuted ? 'mic_off' : 'mic'}
+                                    </span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
