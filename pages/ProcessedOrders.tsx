@@ -57,7 +57,7 @@ export default function ProcessedOrders() {
             .ilike('store_name', selectedBrand)
             .order('created_at', { ascending: false })
             .then(({ data, error }) => {
-                console.log('[ProcessedOrders] Result:', { count: data?.length, error });
+                console.log(`[ProcessedOrders] S-au găsit ${data?.length || 0} comenzi pentru ${selectedBrand}.`, { count: data?.length, error, data });
                 if (error) {
                     console.error('Error fetching orders:', error);
                 } else if (data) {
