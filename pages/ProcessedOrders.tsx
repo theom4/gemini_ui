@@ -29,7 +29,9 @@ export default function ProcessedOrders() {
     const [isCallingRobot, setIsCallingRobot] = useState(false);
     const [callFeedback, setCallFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-    // ── Call History State (Persisted in localStorage) ────────────────
+    // ── Call History & 1-Hour Cooldown Checker ───────────────────────
+    const ONE_HOUR_MS = 60 * 60 * 1000;
+
     const [callHistory, setCallHistory] = useState<any[]>(() => {
         try {
             return JSON.parse(localStorage.getItem('kordano_robot_calls_history') || '[]');
@@ -39,6 +41,25 @@ export default function ProcessedOrders() {
     });
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
+    const getRecentCallTimeRemaining = (phone: string): { isBlocked: boolean; minutesRemaining: number } => {
+        if (!phone) return { isBlocked: false, minutesRemaining: 0 };
+        const norm = phone.replace(/\s+/g, '').slice(-9);
+        try {
+            const cooldowns = JSON.parse(localStorage.getItem('kordano_called_cooldowns') || '{}');
+            const lastCall = cooldowns[norm];
+            if (lastCall && typeof lastCall === 'number') {
+                const elapsed = Date.now() - lastCall;
+                if (elapsed < ONE_HOUR_MS) {
+                    const remainingMinutes = Math.ceil((ONE_HOUR_MS - elapsed) / (60 * 1000));
+                    return { isBlocked: true, minutesRemaining: Math.max(1, remainingMinutes) };
+                }
+            }
+        } catch (e) {
+            console.error('Eroare verificare cooldown apel:', e);
+        }
+        return { isBlocked: false, minutesRemaining: 0 };
+    };
+
     const handleCallRobot = async () => {
         const rawPhone = foundOrder?.phone_number || foundOrder?.phone || searchPhone;
         if (!rawPhone) {
@@ -46,11 +67,20 @@ export default function ProcessedOrders() {
             return;
         }
 
+        const cleanPhone = rawPhone.trim().replace(/\s+/g, '');
+        const cooldownCheck = getRecentCallTimeRemaining(cleanPhone);
+        if (cooldownCheck.isBlocked) {
+            setCallFeedback({
+                type: 'error',
+                message: `Acest număr a fost deja trimis să sune recent! Poți trimite din nou peste ${cooldownCheck.minutesRemaining} ${cooldownCheck.minutesRemaining === 1 ? 'minut' : 'minute'}.`
+            });
+            return;
+        }
+
         setIsCallingRobot(true);
         setCallFeedback(null);
 
         try {
-            const cleanPhone = rawPhone.trim().replace(/\s+/g, '');
             const webhookUrl = 'https://n8n.voisero.info/webhook/control-robot-kordanostore';
 
             const response = await fetch(webhookUrl, {
@@ -75,6 +105,16 @@ export default function ProcessedOrders() {
             if (response.ok) {
                 setCallFeedback({ type: 'success', message: 'Comanda de apelare a fost trimisă cu succes către robot!' });
                 
+                // Salvează cooldown de 1 oră în localStorage
+                try {
+                    const norm = cleanPhone.slice(-9);
+                    const cooldowns = JSON.parse(localStorage.getItem('kordano_called_cooldowns') || '{}');
+                    cooldowns[norm] = Date.now();
+                    localStorage.setItem('kordano_called_cooldowns', JSON.stringify(cooldowns));
+                } catch (e) {
+                    console.error('Eroare salvare cooldown:', e);
+                }
+
                 // Salvează în istoricul local
                 const newCallItem = {
                     name: foundOrder?.name || foundOrder?.client_name || 'Client',
@@ -762,26 +802,58 @@ export default function ProcessedOrders() {
                                     </div>
                                 )}
 
+                                {/* Avertisment Cooldown 1 oră */}
+                                {(() => {
+                                    const currentPhone = foundOrder?.phone_number || foundOrder?.phone || searchPhone || '';
+                                    const cooldown = getRecentCallTimeRemaining(currentPhone);
+                                    if (cooldown.isBlocked) {
+                                        return (
+                                            <div className="p-3 rounded-xl text-xs flex items-center gap-2 border bg-amber-500/10 border-amber-500/30 text-amber-300">
+                                                <span className="material-icons-round text-base text-amber-400">schedule</span>
+                                                <span>Numărul a fost deja trimis să sune recent. Poate fi resunat peste {cooldown.minutesRemaining} {cooldown.minutesRemaining === 1 ? 'minut' : 'minute'}.</span>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                })()}
+
                                 {/* Buton Sună Acum (Webhook Robot) */}
                                 <div className="pt-1">
-                                    <button
-                                        type="button"
-                                        onClick={handleCallRobot}
-                                        disabled={isCallingRobot}
-                                        className="btn-3d-primary w-full h-12 rounded-xl flex items-center justify-center gap-2 font-bold transition-all active:scale-95 shadow-lg text-white disabled:opacity-50"
-                                    >
-                                        {isCallingRobot ? (
-                                            <>
-                                                <span className="material-icons-round animate-spin text-xl">autorenew</span>
-                                                <span>Se inițiază apelul...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span className="material-icons-round text-xl">call</span>
-                                                <span>Sună acum</span>
-                                            </>
-                                        )}
-                                    </button>
+                                    {(() => {
+                                        const currentPhone = foundOrder?.phone_number || foundOrder?.phone || searchPhone || '';
+                                        const cooldown = getRecentCallTimeRemaining(currentPhone);
+                                        const isBlocked = cooldown.isBlocked;
+
+                                        return (
+                                            <button
+                                                type="button"
+                                                onClick={handleCallRobot}
+                                                disabled={isCallingRobot || isBlocked}
+                                                className={`w-full h-12 rounded-xl flex items-center justify-center gap-2 font-bold transition-all shadow-lg text-white ${
+                                                    isBlocked
+                                                        ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300 cursor-not-allowed'
+                                                        : 'btn-3d-primary active:scale-95 disabled:opacity-50'
+                                                }`}
+                                            >
+                                                {isCallingRobot ? (
+                                                    <>
+                                                        <span className="material-icons-round animate-spin text-xl">autorenew</span>
+                                                        <span>Se inițiază apelul...</span>
+                                                    </>
+                                                ) : isBlocked ? (
+                                                    <>
+                                                        <span className="material-icons-round text-xl text-amber-400">lock_clock</span>
+                                                        <span>Blocat 1 oră ({cooldown.minutesRemaining} min rămase)</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="material-icons-round text-xl">call</span>
+                                                        <span>Sună acum</span>
+                                                    </>
+                                                )}
+                                            </button>
+                                        );
+                                    })()}
                                 </div>
 
                                 {/* Buton Caută alt număr / Închide */}
