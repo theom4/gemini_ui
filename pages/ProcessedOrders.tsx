@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { useTelnyx } from '../contexts/TelnyxContext';
 
 export default function ProcessedOrders() {
     const { profile, session } = useAuth();
@@ -20,11 +21,56 @@ export default function ProcessedOrders() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 30;
 
-    // ── Search Order Webhook Modal State ─────────────────────────────
+    // ── Search Order Webhook & Call Modal State ───────────────────────
+    const { isReady, callState, makeCall, hangup, isMuted, toggleMute } = useTelnyx();
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
     const [searchPhone, setSearchPhone] = useState('');
     const [isSearchingOrder, setIsSearchingOrder] = useState(false);
     const [searchFeedback, setSearchFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const [foundOrder, setFoundOrder] = useState<any>(null);
+    const [callDurationSeconds, setCallDurationSeconds] = useState(0);
+
+    useEffect(() => {
+        let interval: any;
+        if (callState === 'active') {
+            interval = setInterval(() => setCallDurationSeconds(prev => prev + 1), 1000);
+        } else {
+            setCallDurationSeconds(0);
+        }
+        return () => clearInterval(interval);
+    }, [callState]);
+
+    const formatCallTimer = (sec: number) => {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
+
+    const handleCallCustomer = async (targetPhone?: string) => {
+        const rawPhone = targetPhone || foundOrder?.phone_number || foundOrder?.phone || searchPhone;
+        if (!rawPhone) return;
+
+        if (callState === 'idle' || callState === 'rejected') {
+            if (!isReady) {
+                alert('Conexiunea la telefonie Telnyx nu este gata. Vă rugăm să așteptați câteva secunde.');
+                return;
+            }
+            try {
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch {
+                alert('Este nevoie de acces la microfon pentru a suna!');
+                return;
+            }
+            const callerId = import.meta.env.VITE_TELNYX_CALLER_ID || '+40775393060';
+            let clean = rawPhone.replace(/\s+/g, '');
+            if (clean.startsWith('07') && clean.length === 10) {
+                clean = '+40' + clean.substring(1);
+            }
+            makeCall(clean, callerId);
+        } else {
+            hangup();
+        }
+    };
 
     const handleSearchOrder = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -36,6 +82,7 @@ export default function ProcessedOrders() {
 
         setIsSearchingOrder(true);
         setSearchFeedback(null);
+        setFoundOrder(null);
 
         try {
             let cleanPhone = trimmed.replace(/\s+/g, '');
@@ -58,15 +105,47 @@ export default function ProcessedOrders() {
                 })
             });
 
-            if (response.ok) {
-                setSearchFeedback({ type: 'success', message: 'Cererea de căutare a fost trimisă cu succes!' });
-                setTimeout(() => {
-                    setIsSearchModalOpen(false);
-                    setSearchPhone('');
-                    setSearchFeedback(null);
-                }, 1500);
+            let webhookData: any = null;
+            try {
+                webhookData = await response.json();
+            } catch (jsonErr) {
+                // Nu e json
+            }
+
+            // Extragem comanda din răspunsul n8n dacă există
+            let extractedOrder: any = null;
+            if (webhookData) {
+                if (Array.isArray(webhookData) && webhookData.length > 0) {
+                    extractedOrder = webhookData[0]?.json || webhookData[0];
+                } else if (typeof webhookData === 'object') {
+                    extractedOrder = webhookData.order || webhookData.data || webhookData.item || webhookData;
+                }
+            }
+
+            // Dacă webhook-ul nu a întors obiectul complet sau e doar status, căutăm direct în Supabase orders după telefon
+            const hasOrderInfo = extractedOrder && (extractedOrder.name || extractedOrder.produse || extractedOrder.total || extractedOrder.value || extractedOrder.adresa);
+            if (!hasOrderInfo) {
+                const last9 = cleanPhone.slice(-9);
+                const { data: dbOrder } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .ilike('phone_number', `%${last9}%`)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (dbOrder) {
+                    extractedOrder = dbOrder;
+                }
+            }
+
+            if (extractedOrder && (extractedOrder.name || extractedOrder.produse || extractedOrder.total || extractedOrder.value || extractedOrder.adresa || extractedOrder.phone_number)) {
+                setFoundOrder(extractedOrder);
+                setSearchFeedback({ type: 'success', message: 'Comanda a fost găsită cu succes!' });
             } else {
-                setSearchFeedback({ type: 'error', message: `Eroare server (${response.status}). Încearcă din nou.` });
+                // Chiar dacă nu se găsește în DB, lăsăm comanda cu numărul de telefon introdus pentru a putea fi sunat
+                setFoundOrder({ phone_number: cleanPhone, name: 'Client nou / Negăsit în DB' });
+                setSearchFeedback({ type: 'error', message: 'Nu s-au găsit detalii în baza de date, dar poți suna direct numărul introdus.' });
             }
         } catch (error: any) {
             console.error('Eroare la trimiterea căutării comenzii:', error);
@@ -454,70 +533,206 @@ export default function ProcessedOrders() {
                             </button>
                         </div>
 
-                        {/* Form */}
-                        <form onSubmit={handleSearchOrder} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
-                                    Număr de telefon
-                                </label>
-                                <div className="relative">
-                                    <span className="material-icons-round absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-lg">call</span>
-                                    <input
-                                        type="tel"
-                                        value={searchPhone}
-                                        onChange={(e) => setSearchPhone(e.target.value)}
-                                        placeholder="07xx xxx xxx"
-                                        autoFocus
-                                        className="w-full bg-[#1a1b23] border border-white/10 text-white text-base rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder-gray-600 font-mono"
-                                    />
+                        {/* Content: Form sau Detalii Comandă */}
+                        {!foundOrder ? (
+                            <form onSubmit={handleSearchOrder} className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
+                                        Număr de telefon
+                                    </label>
+                                    <div className="relative">
+                                        <span className="material-icons-round absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-lg">call</span>
+                                        <input
+                                            type="tel"
+                                            value={searchPhone}
+                                            onChange={(e) => setSearchPhone(e.target.value)}
+                                            placeholder="07xx xxx xxx"
+                                            autoFocus
+                                            className="w-full bg-[#1a1b23] border border-white/10 text-white text-base rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder-gray-600 font-mono"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Feedback Message */}
-                            {searchFeedback && (
-                                <div className={`p-3 rounded-xl text-xs flex items-center gap-2 border ${
-                                    searchFeedback.type === 'success' 
-                                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
-                                        : 'bg-red-500/10 border-red-500/30 text-red-400'
-                                }`}>
-                                    <span className="material-icons-round text-base">
-                                        {searchFeedback.type === 'success' ? 'check_circle' : 'error'}
-                                    </span>
-                                    <span>{searchFeedback.message}</span>
+                                {/* Feedback Message */}
+                                {searchFeedback && (
+                                    <div className={`p-3 rounded-xl text-xs flex items-center gap-2 border ${
+                                        searchFeedback.type === 'success' 
+                                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                                            : 'bg-red-500/10 border-red-500/30 text-red-400'
+                                    }`}>
+                                        <span className="material-icons-round text-base">
+                                            {searchFeedback.type === 'success' ? 'check_circle' : 'error'}
+                                        </span>
+                                        <span>{searchFeedback.message}</span>
+                                    </div>
+                                )}
+
+                                {/* Action Buttons */}
+                                <div className="flex items-center gap-3 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsSearchModalOpen(false);
+                                            setSearchFeedback(null);
+                                        }}
+                                        className="btn-3d-secondary px-5 py-3 rounded-xl text-sm font-medium hover:text-white transition-all flex-1"
+                                    >
+                                        Anulează
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isSearchingOrder || !searchPhone.trim()}
+                                        className="btn-3d-primary px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 flex-1 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg"
+                                    >
+                                        {isSearchingOrder ? (
+                                            <>
+                                                <span className="material-icons-round animate-spin text-base">autorenew</span>
+                                                <span>Se caută...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="material-icons-round text-base">search</span>
+                                                <span>Caută comanda</span>
+                                            </>
+                                        )}
+                                    </button>
                                 </div>
-                            )}
+                            </form>
+                        ) : (
+                            <div className="space-y-4">
+                                {/* Stare Apel Telnyx (dacă este activ / se apelează) */}
+                                {(callState === 'calling' || callState === 'active' || callState === 'rejected') && (
+                                    <div className="flex items-center justify-center py-1">
+                                        {callState === 'active' ? (
+                                            <div className="text-xs font-bold text-emerald-400 font-mono tracking-widest bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full animate-pulse flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                                Apel în desfășurare: {formatCallTimer(callDurationSeconds)}
+                                            </div>
+                                        ) : callState === 'rejected' ? (
+                                            <div className="text-xs font-bold uppercase px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400">
+                                                Apel respins
+                                            </div>
+                                        ) : (
+                                            <div className="text-xs font-bold uppercase px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 animate-pulse flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                                                Se apelează...
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
-                            {/* Action Buttons */}
-                            <div className="flex items-center gap-3 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsSearchModalOpen(false);
-                                        setSearchFeedback(null);
-                                    }}
-                                    className="btn-3d-secondary px-5 py-3 rounded-xl text-sm font-medium hover:text-white transition-all flex-1"
-                                >
-                                    Anulează
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={isSearchingOrder || !searchPhone.trim()}
-                                    className="btn-3d-primary px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 flex-1 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg"
-                                >
-                                    {isSearchingOrder ? (
-                                        <>
-                                            <span className="material-icons-round animate-spin text-base">autorenew</span>
-                                            <span>Se trimite...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="material-icons-round text-base">search</span>
-                                            <span>Caută comanda</span>
-                                        </>
+                                {/* Card Detalii Comandă */}
+                                <div className="bg-[#1a1b23] border border-white/10 rounded-2xl p-4 space-y-3">
+                                    <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                                        <div className="font-semibold text-white text-base">
+                                            {foundOrder.name || foundOrder.client_name || 'Client'}
+                                        </div>
+                                        {foundOrder.status && (
+                                            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/20 text-primary border border-primary/30 uppercase">
+                                                {foundOrder.status}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2.5 text-xs">
+                                        <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/5">
+                                            <span className="text-gray-500 block mb-0.5 font-medium">Telefon</span>
+                                            <span className="text-white font-mono font-semibold">
+                                                {foundOrder.phone_number || foundOrder.phone || searchPhone}
+                                            </span>
+                                        </div>
+                                        <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/5">
+                                            <span className="text-gray-500 block mb-0.5 font-medium">Valoare</span>
+                                            <span className="text-emerald-400 font-bold">
+                                                {foundOrder.value ?? foundOrder.total ?? '-'} {foundOrder.value || foundOrder.total ? 'lei' : ''}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {(foundOrder.adresa || foundOrder.oras || foundOrder.judet) && (
+                                        <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/5 text-xs">
+                                            <span className="text-gray-500 block mb-0.5 font-medium">Adresă de livrare</span>
+                                            <span className="text-gray-200">
+                                                {[foundOrder.adresa, foundOrder.oras, foundOrder.judet].filter(Boolean).join(', ')}
+                                            </span>
+                                        </div>
                                     )}
-                                </button>
+
+                                    {foundOrder.produse && (
+                                        <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/5 text-xs">
+                                            <span className="text-gray-500 block mb-0.5 font-medium">Produse comandate</span>
+                                            <span className="text-gray-300 break-words">
+                                                {typeof foundOrder.produse === 'object' ? JSON.stringify(foundOrder.produse) : String(foundOrder.produse)}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Buton Sună Acum / Închide apelul */}
+                                <div className="flex items-center gap-3 pt-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleCallCustomer(foundOrder.phone_number || foundOrder.phone || searchPhone)}
+                                        className={`h-12 px-6 rounded-xl flex items-center justify-center gap-2 font-bold transition-all active:scale-95 flex-1 shadow-lg ${
+                                            (callState === 'idle' || callState === 'rejected')
+                                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
+                                                : 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/20'
+                                        }`}
+                                    >
+                                        <span className="material-icons-round text-xl">
+                                            {(callState === 'idle' || callState === 'rejected') ? 'call' : 'call_end'}
+                                        </span>
+                                        <span>
+                                            {(callState === 'idle' || callState === 'rejected') ? 'Sună acum' : 'Închide apelul'}
+                                        </span>
+                                    </button>
+
+                                    {callState === 'active' && (
+                                        <button
+                                            type="button"
+                                            onClick={toggleMute}
+                                            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all border ${
+                                                isMuted
+                                                    ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
+                                                    : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+                                            }`}
+                                            title={isMuted ? 'Activează microfon' : 'Oprește microfon'}
+                                        >
+                                            <span className="material-icons-round text-lg">
+                                                {isMuted ? 'mic_off' : 'mic'}
+                                            </span>
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Buton Caută alt număr / Închide */}
+                                <div className="flex items-center justify-between pt-2 border-t border-white/5 text-xs">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setFoundOrder(null);
+                                            setSearchFeedback(null);
+                                        }}
+                                        className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                                    >
+                                        <span className="material-icons-round text-sm">arrow_back</span>
+                                        Caută altă comandă
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (callState === 'calling' || callState === 'active') hangup();
+                                            setIsSearchModalOpen(false);
+                                            setFoundOrder(null);
+                                            setSearchFeedback(null);
+                                        }}
+                                        className="text-gray-400 hover:text-white transition-colors"
+                                    >
+                                        Închide fereastra
+                                    </button>
+                                </div>
                             </div>
-                        </form>
+                        )}
                     </div>
                 </div>
             )}
