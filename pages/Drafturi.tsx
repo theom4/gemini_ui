@@ -34,6 +34,7 @@ interface Order {
 
 const TABS: { id: string; label: string }[] = [
     { id: 'ON',  label: 'De sunat' },
+    { id: 'in asteptare', label: 'In așteptare' },
     { id: 'nu-raspunde', label: 'Nu răspunde' },
     { id: 'de-revenit', label: 'De revenit' },
     { id: 'confirmat', label: 'Confirmate' },
@@ -258,7 +259,7 @@ const Drafturi = () => {
     useEffect(() => { loadOrders(); }, [loadOrders]);
 
     // ── Filtered list for current tab + search
-    const typeFilteredOrders = orders.filter(o => viewMode === 'drafturi' ? o.type === 'draft' : o.type !== 'draft');
+    const typeFilteredOrders = orders.filter(o => viewMode === 'drafturi' ? o.type === 'draft' : true);
     const tabOrders = typeFilteredOrders.filter(o => o.status === activeTab);
     const filteredOrders = activeSearch
         ? tabOrders.filter(o =>
