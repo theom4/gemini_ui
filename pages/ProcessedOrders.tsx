@@ -85,10 +85,7 @@ export default function ProcessedOrders() {
         setFoundOrder(null);
 
         try {
-            let cleanPhone = trimmed.replace(/\s+/g, '');
-            if (cleanPhone.startsWith('07') && cleanPhone.length === 10) {
-                cleanPhone = '+40' + cleanPhone.substring(1);
-            }
+            const cleanPhone = trimmed.replace(/\s+/g, '');
 
             const webhookUrl = 'https://n8n.voisero.info/webhook/search-order-kordano';
 
