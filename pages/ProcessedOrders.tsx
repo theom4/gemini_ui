@@ -61,9 +61,7 @@ export default function ProcessedOrders() {
     const [manualTotal, setManualTotal] = useState('');
     const [isCallingManual, setIsCallingManual] = useState(false);
 
-    // ── Call History & 1-Hour Cooldown Checker ───────────────────────
-    const ONE_HOUR_MS = 60 * 60 * 1000;
-
+    // ── Call History ──────────────────────────────────────────────────
     const [callHistory, setCallHistory] = useState<any[]>(() => {
         try {
             return JSON.parse(localStorage.getItem('kordano_robot_calls_history') || '[]');
@@ -72,25 +70,6 @@ export default function ProcessedOrders() {
         }
     });
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-
-    const getRecentCallTimeRemaining = (phone: string): { isBlocked: boolean; minutesRemaining: number } => {
-        if (!phone) return { isBlocked: false, minutesRemaining: 0 };
-        const norm = phone.replace(/\s+/g, '').slice(-9);
-        try {
-            const cooldowns = JSON.parse(localStorage.getItem('kordano_called_cooldowns') || '{}');
-            const lastCall = cooldowns[norm];
-            if (lastCall && typeof lastCall === 'number') {
-                const elapsed = Date.now() - lastCall;
-                if (elapsed < ONE_HOUR_MS) {
-                    const remainingMinutes = Math.ceil((ONE_HOUR_MS - elapsed) / (60 * 1000));
-                    return { isBlocked: true, minutesRemaining: Math.max(1, remainingMinutes) };
-                }
-            }
-        } catch (e) {
-            console.error('Eroare verificare cooldown apel:', e);
-        }
-        return { isBlocked: false, minutesRemaining: 0 };
-    };
 
     const handleCallRobot = async (order: any) => {
         if (!isKordano) return;
@@ -101,17 +80,7 @@ export default function ProcessedOrders() {
         }
 
         const cleanPhone = rawPhone.trim().replace(/\s+/g, '');
-        const cooldownCheck = getRecentCallTimeRemaining(cleanPhone);
         const orderKey = String(order?.id || order?.order_id || order?.order_number || cleanPhone);
-
-        if (cooldownCheck.isBlocked) {
-            setCallFeedback({
-                orderId: orderKey,
-                type: 'error',
-                message: `Acest număr a fost deja trimis să sune recent! Poți trimite din nou peste ${cooldownCheck.minutesRemaining} ${cooldownCheck.minutesRemaining === 1 ? 'minut' : 'minute'}.`
-            });
-            return;
-        }
 
         setCallingOrderId(orderKey);
         setCallFeedback(null);
@@ -146,16 +115,6 @@ export default function ProcessedOrders() {
                     type: 'success',
                     message: `Comanda ${orderNum ? '#' + orderNum : ''} a fost trimisă cu succes către robot!`
                 });
-
-                // Salvează cooldown de 1 oră în localStorage
-                try {
-                    const norm = cleanPhone.slice(-9);
-                    const cooldowns = JSON.parse(localStorage.getItem('kordano_called_cooldowns') || '{}');
-                    cooldowns[norm] = Date.now();
-                    localStorage.setItem('kordano_called_cooldowns', JSON.stringify(cooldowns));
-                } catch (e) {
-                    console.error('Eroare salvare cooldown:', e);
-                }
 
                 // Salvează în istoricul local
                 const newCallItem = {
@@ -224,15 +183,6 @@ export default function ProcessedOrders() {
         const quantityNum = Math.max(1, Number(manualQuantity) || 1);
         const prodObj = AVAILABLE_PRODUCTS.find(p => p.sku === manualSelectedProductSku) || AVAILABLE_PRODUCTS[0];
 
-        const cooldownCheck = getRecentCallTimeRemaining(cleanPhone);
-        if (cooldownCheck.isBlocked) {
-            setCallFeedback({
-                type: 'error',
-                message: `Acest număr a fost deja trimis să sune recent! Poți trimite din nou peste ${cooldownCheck.minutesRemaining} ${cooldownCheck.minutesRemaining === 1 ? 'minut' : 'minute'}.`
-            });
-            return;
-        }
-
         setIsCallingManual(true);
         setCallFeedback(null);
 
@@ -278,16 +228,6 @@ export default function ProcessedOrders() {
                     type: 'success',
                     message: 'Comanda a fost trimisă cu succes către robot!'
                 });
-
-                // Salvează cooldown de 1 oră în localStorage
-                try {
-                    const norm = cleanPhone.slice(-9);
-                    const cooldowns = JSON.parse(localStorage.getItem('kordano_called_cooldowns') || '{}');
-                    cooldowns[norm] = Date.now();
-                    localStorage.setItem('kordano_called_cooldowns', JSON.stringify(cooldowns));
-                } catch (err) {
-                    console.error('Eroare salvare cooldown:', err);
-                }
 
                 // Salvează în istoricul local
                 const newCallItem = {
@@ -1087,35 +1027,17 @@ export default function ProcessedOrders() {
                                         </div>
                                     )}
 
-                                    {/* Avertisment Cooldown 1 oră dacă numărul e blocat */}
-                                    {(() => {
-                                        const clean = searchPhone.trim().replace(/\s+/g, '');
-                                        const cooldown = getRecentCallTimeRemaining(clean);
-                                        if (cooldown.isBlocked) {
-                                            return (
-                                                <div className="p-3 rounded-xl text-xs flex items-center gap-2 border bg-amber-500/10 border-amber-500/30 text-amber-300">
-                                                    <span className="material-icons-round text-base text-amber-400">schedule</span>
-                                                    <span>Numărul a fost deja trimis să sune recent. Poate fi resunat peste {cooldown.minutesRemaining} {cooldown.minutesRemaining === 1 ? 'minut' : 'minute'}.</span>
-                                                </div>
-                                            );
-                                        }
-                                        return null;
-                                    })()}
-
                                     {/* Buton Sună Acum */}
                                     <div className="pt-1">
                                         {(() => {
-                                            const clean = searchPhone.trim().replace(/\s+/g, '');
-                                            const cooldown = getRecentCallTimeRemaining(clean);
-                                            const isBlocked = cooldown.isBlocked;
                                             const isMissingTotal = !manualTotal.trim();
 
                                             return (
                                                 <button
                                                     type="submit"
-                                                    disabled={isCallingManual || isBlocked || isMissingTotal}
+                                                    disabled={isCallingManual || isMissingTotal}
                                                     className={`w-full h-11 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all shadow-md text-white ${
-                                                        isBlocked || isMissingTotal
+                                                        isMissingTotal
                                                             ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300 cursor-not-allowed opacity-60'
                                                             : 'btn-3d-primary active:scale-95 disabled:opacity-50'
                                                     }`}
@@ -1124,11 +1046,6 @@ export default function ProcessedOrders() {
                                                         <>
                                                             <span className="material-icons-round animate-spin text-lg">autorenew</span>
                                                             <span>Se inițiază apelul robotului...</span>
-                                                        </>
-                                                    ) : isBlocked ? (
-                                                        <>
-                                                            <span className="material-icons-round text-lg text-amber-400">lock_clock</span>
-                                                            <span>Blocat 1 oră ({cooldown.minutesRemaining} min rămase)</span>
                                                         </>
                                                     ) : isMissingTotal ? (
                                                         <>
@@ -1208,9 +1125,6 @@ export default function ProcessedOrders() {
                                     {foundOrders.map((order, idx) => {
                                         const orderKey = String(order?.id || order?.order_id || order?.order_number || idx);
                                         const orderPhone = order?.phone_number || order?.phone || searchPhone;
-                                        const cleanOrderPhone = (orderPhone || '').trim().replace(/\s+/g, '');
-                                        const cooldown = getRecentCallTimeRemaining(cleanOrderPhone);
-                                        const isBlocked = cooldown.isBlocked;
                                         const isCallingThis = callingOrderId === orderKey;
                                         const isCallingAny = callingOrderId !== null;
 
@@ -1300,35 +1214,18 @@ export default function ProcessedOrders() {
                                                     </div>
                                                 )}
 
-                                                {/* Avertisment Cooldown 1 oră */}
-                                                {isBlocked && (
-                                                    <div className="p-2.5 rounded-xl text-xs flex items-center gap-2 border bg-amber-500/10 border-amber-500/30 text-amber-300">
-                                                        <span className="material-icons-round text-base text-amber-400">schedule</span>
-                                                        <span>Numărul a fost deja trimis să sune recent. Poate fi resunat peste {cooldown.minutesRemaining} {cooldown.minutesRemaining === 1 ? 'minut' : 'minute'}.</span>
-                                                    </div>
-                                                )}
-
                                                 {/* Buton Sună Acum individual pentru fiecare comandă */}
                                                 <div className="pt-1">
                                                     <button
                                                         type="button"
                                                         onClick={() => handleCallRobot(order)}
-                                                        disabled={isCallingThis || isCallingAny || isBlocked}
-                                                        className={`w-full h-11 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all shadow-md text-white ${
-                                                            isBlocked
-                                                                ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300 cursor-not-allowed'
-                                                                : 'btn-3d-primary active:scale-95 disabled:opacity-50'
-                                                        }`}
+                                                        disabled={isCallingThis || isCallingAny}
+                                                        className="w-full h-11 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all shadow-md text-white btn-3d-primary active:scale-95 disabled:opacity-50"
                                                     >
                                                         {isCallingThis ? (
                                                             <>
                                                                 <span className="material-icons-round animate-spin text-lg">autorenew</span>
                                                                 <span>Se trimite comanda către robot...</span>
-                                                            </>
-                                                        ) : isBlocked ? (
-                                                            <>
-                                                                <span className="material-icons-round text-lg text-amber-400">lock_clock</span>
-                                                                <span>Blocat 1 oră ({cooldown.minutesRemaining} min rămase)</span>
                                                             </>
                                                         ) : (
                                                             <>
