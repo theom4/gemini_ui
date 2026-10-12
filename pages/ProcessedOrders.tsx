@@ -263,22 +263,20 @@ export default function ProcessedOrders() {
                         ? 'A fost găsită 1 comandă pentru acest număr!' 
                         : `S-au găsit ${combinedList.length} comenzi pentru acest număr!`
                 });
+                setHasSearched(true);
             } else {
-                // Dacă nu s-a găsit nicio comandă în DB sau webhook, oferim opțiunea de apel direct
-                setFoundOrders([{
-                    phone_number: cleanPhone,
-                    name: 'Client nou / Negăsit în DB',
-                    is_fallback: true
-                }]);
+                setFoundOrders([]);
                 setSearchFeedback({
                     type: 'error',
-                    message: 'Nu s-au găsit detalii în baza de date, dar poți suna direct numărul introdus.'
+                    message: 'Comandă negăsită'
                 });
+                setHasSearched(false);
             }
-            setHasSearched(true);
         } catch (error: any) {
             console.error('Eroare generală la căutarea comenzii:', error);
-            setSearchFeedback({ type: 'error', message: 'Eroare la comunicarea cu serverul n8n.' });
+            setFoundOrders([]);
+            setSearchFeedback({ type: 'error', message: 'Comandă negăsită' });
+            setHasSearched(false);
         } finally {
             setIsSearchingOrder(false);
         }
