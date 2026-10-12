@@ -214,14 +214,6 @@ export default function ProcessedOrders() {
             alert('Numărul de telefon lipsește.');
             return;
         }
-        if (!manualName.trim()) {
-            alert('Te rugăm să introduci numele clientului.');
-            return;
-        }
-        if (!manualAddress.trim()) {
-            alert('Te rugăm să introduci adresa / strada clientului.');
-            return;
-        }
         const quantityNum = Math.max(1, Number(manualQuantity) || 1);
         const prodObj = AVAILABLE_PRODUCTS.find(p => p.sku === manualSelectedProductSku) || AVAILABLE_PRODUCTS[0];
 
@@ -287,7 +279,7 @@ export default function ProcessedOrders() {
 
                 // Salvează în istoricul local
                 const newCallItem = {
-                    name: manualName.trim(),
+                    name: manualName.trim() || 'Comandă manuală',
                     phone: cleanPhone,
                     orderId: 'Manual',
                     total: `${prodObj.name} x${quantityNum}`,
@@ -976,14 +968,14 @@ export default function ProcessedOrders() {
                                 <form onSubmit={handleCallManualOrder} className="space-y-3.5 overflow-y-auto pr-1.5 custom-scrollbar flex-1 max-h-[50vh]">
                                     {/* Nume client */}
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">
-                                            Nume client *
+                                        <label className="block text-xs font-medium text-gray-400 mb-1 tracking-wider flex items-center justify-between">
+                                            <span className="uppercase">Nume client</span>
+                                            <span className="text-[11px] text-cyan-400 font-normal normal-case">(indicat să completezi cu ce ai)</span>
                                         </label>
                                         <div className="relative">
                                             <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-base">person</span>
                                             <input
                                                 type="text"
-                                                required
                                                 value={manualName}
                                                 onChange={(e) => setManualName(e.target.value)}
                                                 placeholder="ex: Ion Popescu"
@@ -994,13 +986,13 @@ export default function ProcessedOrders() {
 
                                     {/* Adresă / Stradă */}
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">
-                                            Adresă / Stradă *
+                                        <label className="block text-xs font-medium text-gray-400 mb-1 tracking-wider flex items-center justify-between">
+                                            <span className="uppercase">Adresă / Stradă</span>
+                                            <span className="text-[11px] text-cyan-400 font-normal normal-case">(indicat să completezi cu ce ai)</span>
                                         </label>
                                         <div className="relative">
                                             <span className="material-icons-round absolute left-3 top-3 text-gray-500 text-base">home</span>
                                             <textarea
-                                                required
                                                 rows={2}
                                                 value={manualAddress}
                                                 onChange={(e) => setManualAddress(e.target.value)}
@@ -1090,9 +1082,9 @@ export default function ProcessedOrders() {
                                             return (
                                                 <button
                                                     type="submit"
-                                                    disabled={isCallingManual || isBlocked || !manualName.trim() || !manualAddress.trim()}
+                                                    disabled={isCallingManual || isBlocked}
                                                     className={`w-full h-11 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all shadow-md text-white ${
-                                                        isBlocked || !manualName.trim() || !manualAddress.trim()
+                                                        isBlocked
                                                             ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300 cursor-not-allowed opacity-60'
                                                             : 'btn-3d-primary active:scale-95 disabled:opacity-50'
                                                     }`}
