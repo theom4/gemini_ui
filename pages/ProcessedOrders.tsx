@@ -25,9 +25,10 @@ export default function ProcessedOrders() {
     const [searchPhone, setSearchPhone] = useState('');
     const [isSearchingOrder, setIsSearchingOrder] = useState(false);
     const [searchFeedback, setSearchFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-    const [foundOrder, setFoundOrder] = useState<any>(null);
-    const [isCallingRobot, setIsCallingRobot] = useState(false);
-    const [callFeedback, setCallFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const [foundOrders, setFoundOrders] = useState<any[]>([]);
+    const [hasSearched, setHasSearched] = useState(false);
+    const [callingOrderId, setCallingOrderId] = useState<string | null>(null);
+    const [callFeedback, setCallFeedback] = useState<{ orderId?: string; type: 'success' | 'error'; message: string } | null>(null);
 
     // ── Call History & 1-Hour Cooldown Checker ───────────────────────
     const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -60,8 +61,8 @@ export default function ProcessedOrders() {
         return { isBlocked: false, minutesRemaining: 0 };
     };
 
-    const handleCallRobot = async () => {
-        const rawPhone = foundOrder?.phone_number || foundOrder?.phone || searchPhone;
+    const handleCallRobot = async (order: any) => {
+        const rawPhone = order?.phone_number || order?.phone || searchPhone;
         if (!rawPhone) {
             alert('Numărul de telefon lipsește.');
             return;
@@ -69,19 +70,24 @@ export default function ProcessedOrders() {
 
         const cleanPhone = rawPhone.trim().replace(/\s+/g, '');
         const cooldownCheck = getRecentCallTimeRemaining(cleanPhone);
+        const orderKey = String(order?.id || order?.order_id || order?.order_number || cleanPhone);
+
         if (cooldownCheck.isBlocked) {
             setCallFeedback({
+                orderId: orderKey,
                 type: 'error',
                 message: `Acest număr a fost deja trimis să sune recent! Poți trimite din nou peste ${cooldownCheck.minutesRemaining} ${cooldownCheck.minutesRemaining === 1 ? 'minut' : 'minute'}.`
             });
             return;
         }
 
-        setIsCallingRobot(true);
+        setCallingOrderId(orderKey);
         setCallFeedback(null);
 
         try {
             const webhookUrl = 'https://n8n.voisero.info/webhook/control-robot-kordanostore';
+            const orderNum = order?.order_id || order?.id || order?.order_number || '';
+            const orderType = order?.type || order?.tip_comanda || 'comanda';
 
             const response = await fetch(webhookUrl, {
                 method: 'POST',
@@ -94,17 +100,21 @@ export default function ProcessedOrders() {
                     store: selectedBrand || 'Kordanostore',
                     phone_number: cleanPhone,
                     phone: cleanPhone,
-                    order_number: foundOrder?.order_id || foundOrder?.id || foundOrder?.order_number || '',
-                    order_id: foundOrder?.order_id || foundOrder?.id || '',
-                    tip_comanda: foundOrder?.type || 'comanda',
-                    type: foundOrder?.type || 'comanda',
+                    order_number: orderNum,
+                    order_id: orderNum,
+                    tip_comanda: orderType,
+                    type: orderType,
                     action: 'call'
                 })
             });
 
             if (response.ok) {
-                setCallFeedback({ type: 'success', message: 'Comanda de apelare a fost trimisă cu succes către robot!' });
-                
+                setCallFeedback({
+                    orderId: orderKey,
+                    type: 'success',
+                    message: `Comanda ${orderNum ? '#' + orderNum : ''} a fost trimisă cu succes către robot!`
+                });
+
                 // Salvează cooldown de 1 oră în localStorage
                 try {
                     const norm = cleanPhone.slice(-9);
@@ -117,10 +127,10 @@ export default function ProcessedOrders() {
 
                 // Salvează în istoricul local
                 const newCallItem = {
-                    name: foundOrder?.name || foundOrder?.client_name || 'Client',
+                    name: order?.name || order?.client_name || 'Client',
                     phone: cleanPhone,
-                    orderId: foundOrder?.order_id || foundOrder?.id || foundOrder?.order_number || '',
-                    total: foundOrder?.value || foundOrder?.total || '',
+                    orderId: orderNum,
+                    total: order?.value || order?.total || '',
                     time: new Date().toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
                     date: new Date().toLocaleDateString('ro-RO')
                 };
@@ -135,14 +145,29 @@ export default function ProcessedOrders() {
                     return updated;
                 });
             } else {
-                setCallFeedback({ type: 'error', message: `Eroare server robot (${response.status}).` });
+                setCallFeedback({
+                    orderId: orderKey,
+                    type: 'error',
+                    message: `Eroare server robot (${response.status}).`
+                });
             }
         } catch (error: any) {
             console.error('Eroare webhook control-robot:', error);
-            setCallFeedback({ type: 'error', message: 'Eroare la conectarea cu robotul n8n.' });
+            setCallFeedback({
+                orderId: orderKey,
+                type: 'error',
+                message: 'Eroare la conectarea cu robotul n8n.'
+            });
         } finally {
-            setIsCallingRobot(false);
+            setCallingOrderId(null);
         }
+    };
+
+    const handleResetSearch = () => {
+        setFoundOrders([]);
+        setHasSearched(false);
+        setSearchFeedback(null);
+        setCallFeedback(null);
     };
 
     const handleSearchOrder = async (e?: React.FormEvent) => {
@@ -155,70 +180,104 @@ export default function ProcessedOrders() {
 
         setIsSearchingOrder(true);
         setSearchFeedback(null);
-        setFoundOrder(null);
+        setCallFeedback(null);
+        setFoundOrders([]);
+        setHasSearched(false);
 
         try {
             const cleanPhone = trimmed.replace(/\s+/g, '');
-
             const webhookUrl = 'https://n8n.voisero.info/webhook/search-order-kordano';
 
-            const response = await fetch(webhookUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session?.access_token || ''}`
-                },
-                body: JSON.stringify({
-                    phone_number: cleanPhone,
-                    shop: selectedBrand || 'Kordanostore',
-                    store: selectedBrand || 'Kordanostore'
-                })
-            });
-
-            let webhookData: any = null;
+            let webhookOrders: any[] = [];
             try {
-                webhookData = await response.json();
-            } catch (jsonErr) {
-                // Nu e json
-            }
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session?.access_token || ''}`
+                    },
+                    body: JSON.stringify({
+                        phone_number: cleanPhone,
+                        shop: selectedBrand || 'Kordanostore',
+                        store: selectedBrand || 'Kordanostore'
+                    })
+                });
 
-            // Extragem comanda din răspunsul n8n dacă există
-            let extractedOrder: any = null;
-            if (webhookData) {
-                if (Array.isArray(webhookData) && webhookData.length > 0) {
-                    extractedOrder = webhookData[0]?.json || webhookData[0];
-                } else if (typeof webhookData === 'object') {
-                    extractedOrder = webhookData.order || webhookData.data || webhookData.item || webhookData;
+                if (response.ok) {
+                    const webhookData = await response.json().catch(() => null);
+                    if (webhookData) {
+                        if (Array.isArray(webhookData)) {
+                            webhookOrders = webhookData.map(item => item?.json || item).filter(Boolean);
+                        } else if (typeof webhookData === 'object') {
+                            if (Array.isArray(webhookData.orders)) {
+                                webhookOrders = webhookData.orders;
+                            } else if (Array.isArray(webhookData.data)) {
+                                webhookOrders = webhookData.data;
+                            } else if (Array.isArray(webhookData.items)) {
+                                webhookOrders = webhookData.items;
+                            } else if (webhookData.order) {
+                                webhookOrders = [webhookData.order];
+                            } else if (webhookData.name || webhookData.produse || webhookData.total || webhookData.value || webhookData.adresa || webhookData.order_id || webhookData.id) {
+                                webhookOrders = [webhookData];
+                            }
+                        }
+                    }
                 }
+            } catch (whErr) {
+                console.warn('Webhook search order error/timeout, fallback to DB:', whErr);
             }
 
-            // Dacă webhook-ul nu a întors obiectul complet sau e doar status, căutăm direct în Supabase orders după telefon
-            const hasOrderInfo = extractedOrder && (extractedOrder.name || extractedOrder.produse || extractedOrder.total || extractedOrder.value || extractedOrder.adresa);
-            if (!hasOrderInfo) {
-                const last9 = cleanPhone.slice(-9);
-                const { data: dbOrder } = await supabase
-                    .from('orders')
-                    .select('*')
-                    .ilike('phone_number', `%${last9}%`)
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
+            // Căutăm și în baza de date Supabase orders după numărul de telefon
+            const last9 = cleanPhone.slice(-9);
+            const { data: dbOrders, error: dbError } = await supabase
+                .from('orders')
+                .select('*')
+                .or(`phone_number.ilike.%${last9}%,phone.ilike.%${last9}%`)
+                .order('created_at', { ascending: false });
 
-                if (dbOrder) {
-                    extractedOrder = dbOrder;
+            if (dbError) {
+                console.error('Eroare căutare comenzi în DB:', dbError);
+            }
+
+            // Combinăm rezultatele din webhook și din DB fără duplicate
+            const combinedList: any[] = [];
+            const seenKeys = new Set<string>();
+
+            const addOrder = (ord: any) => {
+                if (!ord) return;
+                const idKey = String(ord.id || ord.order_id || ord.order_number || `${ord.phone_number || ord.phone || cleanPhone}_${ord.created_at || Math.random()}`);
+                if (!seenKeys.has(idKey)) {
+                    seenKeys.add(idKey);
+                    combinedList.push(ord);
                 }
-            }
+            };
 
-            if (extractedOrder && (extractedOrder.name || extractedOrder.produse || extractedOrder.total || extractedOrder.value || extractedOrder.adresa || extractedOrder.phone_number)) {
-                setFoundOrder(extractedOrder);
-                setSearchFeedback({ type: 'success', message: 'Comanda a fost găsită cu succes!' });
+            webhookOrders.forEach(addOrder);
+            (dbOrders || []).forEach(addOrder);
+
+            if (combinedList.length > 0) {
+                setFoundOrders(combinedList);
+                setSearchFeedback({
+                    type: 'success',
+                    message: combinedList.length === 1 
+                        ? 'A fost găsită 1 comandă pentru acest număr!' 
+                        : `S-au găsit ${combinedList.length} comenzi pentru acest număr!`
+                });
             } else {
-                // Chiar dacă nu se găsește în DB, lăsăm comanda cu numărul de telefon introdus pentru a putea fi sunat
-                setFoundOrder({ phone_number: cleanPhone, name: 'Client nou / Negăsit în DB' });
-                setSearchFeedback({ type: 'error', message: 'Nu s-au găsit detalii în baza de date, dar poți suna direct numărul introdus.' });
+                // Dacă nu s-a găsit nicio comandă în DB sau webhook, oferim opțiunea de apel direct
+                setFoundOrders([{
+                    phone_number: cleanPhone,
+                    name: 'Client nou / Negăsit în DB',
+                    is_fallback: true
+                }]);
+                setSearchFeedback({
+                    type: 'error',
+                    message: 'Nu s-au găsit detalii în baza de date, dar poți suna direct numărul introdus.'
+                });
             }
+            setHasSearched(true);
         } catch (error: any) {
-            console.error('Eroare la trimiterea căutării comenzii:', error);
+            console.error('Eroare generală la căutarea comenzii:', error);
             setSearchFeedback({ type: 'error', message: 'Eroare la comunicarea cu serverul n8n.' });
         } finally {
             setIsSearchingOrder(false);
@@ -383,7 +442,7 @@ export default function ProcessedOrders() {
                     <button
                         onClick={() => {
                             setIsSearchModalOpen(true);
-                            setSearchFeedback(null);
+                            handleResetSearch();
                         }}
                         className="btn-3d-primary px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 h-[42px] hover:text-white transition-all shadow-sm"
                         title="Caută comanda după număr de telefon"
@@ -651,22 +710,24 @@ export default function ProcessedOrders() {
             {/* Modal Sună Acum / Caută Comandă */}
             {isSearchModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-                    <div className="bg-[#13141a] border border-white/10 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col p-6 animate-scale-up">
+                    <div className="bg-[#13141a] border border-white/10 rounded-3xl w-full max-w-xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col p-6 animate-scale-up">
                         {/* Header */}
-                        <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-5">
+                        <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-5 shrink-0">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                                     <span className="material-icons-round text-xl">phone_in_talk</span>
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-semibold text-white leading-tight">Caută comandă</h3>
-                                    <p className="text-xs text-gray-400 mt-0.5">Introdu numărul de telefon al clientului</p>
+                                    <p className="text-xs text-gray-400 mt-0.5">
+                                        {hasSearched ? `Rezultate căutare pentru: ${searchPhone}` : 'Introdu numărul de telefon al clientului'}
+                                    </p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => {
                                     setIsSearchModalOpen(false);
-                                    setSearchFeedback(null);
+                                    handleResetSearch();
                                 }}
                                 className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center transition-colors"
                             >
@@ -674,8 +735,8 @@ export default function ProcessedOrders() {
                             </button>
                         </div>
 
-                        {/* Content: Form sau Detalii Comandă */}
-                        {!foundOrder ? (
+                        {/* Content: Form sau Lista Comenzi Găsite */}
+                        {!hasSearched ? (
                             <form onSubmit={handleSearchOrder} className="space-y-4">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
@@ -714,7 +775,7 @@ export default function ProcessedOrders() {
                                         type="button"
                                         onClick={() => {
                                             setIsSearchModalOpen(false);
-                                            setSearchFeedback(null);
+                                            handleResetSearch();
                                         }}
                                         className="btn-3d-secondary px-5 py-3 rounded-xl text-sm font-medium hover:text-white transition-all flex-1"
                                     >
@@ -740,131 +801,184 @@ export default function ProcessedOrders() {
                                 </div>
                             </form>
                         ) : (
-                            <div className="space-y-4">
-                                {/* Card Detalii Comandă */}
-                                <div className="bg-[#1a1b23] border border-white/10 rounded-2xl p-4 space-y-3">
-                                    <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                                        <div className="font-semibold text-white text-base">
-                                            {foundOrder.name || foundOrder.client_name || 'Client'}
-                                        </div>
-                                        {foundOrder.status && (
-                                            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/20 text-primary border border-primary/30 uppercase">
-                                                {foundOrder.status}
-                                            </span>
-                                        )}
+                            <div className="flex flex-col flex-1 min-h-0 space-y-4">
+                                {/* Bară informativă număr comenzi găsite */}
+                                <div className="flex items-center justify-between pb-1 border-b border-white/5 shrink-0 text-xs">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-gray-400">Comenzi găsite:</span>
+                                        <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 font-bold">
+                                            {foundOrders.length}
+                                        </span>
                                     </div>
-
-                                    <div className="grid grid-cols-2 gap-2.5 text-xs">
-                                        <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/5">
-                                            <span className="text-gray-500 block mb-0.5 font-medium">Telefon</span>
-                                            <span className="text-white font-mono font-semibold">
-                                                {foundOrder.phone_number || foundOrder.phone || searchPhone}
-                                            </span>
-                                        </div>
-                                        <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/5">
-                                            <span className="text-gray-500 block mb-0.5 font-medium">Valoare</span>
-                                            <span className="text-emerald-400 font-bold">
-                                                {foundOrder.value ?? foundOrder.total ?? '-'} {foundOrder.value || foundOrder.total ? 'lei' : ''}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {(foundOrder.adresa || foundOrder.oras || foundOrder.judet) && (
-                                        <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/5 text-xs">
-                                            <span className="text-gray-500 block mb-0.5 font-medium">Adresă de livrare</span>
-                                            <span className="text-gray-200">
-                                                {[foundOrder.adresa, foundOrder.oras, foundOrder.judet].filter(Boolean).join(', ')}
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {foundOrder.produse && (
-                                        <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/5 text-xs">
-                                            <span className="text-gray-500 block mb-0.5 font-medium">Produse comandate</span>
-                                            <span className="text-gray-300 break-words">
-                                                {typeof foundOrder.produse === 'object' ? JSON.stringify(foundOrder.produse) : String(foundOrder.produse)}
-                                            </span>
-                                        </div>
-                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={handleResetSearch}
+                                        className="text-primary hover:text-primary/80 font-medium flex items-center gap-1 transition-colors"
+                                    >
+                                        <span className="material-icons-round text-sm">arrow_back</span>
+                                        Caută alt număr
+                                    </button>
                                 </div>
 
-                                {/* Feedback Apel Robot */}
-                                {callFeedback && (
-                                    <div className={`p-3 rounded-xl text-xs flex items-center gap-2 border ${
-                                        callFeedback.type === 'success' 
+                                {/* Feedback Căutare dacă există */}
+                                {searchFeedback && (
+                                    <div className={`p-3 rounded-xl text-xs flex items-center gap-2 border shrink-0 ${
+                                        searchFeedback.type === 'success' 
                                             ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
-                                            : 'bg-red-500/10 border-red-500/30 text-red-400'
+                                            : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
                                     }`}>
                                         <span className="material-icons-round text-base">
-                                            {callFeedback.type === 'success' ? 'check_circle' : 'error'}
+                                            {searchFeedback.type === 'success' ? 'check_circle' : 'info'}
                                         </span>
-                                        <span>{callFeedback.message}</span>
+                                        <span>{searchFeedback.message}</span>
                                     </div>
                                 )}
 
-                                {/* Avertisment Cooldown 1 oră */}
-                                {(() => {
-                                    const currentPhone = foundOrder?.phone_number || foundOrder?.phone || searchPhone || '';
-                                    const cooldown = getRecentCallTimeRemaining(currentPhone);
-                                    if (cooldown.isBlocked) {
+                                {/* Listă carduri pentru fiecare comandă */}
+                                <div className="overflow-y-auto pr-1.5 custom-scrollbar space-y-3.5 flex-1 max-h-[55vh]">
+                                    {foundOrders.map((order, idx) => {
+                                        const orderKey = String(order?.id || order?.order_id || order?.order_number || idx);
+                                        const orderPhone = order?.phone_number || order?.phone || searchPhone;
+                                        const cleanOrderPhone = (orderPhone || '').trim().replace(/\s+/g, '');
+                                        const cooldown = getRecentCallTimeRemaining(cleanOrderPhone);
+                                        const isBlocked = cooldown.isBlocked;
+                                        const isCallingThis = callingOrderId === orderKey;
+                                        const isCallingAny = callingOrderId !== null;
+
                                         return (
-                                            <div className="p-3 rounded-xl text-xs flex items-center gap-2 border bg-amber-500/10 border-amber-500/30 text-amber-300">
-                                                <span className="material-icons-round text-base text-amber-400">schedule</span>
-                                                <span>Numărul a fost deja trimis să sune recent. Poate fi resunat peste {cooldown.minutesRemaining} {cooldown.minutesRemaining === 1 ? 'minut' : 'minute'}.</span>
+                                            <div key={orderKey} className="bg-[#1a1b23] border border-white/10 rounded-2xl p-4 space-y-3 shadow-md hover:border-white/20 transition-all">
+                                                {/* Header Card Comandă */}
+                                                <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                                                    <div className="flex items-center gap-2 truncate">
+                                                        <span className="font-semibold text-white text-base truncate">
+                                                            {order.name || order.client_name || 'Client'}
+                                                        </span>
+                                                        {(order.order_id || order.id || order.order_number) && (
+                                                            <span className="text-xs text-gray-400 font-mono shrink-0">
+                                                                #{order.order_id || order.id || order.order_number}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        {order.type && (
+                                                            <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 capitalize">
+                                                                {order.type}
+                                                            </span>
+                                                        )}
+                                                        {order.status && (
+                                                            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/20 text-primary border border-primary/30 uppercase">
+                                                                {order.status}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Informații cheie: Telefon, Valoare, Dată */}
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                                                    <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/5">
+                                                        <span className="text-gray-500 block mb-0.5 font-medium">Telefon</span>
+                                                        <span className="text-white font-mono font-semibold">
+                                                            {orderPhone}
+                                                        </span>
+                                                    </div>
+                                                    <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/5">
+                                                        <span className="text-gray-500 block mb-0.5 font-medium">Valoare</span>
+                                                        <span className="text-emerald-400 font-bold">
+                                                            {order.value ?? order.total ?? '-'} {order.value || order.total ? 'lei' : ''}
+                                                        </span>
+                                                    </div>
+                                                    {order.created_at && (
+                                                        <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/5 col-span-2 sm:col-span-1">
+                                                            <span className="text-gray-500 block mb-0.5 font-medium">Dată</span>
+                                                            <span className="text-gray-300">
+                                                                {new Date(order.created_at).toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Adresă livrare dacă există */}
+                                                {(order.adresa || order.oras || order.judet) && (
+                                                    <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/5 text-xs">
+                                                        <span className="text-gray-500 block mb-0.5 font-medium">Adresă livrare</span>
+                                                        <span className="text-gray-200">
+                                                            {[order.adresa, order.oras, order.judet].filter(Boolean).join(', ')}
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                {/* Produse dacă există */}
+                                                {order.produse && (
+                                                    <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/5 text-xs">
+                                                        <span className="text-gray-500 block mb-0.5 font-medium">Produse comandate</span>
+                                                        <span className="text-gray-300 break-words">
+                                                            {typeof order.produse === 'object' ? JSON.stringify(order.produse) : String(order.produse)}
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                {/* Feedback specific apel robot pentru această comandă */}
+                                                {callFeedback && (callFeedback.orderId === orderKey || !callFeedback.orderId) && (
+                                                    <div className={`p-2.5 rounded-xl text-xs flex items-center gap-2 border ${
+                                                        callFeedback.type === 'success' 
+                                                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                                                            : 'bg-red-500/10 border-red-500/30 text-red-400'
+                                                    }`}>
+                                                        <span className="material-icons-round text-base">
+                                                            {callFeedback.type === 'success' ? 'check_circle' : 'error'}
+                                                        </span>
+                                                        <span>{callFeedback.message}</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Avertisment Cooldown 1 oră */}
+                                                {isBlocked && (
+                                                    <div className="p-2.5 rounded-xl text-xs flex items-center gap-2 border bg-amber-500/10 border-amber-500/30 text-amber-300">
+                                                        <span className="material-icons-round text-base text-amber-400">schedule</span>
+                                                        <span>Numărul a fost deja trimis să sune recent. Poate fi resunat peste {cooldown.minutesRemaining} {cooldown.minutesRemaining === 1 ? 'minut' : 'minute'}.</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Buton Sună Acum individual pentru fiecare comandă */}
+                                                <div className="pt-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleCallRobot(order)}
+                                                        disabled={isCallingThis || isCallingAny || isBlocked}
+                                                        className={`w-full h-11 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all shadow-md text-white ${
+                                                            isBlocked
+                                                                ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300 cursor-not-allowed'
+                                                                : 'btn-3d-primary active:scale-95 disabled:opacity-50'
+                                                        }`}
+                                                    >
+                                                        {isCallingThis ? (
+                                                            <>
+                                                                <span className="material-icons-round animate-spin text-lg">autorenew</span>
+                                                                <span>Se trimite comanda către robot...</span>
+                                                            </>
+                                                        ) : isBlocked ? (
+                                                            <>
+                                                                <span className="material-icons-round text-lg text-amber-400">lock_clock</span>
+                                                                <span>Blocat 1 oră ({cooldown.minutesRemaining} min rămase)</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <span className="material-icons-round text-lg">call</span>
+                                                                <span>Sună acum</span>
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </div>
                                             </div>
                                         );
-                                    }
-                                    return null;
-                                })()}
-
-                                {/* Buton Sună Acum (Webhook Robot) */}
-                                <div className="pt-1">
-                                    {(() => {
-                                        const currentPhone = foundOrder?.phone_number || foundOrder?.phone || searchPhone || '';
-                                        const cooldown = getRecentCallTimeRemaining(currentPhone);
-                                        const isBlocked = cooldown.isBlocked;
-
-                                        return (
-                                            <button
-                                                type="button"
-                                                onClick={handleCallRobot}
-                                                disabled={isCallingRobot || isBlocked}
-                                                className={`w-full h-12 rounded-xl flex items-center justify-center gap-2 font-bold transition-all shadow-lg text-white ${
-                                                    isBlocked
-                                                        ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300 cursor-not-allowed'
-                                                        : 'btn-3d-primary active:scale-95 disabled:opacity-50'
-                                                }`}
-                                            >
-                                                {isCallingRobot ? (
-                                                    <>
-                                                        <span className="material-icons-round animate-spin text-xl">autorenew</span>
-                                                        <span>Se inițiază apelul...</span>
-                                                    </>
-                                                ) : isBlocked ? (
-                                                    <>
-                                                        <span className="material-icons-round text-xl text-amber-400">lock_clock</span>
-                                                        <span>Blocat 1 oră ({cooldown.minutesRemaining} min rămase)</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span className="material-icons-round text-xl">call</span>
-                                                        <span>Sună acum</span>
-                                                    </>
-                                                )}
-                                            </button>
-                                        );
-                                    })()}
+                                    })}
                                 </div>
 
-                                {/* Buton Caută alt număr / Închide */}
-                                <div className="flex items-center justify-between pt-2 border-t border-white/5 text-xs">
+                                {/* Butoane Caută alt număr / Închide fereastra */}
+                                <div className="flex items-center justify-between pt-3 border-t border-white/5 text-xs shrink-0">
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            setFoundOrder(null);
-                                            setSearchFeedback(null);
-                                            setCallFeedback(null);
-                                        }}
+                                        onClick={handleResetSearch}
                                         className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
                                     >
                                         <span className="material-icons-round text-sm">arrow_back</span>
@@ -874,9 +988,7 @@ export default function ProcessedOrders() {
                                         type="button"
                                         onClick={() => {
                                             setIsSearchModalOpen(false);
-                                            setFoundOrder(null);
-                                            setSearchFeedback(null);
-                                            setCallFeedback(null);
+                                            handleResetSearch();
                                         }}
                                         className="text-gray-400 hover:text-white transition-colors"
                                     >
