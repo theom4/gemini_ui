@@ -2,6 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 
+const AVAILABLE_PRODUCTS = [
+    { name: 'Ser pete pigmentare', sku: 'DRF-001', link: '' },
+    { name: 'Sampon Solid Polygonum', sku: 'DCC-004', link: 'https://kordanostore.ro/polygonum/' },
+    { name: 'Sampon solid Rozmarin', sku: 'DCC-007', link: 'https://kordanostore.ro/rozmarin/' },
+    { name: 'Plasturi cu Pelin', sku: 'DCC-005', link: '' },
+    { name: 'Kit Reparatii', sku: 'DCC-006', link: 'https://kordanostore.ro/kitmagic/' },
+    { name: 'Sampon Solid cu Ghimbir', sku: 'DCC-003', link: 'https://kordanostore.ro/sampon/' },
+    { name: 'Ser cu Biotina', sku: 'DCC-002', link: 'https://kordanostore.ro/biotina/' },
+    { name: 'Bandă Etanșare', sku: 'DCC-010', link: 'https://kordanostore.ro/' },
+    { name: 'Ulei Germinal cu Ghimbir', sku: 'DCC-001', link: 'https://kordanostore.ro/ghimbir/' },
+    { name: 'Ascutitor Cutite', sku: 'DCC-011', link: 'https://kordanostore.ro/sharpblade/' },
+    { name: 'Cutit Magic', sku: 'DRF-008', link: 'https://kordanostore.ro/cutitmagic/' },
+];
+
 export default function ProcessedOrders() {
     const { profile, session } = useAuth();
     const userStores = profile?.stores || [];
@@ -27,8 +41,16 @@ export default function ProcessedOrders() {
     const [searchFeedback, setSearchFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [foundOrders, setFoundOrders] = useState<any[]>([]);
     const [hasSearched, setHasSearched] = useState(false);
+    const [isOrderNotFound, setIsOrderNotFound] = useState(false);
     const [callingOrderId, setCallingOrderId] = useState<string | null>(null);
     const [callFeedback, setCallFeedback] = useState<{ orderId?: string; type: 'success' | 'error'; message: string } | null>(null);
+
+    // ── Manual Order Input State (când comanda este negăsită) ────────
+    const [manualName, setManualName] = useState('');
+    const [manualAddress, setManualAddress] = useState('');
+    const [manualSelectedProductSku, setManualSelectedProductSku] = useState(AVAILABLE_PRODUCTS[0].sku);
+    const [manualQuantity, setManualQuantity] = useState(1);
+    const [isCallingManual, setIsCallingManual] = useState(false);
 
     // ── Call History & 1-Hour Cooldown Checker ───────────────────────
     const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -166,8 +188,127 @@ export default function ProcessedOrders() {
     const handleResetSearch = () => {
         setFoundOrders([]);
         setHasSearched(false);
+        setIsOrderNotFound(false);
         setSearchFeedback(null);
         setCallFeedback(null);
+        setManualName('');
+        setManualAddress('');
+        setManualSelectedProductSku(AVAILABLE_PRODUCTS[0].sku);
+        setManualQuantity(1);
+    };
+
+    const handleCallManualOrder = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        const cleanPhone = searchPhone.trim().replace(/\s+/g, '');
+        if (!cleanPhone) {
+            alert('Numărul de telefon lipsește.');
+            return;
+        }
+        if (!manualName.trim()) {
+            alert('Te rugăm să introduci numele clientului.');
+            return;
+        }
+        if (!manualAddress.trim()) {
+            alert('Te rugăm să introduci adresa / strada clientului.');
+            return;
+        }
+        const quantityNum = Math.max(1, Number(manualQuantity) || 1);
+        const prodObj = AVAILABLE_PRODUCTS.find(p => p.sku === manualSelectedProductSku) || AVAILABLE_PRODUCTS[0];
+
+        const cooldownCheck = getRecentCallTimeRemaining(cleanPhone);
+        if (cooldownCheck.isBlocked) {
+            setCallFeedback({
+                type: 'error',
+                message: `Acest număr a fost deja trimis să sune recent! Poți trimite din nou peste ${cooldownCheck.minutesRemaining} ${cooldownCheck.minutesRemaining === 1 ? 'minut' : 'minute'}.`
+            });
+            return;
+        }
+
+        setIsCallingManual(true);
+        setCallFeedback(null);
+
+        try {
+            const webhookUrl = 'https://n8n.voisero.info/webhook/control-robot-kordanostore';
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token || ''}`
+                },
+                body: JSON.stringify({
+                    shop: selectedBrand || 'Kordanostore',
+                    store: selectedBrand || 'Kordanostore',
+                    phone_number: cleanPhone,
+                    phone: cleanPhone,
+                    name: manualName.trim(),
+                    client_name: manualName.trim(),
+                    adresa: manualAddress.trim(),
+                    address: manualAddress.trim(),
+                    produs: prodObj.name,
+                    product: prodObj.name,
+                    sku: prodObj.sku,
+                    link: prodObj.link,
+                    cantitate: quantityNum,
+                    quantity: quantityNum,
+                    produse: `${prodObj.name} (${prodObj.sku}) x${quantityNum}`,
+                    order_number: '',
+                    order_id: '',
+                    tip_comanda: 'comanda',
+                    type: 'comanda',
+                    action: 'call'
+                })
+            });
+
+            if (response.ok) {
+                setCallFeedback({
+                    type: 'success',
+                    message: 'Comanda a fost trimisă cu succes către robot!'
+                });
+
+                // Salvează cooldown de 1 oră în localStorage
+                try {
+                    const norm = cleanPhone.slice(-9);
+                    const cooldowns = JSON.parse(localStorage.getItem('kordano_called_cooldowns') || '{}');
+                    cooldowns[norm] = Date.now();
+                    localStorage.setItem('kordano_called_cooldowns', JSON.stringify(cooldowns));
+                } catch (err) {
+                    console.error('Eroare salvare cooldown:', err);
+                }
+
+                // Salvează în istoricul local
+                const newCallItem = {
+                    name: manualName.trim(),
+                    phone: cleanPhone,
+                    orderId: 'Manual',
+                    total: `${prodObj.name} x${quantityNum}`,
+                    time: new Date().toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
+                    date: new Date().toLocaleDateString('ro-RO')
+                };
+
+                setCallHistory(prev => {
+                    const updated = [newCallItem, ...prev].slice(0, 50);
+                    try {
+                        localStorage.setItem('kordano_robot_calls_history', JSON.stringify(updated));
+                    } catch (err) {
+                        console.error('Eroare salvare istoric apeluri:', err);
+                    }
+                    return updated;
+                });
+            } else {
+                setCallFeedback({
+                    type: 'error',
+                    message: `Eroare server robot (${response.status}).`
+                });
+            }
+        } catch (err: any) {
+            console.error('Eroare webhook control-robot:', err);
+            setCallFeedback({
+                type: 'error',
+                message: 'Eroare la conectarea cu robotul n8n.'
+            });
+        } finally {
+            setIsCallingManual(false);
+        }
     };
 
     const handleSearchOrder = async (e?: React.FormEvent) => {
@@ -183,6 +324,7 @@ export default function ProcessedOrders() {
         setCallFeedback(null);
         setFoundOrders([]);
         setHasSearched(false);
+        setIsOrderNotFound(false);
 
         try {
             const cleanPhone = trimmed.replace(/\s+/g, '');
@@ -264,19 +406,19 @@ export default function ProcessedOrders() {
                         : `S-au găsit ${combinedList.length} comenzi pentru acest număr!`
                 });
                 setHasSearched(true);
+                setIsOrderNotFound(false);
             } else {
                 setFoundOrders([]);
-                setSearchFeedback({
-                    type: 'error',
-                    message: 'Comandă negăsită'
-                });
-                setHasSearched(false);
+                setIsOrderNotFound(true);
+                setHasSearched(true);
+                setSearchFeedback(null);
             }
         } catch (error: any) {
             console.error('Eroare generală la căutarea comenzii:', error);
             setFoundOrders([]);
-            setSearchFeedback({ type: 'error', message: 'Comandă negăsită' });
-            setHasSearched(false);
+            setIsOrderNotFound(true);
+            setHasSearched(true);
+            setSearchFeedback(null);
         } finally {
             setIsSearchingOrder(false);
         }
@@ -718,7 +860,9 @@ export default function ProcessedOrders() {
                                 <div>
                                     <h3 className="text-lg font-semibold text-white leading-tight">Caută comandă</h3>
                                     <p className="text-xs text-gray-400 mt-0.5">
-                                        {hasSearched ? `Rezultate căutare pentru: ${searchPhone}` : 'Introdu numărul de telefon al clientului'}
+                                        {hasSearched
+                                            ? (isOrderNotFound ? `Comandă negăsită pentru: ${searchPhone}` : `Rezultate căutare pentru: ${searchPhone}`)
+                                            : 'Introdu numărul de telefon al clientului'}
                                     </p>
                                 </div>
                             </div>
@@ -798,6 +942,189 @@ export default function ProcessedOrders() {
                                     </button>
                                 </div>
                             </form>
+                        ) : isOrderNotFound ? (
+                            <div className="flex flex-col flex-1 min-h-0 space-y-4">
+                                {/* Alertă Comandă negăsită */}
+                                <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3 shrink-0">
+                                    <span className="material-icons-round text-amber-400 text-xl mt-0.5 shrink-0">info</span>
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-white">Comandă negăsită</h4>
+                                        <p className="text-xs text-gray-300 mt-0.5 leading-relaxed">
+                                            Nu a fost găsită nicio comandă pentru numărul <span className="font-mono font-bold text-white">{searchPhone}</span>.
+                                            Introdu detaliile comenzii pentru a putea suna:
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Formular introducere detalii comandă */}
+                                <form onSubmit={handleCallManualOrder} className="space-y-3.5 overflow-y-auto pr-1.5 custom-scrollbar flex-1 max-h-[50vh]">
+                                    {/* Nume client */}
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">
+                                            Nume client *
+                                        </label>
+                                        <div className="relative">
+                                            <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-base">person</span>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={manualName}
+                                                onChange={(e) => setManualName(e.target.value)}
+                                                placeholder="ex: Ion Popescu"
+                                                className="w-full bg-[#1a1b23] border border-white/10 text-white text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder-gray-600"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Adresă / Stradă */}
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">
+                                            Adresă / Stradă *
+                                        </label>
+                                        <div className="relative">
+                                            <span className="material-icons-round absolute left-3 top-3 text-gray-500 text-base">home</span>
+                                            <textarea
+                                                required
+                                                rows={2}
+                                                value={manualAddress}
+                                                onChange={(e) => setManualAddress(e.target.value)}
+                                                placeholder="ex: Str. Libertății nr. 10, Bl. 2, Ap. 15, București"
+                                                className="w-full bg-[#1a1b23] border border-white/10 text-white text-sm rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder-gray-600 resize-none"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Produs și Cantitate */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div className="sm:col-span-2">
+                                            <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">
+                                                Produs *
+                                            </label>
+                                            <div className="relative">
+                                                <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-base">inventory_2</span>
+                                                <select
+                                                    value={manualSelectedProductSku}
+                                                    onChange={(e) => setManualSelectedProductSku(e.target.value)}
+                                                    className="w-full bg-[#1a1b23] border border-white/10 text-white text-sm rounded-xl pl-9 pr-8 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none cursor-pointer"
+                                                >
+                                                    {AVAILABLE_PRODUCTS.map((prod) => (
+                                                        <option key={prod.sku} value={prod.sku} className="bg-[#13141a] text-white">
+                                                            {prod.name} ({prod.sku})
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <span className="material-icons-round absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none">expand_more</span>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">
+                                                Cantitate *
+                                            </label>
+                                            <div className="relative">
+                                                <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-base">format_list_numbered</span>
+                                                <input
+                                                    type="number"
+                                                    min={1}
+                                                    required
+                                                    value={manualQuantity}
+                                                    onChange={(e) => setManualQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                                    className="w-full bg-[#1a1b23] border border-white/10 text-white text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-center font-mono"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Call Feedback dacă există */}
+                                    {callFeedback && (
+                                        <div className={`p-3 rounded-xl text-xs flex items-center gap-2 border ${
+                                            callFeedback.type === 'success' 
+                                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                                                : 'bg-red-500/10 border-red-500/30 text-red-400'
+                                        }`}>
+                                            <span className="material-icons-round text-base">
+                                                {callFeedback.type === 'success' ? 'check_circle' : 'error'}
+                                            </span>
+                                            <span>{callFeedback.message}</span>
+                                        </div>
+                                    )}
+
+                                    {/* Avertisment Cooldown 1 oră dacă numărul e blocat */}
+                                    {(() => {
+                                        const clean = searchPhone.trim().replace(/\s+/g, '');
+                                        const cooldown = getRecentCallTimeRemaining(clean);
+                                        if (cooldown.isBlocked) {
+                                            return (
+                                                <div className="p-3 rounded-xl text-xs flex items-center gap-2 border bg-amber-500/10 border-amber-500/30 text-amber-300">
+                                                    <span className="material-icons-round text-base text-amber-400">schedule</span>
+                                                    <span>Numărul a fost deja trimis să sune recent. Poate fi resunat peste {cooldown.minutesRemaining} {cooldown.minutesRemaining === 1 ? 'minut' : 'minute'}.</span>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
+
+                                    {/* Buton Sună Acum */}
+                                    <div className="pt-1">
+                                        {(() => {
+                                            const clean = searchPhone.trim().replace(/\s+/g, '');
+                                            const cooldown = getRecentCallTimeRemaining(clean);
+                                            const isBlocked = cooldown.isBlocked;
+
+                                            return (
+                                                <button
+                                                    type="submit"
+                                                    disabled={isCallingManual || isBlocked || !manualName.trim() || !manualAddress.trim()}
+                                                    className={`w-full h-11 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all shadow-md text-white ${
+                                                        isBlocked || !manualName.trim() || !manualAddress.trim()
+                                                            ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300 cursor-not-allowed opacity-60'
+                                                            : 'btn-3d-primary active:scale-95 disabled:opacity-50'
+                                                    }`}
+                                                >
+                                                    {isCallingManual ? (
+                                                        <>
+                                                            <span className="material-icons-round animate-spin text-lg">autorenew</span>
+                                                            <span>Se inițiază apelul robotului...</span>
+                                                        </>
+                                                    ) : isBlocked ? (
+                                                        <>
+                                                            <span className="material-icons-round text-lg text-amber-400">lock_clock</span>
+                                                            <span>Blocat 1 oră ({cooldown.minutesRemaining} min rămase)</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <span className="material-icons-round text-lg">call</span>
+                                                            <span>Sună acum</span>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            );
+                                        })()}
+                                    </div>
+                                </form>
+
+                                {/* Butoane Caută alt număr / Închide fereastra */}
+                                <div className="flex items-center justify-between pt-3 border-t border-white/5 text-xs shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={handleResetSearch}
+                                        className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                                    >
+                                        <span className="material-icons-round text-sm">arrow_back</span>
+                                        Caută alt număr
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsSearchModalOpen(false);
+                                            handleResetSearch();
+                                        }}
+                                        className="text-gray-400 hover:text-white transition-colors"
+                                    >
+                                        Închide fereastra
+                                    </button>
+                                </div>
+                            </div>
                         ) : (
                             <div className="flex flex-col flex-1 min-h-0 space-y-4">
                                 {/* Bară informativă număr comenzi găsite */}
