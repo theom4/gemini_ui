@@ -21,6 +21,14 @@ export default function ProcessedOrders() {
     const userStores = profile?.stores || [];
 
     const [selectedBrand, setSelectedBrand] = useState<string>('');
+    const isKordano = Boolean(selectedBrand && selectedBrand.toLowerCase().includes('kordano'));
+
+    useEffect(() => {
+        if (!isKordano) {
+            setIsSearchModalOpen(false);
+            setIsHistoryOpen(false);
+        }
+    }, [isKordano]);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -84,6 +92,7 @@ export default function ProcessedOrders() {
     };
 
     const handleCallRobot = async (order: any) => {
+        if (!isKordano) return;
         const rawPhone = order?.phone_number || order?.phone || searchPhone;
         if (!rawPhone) {
             alert('Numărul de telefon lipsește.');
@@ -199,6 +208,7 @@ export default function ProcessedOrders() {
 
     const handleCallManualOrder = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
+        if (!isKordano) return;
         const cleanPhone = searchPhone.trim().replace(/\s+/g, '');
         if (!cleanPhone) {
             alert('Numărul de telefon lipsește.');
@@ -313,6 +323,7 @@ export default function ProcessedOrders() {
 
     const handleSearchOrder = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
+        if (!isKordano) return;
         const trimmed = searchPhone.trim();
         if (!trimmed) {
             alert('Te rugăm să introduci numărul de telefon.');
@@ -508,88 +519,93 @@ export default function ProcessedOrders() {
                 </div>
 
                 <div className="flex flex-wrap gap-3 items-center justify-end">
-                    {/* Mini popup cu istoric comenzi trimise să sune */}
-                    <div className="relative">
-                        <button
-                            onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-                            className="btn-3d-secondary px-3.5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 h-[42px] hover:text-white transition-all shadow-sm"
-                            title="Istoric comenzi trimise la robot"
-                        >
-                            <span className="material-icons-round text-base text-gray-400">history</span>
-                            <span className="hidden sm:inline">Istoric</span>
-                            {callHistory.length > 0 && (
-                                <span className="bg-primary/20 text-primary border border-primary/30 text-[11px] font-bold px-1.5 py-0.2 rounded-full min-w-[20px] text-center">
-                                    {callHistory.length}
-                                </span>
-                            )}
-                        </button>
-
-                        {isHistoryOpen && (
-                            <>
-                                <div className="fixed inset-0 z-40" onClick={() => setIsHistoryOpen(false)} />
-                                <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl bg-[#13141a] border border-white/10 shadow-2xl z-50 overflow-hidden backdrop-blur-md p-4 space-y-3 animate-fade-in">
-                                    <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                                        <div className="flex items-center gap-2">
-                                            <span className="material-icons-round text-primary text-base">history</span>
-                                            <h4 className="text-sm font-semibold text-white">Comenzi trimise la robot</h4>
-                                        </div>
-                                        {callHistory.length > 0 && (
-                                            <button
-                                                onClick={() => {
-                                                    setCallHistory([]);
-                                                    localStorage.removeItem('kordano_robot_calls_history');
-                                                }}
-                                                className="text-[11px] text-gray-400 hover:text-red-400 transition-colors"
-                                            >
-                                                Șterge
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    {callHistory.length === 0 ? (
-                                        <div className="py-6 text-center text-xs text-gray-500">
-                                            Nicio comandă trimisă la robot încă.
-                                        </div>
-                                    ) : (
-                                        <div className="max-h-64 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                                            {callHistory.map((item, idx) => (
-                                                <div key={idx} className="bg-white/[0.03] border border-white/5 rounded-xl p-2.5 text-xs space-y-1 hover:bg-white/[0.05] transition-colors">
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="font-semibold text-white truncate max-w-[180px]">
-                                                            {item.name || 'Client'}
-                                                        </span>
-                                                        <span className="text-[10px] text-gray-400">{item.time}</span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between text-[11px]">
-                                                        <span className="font-mono text-gray-300">{item.phone}</span>
-                                                        <span className="text-emerald-400 font-medium">
-                                                            {item.total ? `${item.total} lei` : ''}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1 text-[10px] text-emerald-400 pt-0.5">
-                                                        <span className="material-icons-round text-[13px]">check_circle</span>
-                                                        <span>Trimis la robot</span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
+                    {/* Funcționalitate Apeluri Robot disponibilă exclusiv pentru magazinul Kordano */}
+                    {isKordano && (
+                        <>
+                            {/* Mini popup cu istoric comenzi trimise să sune */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+                                    className="btn-3d-secondary px-3.5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 h-[42px] hover:text-white transition-all shadow-sm"
+                                    title="Istoric comenzi trimise la robot"
+                                >
+                                    <span className="material-icons-round text-base text-gray-400">history</span>
+                                    <span className="hidden sm:inline">Istoric</span>
+                                    {callHistory.length > 0 && (
+                                        <span className="bg-primary/20 text-primary border border-primary/30 text-[11px] font-bold px-1.5 py-0.2 rounded-full min-w-[20px] text-center">
+                                            {callHistory.length}
+                                        </span>
                                     )}
-                                </div>
-                            </>
-                        )}
-                    </div>
+                                </button>
 
-                    <button
-                        onClick={() => {
-                            setIsSearchModalOpen(true);
-                            handleResetSearch();
-                        }}
-                        className="btn-3d-primary px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 h-[42px] hover:text-white transition-all shadow-sm"
-                        title="Caută comanda după număr de telefon"
-                    >
-                        <span className="material-icons-round text-base">call</span>
-                        Sună acum
-                    </button>
+                                {isHistoryOpen && (
+                                    <>
+                                        <div className="fixed inset-0 z-40" onClick={() => setIsHistoryOpen(false)} />
+                                        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl bg-[#13141a] border border-white/10 shadow-2xl z-50 overflow-hidden backdrop-blur-md p-4 space-y-3 animate-fade-in">
+                                            <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="material-icons-round text-primary text-base">history</span>
+                                                    <h4 className="text-sm font-semibold text-white">Comenzi trimise la robot</h4>
+                                                </div>
+                                                {callHistory.length > 0 && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setCallHistory([]);
+                                                            localStorage.removeItem('kordano_robot_calls_history');
+                                                        }}
+                                                        className="text-[11px] text-gray-400 hover:text-red-400 transition-colors"
+                                                    >
+                                                        Șterge
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {callHistory.length === 0 ? (
+                                                <div className="py-6 text-center text-xs text-gray-500">
+                                                    Nicio comandă trimisă la robot încă.
+                                                </div>
+                                            ) : (
+                                                <div className="max-h-64 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                                                    {callHistory.map((item, idx) => (
+                                                        <div key={idx} className="bg-white/[0.03] border border-white/5 rounded-xl p-2.5 text-xs space-y-1 hover:bg-white/[0.05] transition-colors">
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="font-semibold text-white truncate max-w-[180px]">
+                                                                    {item.name || 'Client'}
+                                                                </span>
+                                                                <span className="text-[10px] text-gray-400">{item.time}</span>
+                                                            </div>
+                                                            <div className="flex items-center justify-between text-[11px]">
+                                                                <span className="font-mono text-gray-300">{item.phone}</span>
+                                                                <span className="text-emerald-400 font-medium">
+                                                                    {item.total ? `${item.total} lei` : ''}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1 text-[10px] text-emerald-400 pt-0.5">
+                                                                <span className="material-icons-round text-[13px]">check_circle</span>
+                                                                <span>Trimis la robot</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    setIsSearchModalOpen(true);
+                                    handleResetSearch();
+                                }}
+                                className="btn-3d-primary px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 h-[42px] hover:text-white transition-all shadow-sm"
+                                title="Caută comanda după număr de telefon"
+                            >
+                                <span className="material-icons-round text-base">call</span>
+                                Sună acum
+                            </button>
+                        </>
+                    )}
 
                     <div className="relative w-full sm:w-80">
                         <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
@@ -847,8 +863,8 @@ export default function ProcessedOrders() {
                 </div>
             )}
 
-            {/* Modal Sună Acum / Caută Comandă */}
-            {isSearchModalOpen && (
+            {/* Modal Sună Acum / Caută Comandă - exclusiv Kordano */}
+            {isSearchModalOpen && isKordano && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
                     <div className="bg-[#13141a] border border-white/10 rounded-3xl w-full max-w-xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col p-6 animate-scale-up">
                         {/* Header */}
