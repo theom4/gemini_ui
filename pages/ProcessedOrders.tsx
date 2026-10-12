@@ -58,6 +58,7 @@ export default function ProcessedOrders() {
     const [manualAddress, setManualAddress] = useState('');
     const [manualSelectedProductSku, setManualSelectedProductSku] = useState(AVAILABLE_PRODUCTS[0].sku);
     const [manualQuantity, setManualQuantity] = useState(1);
+    const [manualTotal, setManualTotal] = useState('');
     const [isCallingManual, setIsCallingManual] = useState(false);
 
     // ── Call History & 1-Hour Cooldown Checker ───────────────────────
@@ -204,6 +205,7 @@ export default function ProcessedOrders() {
         setManualAddress('');
         setManualSelectedProductSku(AVAILABLE_PRODUCTS[0].sku);
         setManualQuantity(1);
+        setManualTotal('');
     };
 
     const handleCallManualOrder = async (e?: React.FormEvent) => {
@@ -212,6 +214,11 @@ export default function ProcessedOrders() {
         const cleanPhone = searchPhone.trim().replace(/\s+/g, '');
         if (!cleanPhone) {
             alert('Numărul de telefon lipsește.');
+            return;
+        }
+        const cleanTotal = manualTotal.trim().replace(',', '.');
+        if (!cleanTotal) {
+            alert('Te rugăm să introduci totalul comenzii.');
             return;
         }
         const quantityNum = Math.max(1, Number(manualQuantity) || 1);
@@ -252,6 +259,11 @@ export default function ProcessedOrders() {
                     link: prodObj.link,
                     cantitate: quantityNum,
                     quantity: quantityNum,
+                    total: cleanTotal,
+                    total_price: cleanTotal,
+                    valoare: cleanTotal,
+                    value: cleanTotal,
+                    total_comanda: cleanTotal,
                     produse: `${prodObj.name} (${prodObj.sku}) x${quantityNum}`,
                     order_number: '',
                     order_id: '',
@@ -282,7 +294,7 @@ export default function ProcessedOrders() {
                     name: manualName.trim() || 'Comandă manuală',
                     phone: cleanPhone,
                     orderId: 'Manual',
-                    total: `${prodObj.name} x${quantityNum}`,
+                    total: cleanTotal,
                     time: new Date().toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
                     date: new Date().toLocaleDateString('ro-RO')
                 };
@@ -1002,29 +1014,30 @@ export default function ProcessedOrders() {
                                         </div>
                                     </div>
 
-                                    {/* Produs și Cantitate */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                        <div className="sm:col-span-2">
-                                            <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">
-                                                Produs *
-                                            </label>
-                                            <div className="relative">
-                                                <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-base">inventory_2</span>
-                                                <select
-                                                    value={manualSelectedProductSku}
-                                                    onChange={(e) => setManualSelectedProductSku(e.target.value)}
-                                                    className="w-full bg-[#1a1b23] border border-white/10 text-white text-sm rounded-xl pl-9 pr-8 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none cursor-pointer"
-                                                >
-                                                    {AVAILABLE_PRODUCTS.map((prod) => (
-                                                        <option key={prod.sku} value={prod.sku} className="bg-[#13141a] text-white">
-                                                            {prod.name} ({prod.sku})
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <span className="material-icons-round absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none">expand_more</span>
-                                            </div>
+                                    {/* Produs */}
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">
+                                            Produs *
+                                        </label>
+                                        <div className="relative">
+                                            <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-base">inventory_2</span>
+                                            <select
+                                                value={manualSelectedProductSku}
+                                                onChange={(e) => setManualSelectedProductSku(e.target.value)}
+                                                className="w-full bg-[#1a1b23] border border-white/10 text-white text-sm rounded-xl pl-9 pr-8 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none cursor-pointer"
+                                            >
+                                                {AVAILABLE_PRODUCTS.map((prod) => (
+                                                    <option key={prod.sku} value={prod.sku} className="bg-[#13141a] text-white">
+                                                        {prod.name} ({prod.sku})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span className="material-icons-round absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none">expand_more</span>
                                         </div>
+                                    </div>
 
+                                    {/* Cantitate și Total Comandă */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div>
                                             <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">
                                                 Cantitate *
@@ -1038,6 +1051,23 @@ export default function ProcessedOrders() {
                                                     value={manualQuantity}
                                                     onChange={(e) => setManualQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                                                     className="w-full bg-[#1a1b23] border border-white/10 text-white text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-center font-mono"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">
+                                                Total comandă (lei) *
+                                            </label>
+                                            <div className="relative">
+                                                <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-base">payments</span>
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    value={manualTotal}
+                                                    onChange={(e) => setManualTotal(e.target.value)}
+                                                    placeholder="ex: 149.00"
+                                                    className="w-full bg-[#1a1b23] border border-white/10 text-white text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder-gray-600 font-mono"
                                                 />
                                             </div>
                                         </div>
@@ -1078,13 +1108,14 @@ export default function ProcessedOrders() {
                                             const clean = searchPhone.trim().replace(/\s+/g, '');
                                             const cooldown = getRecentCallTimeRemaining(clean);
                                             const isBlocked = cooldown.isBlocked;
+                                            const isMissingTotal = !manualTotal.trim();
 
                                             return (
                                                 <button
                                                     type="submit"
-                                                    disabled={isCallingManual || isBlocked}
+                                                    disabled={isCallingManual || isBlocked || isMissingTotal}
                                                     className={`w-full h-11 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all shadow-md text-white ${
-                                                        isBlocked
+                                                        isBlocked || isMissingTotal
                                                             ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300 cursor-not-allowed opacity-60'
                                                             : 'btn-3d-primary active:scale-95 disabled:opacity-50'
                                                     }`}
@@ -1098,6 +1129,11 @@ export default function ProcessedOrders() {
                                                         <>
                                                             <span className="material-icons-round text-lg text-amber-400">lock_clock</span>
                                                             <span>Blocat 1 oră ({cooldown.minutesRemaining} min rămase)</span>
+                                                        </>
+                                                    ) : isMissingTotal ? (
+                                                        <>
+                                                            <span className="material-icons-round text-lg text-amber-400">payments</span>
+                                                            <span>Introdu totalul pentru a suna</span>
                                                         </>
                                                     ) : (
                                                         <>
